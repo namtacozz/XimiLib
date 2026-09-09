@@ -1,0 +1,3360 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XimiLib - PBL Project Manager & Workspace</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    
+    * {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: none;
+    }
+    
+    input, textarea, select, pre, code, .font-mono, [contenteditable="true"] {
+      font-family: 'JetBrains Mono', monospace;
+      user-select: text;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.4);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(156, 163, 175, 0.7);
+    }
+
+    .glass-card {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .modal-backdrop {
+      background-color: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+    }
+
+    /* SSMS Style Grid Background */
+    .diagram-canvas {
+      background-size: 24px 24px;
+      background-image: radial-gradient(circle, rgba(148, 163, 184, 0.28) 1.2px, transparent 1.2px);
+    }
+    .dark .diagram-canvas {
+      background-image: radial-gradient(circle, rgba(71, 85, 105, 0.4) 1.2px, transparent 1.2px);
+    }
+
+    .table-card {
+      touch-action: none;
+      transition: box-shadow 0.15s ease;
+    }
+    .table-card.dragging {
+      opacity: 0.95;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.15);
+      cursor: grabbing !important;
+      z-index: 50 !important;
+    }
+
+    .rel-line:hover {
+      stroke-width: 3.5px !important;
+      stroke: #ec4899 !important;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 flex flex-col antialiased transition-colors duration-200">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-white/85 dark:bg-slate-900/85 border-b border-slate-200 dark:border-slate-800 glass-card">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Project Branding -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+          <i data-lucide="library" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="font-bold text-lg text-slate-900 dark:text-white tracking-tight" id="headerProjectTitle">XimiLib</h1>
+            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">PBL Workspace</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Web Quản lý Thư Viện &bull; Quản lý đồ án & hỗ trợ làm báo cáo</p>
+        </div>
+      </div>
+
+      <!-- Actions & Controls -->
+      <div class="flex items-center space-x-2">
+        <!-- Restore Default Data Button -->
+        <button onclick="resetToDefaultsConfirm()" title="Khôi phục lại toàn bộ dữ liệu mẫu ban đầu của XimiLib" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold flex items-center space-x-1.5 border border-slate-200 dark:border-slate-700 transition-colors">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span class="hidden md:inline">Khôi Phục Mẫu</span>
+        </button>
+
+        <!-- Single Unified Smart Save Button -->
+        <button onclick="saveToFileAndGit()" title="Lưu toàn bộ dữ liệu trực tiếp vào file pbl_workspace.html để sẵn sàng git push (Phím tắt: Ctrl + S)" class="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 shadow-sm shadow-emerald-600/20 transition-all">
+          <i data-lucide="save" class="w-4 h-4"></i>
+          <span>Lưu Vào File (Đẩy Git)</span>
+        </button>
+
+        <!-- Master Report Exporter -->
+        <button onclick="openMasterReportModal()" title="Xuất toàn bộ dữ liệu đồ án thành tài liệu phụ trợ nộp báo cáo" class="px-3 py-1.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 shadow-md shadow-brand-500/20 transition-all">
+          <i data-lucide="file-down" class="w-4 h-4"></i>
+          <span>Xuất Báo Cáo</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button onclick="toggleDarkMode()" class="p-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" title="Đổi giao diện Sáng / Tối">
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 overflow-x-auto border-t border-slate-100 dark:border-slate-800/80 py-1.5 no-scrollbar">
+      <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all text-brand-600 bg-brand-50 dark:text-brand-400 dark:bg-brand-950/60">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        <span>Dashboard</span>
+      </button>
+
+      <button onclick="switchTab('ideas')" id="tab-ideas" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800">
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+        <span>Tính Năng & Ưu Tiên</span>
+        <span id="badge-ideas" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">0</span>
+      </button>
+
+      <button onclick="switchTab('weekly')" id="tab-weekly" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800">
+        <i data-lucide="calendar" class="w-4 h-4"></i>
+        <span>Lịch Trình & Phân Công Nhóm</span>
+        <span id="badge-tasks" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">0</span>
+      </button>
+
+      <button onclick="switchTab('erd')" id="tab-erd" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800">
+        <i data-lucide="database" class="w-4 h-4"></i>
+        <span>Sơ Đồ CSDL (SSMS Diagram)</span>
+        <span id="badge-tables" class="px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300">8</span>
+      </button>
+
+      <!-- New Tab: Documents & Assets -->
+      <button onclick="switchTab('documents')" id="tab-documents" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800">
+        <i data-lucide="folder-git-2" class="w-4 h-4"></i>
+        <span>Tài Liệu & Tài Nguyên</span>
+        <span id="badge-docs" class="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300">4</span>
+      </button>
+
+      <button onclick="switchTab('dod')" id="tab-dod" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800">
+        <i data-lucide="check-square" class="w-4 h-4"></i>
+        <span>Tiêu Chí DoD & Test Cases</span>
+      </button>
+
+      <button onclick="switchTab('settings')" id="tab-settings" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800">
+        <i data-lucide="settings" class="w-4 h-4"></i>
+        <span>Cấu Hình</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ==================== TAB 1: DASHBOARD ==================== -->
+    <section id="view-dashboard" class="space-y-6">
+      <!-- Project Summary Banner -->
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 p-6 sm:p-8 text-white shadow-xl shadow-brand-500/10">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div class="space-y-3">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-medium">
+              <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
+              <span>Đồ án PBL: Công nghệ Phần mềm &bull; ĐH Bách Khoa - ĐHĐN</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight" id="dashProjectName">XimiLib - Web Quản Lý Thư Viện</h2>
+            <p class="text-brand-100 text-sm max-w-2xl" id="dashProjectDesc">
+              Hệ thống quản lý mượn trả sách, độc giả, hạng thẻ thành viên, xử lý quá hạn và báo cáo thống kê trực tuyến.
+            </p>
+            
+            <!-- Team Members Badges -->
+            <div class="flex flex-wrap items-center gap-2 pt-1" id="dashTeamCards">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Countdown / Deadline Card -->
+          <div class="bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/20 rounded-2xl p-5 min-w-[220px] flex flex-col justify-center items-center text-center shadow-lg">
+            <span class="text-xs uppercase tracking-wider text-brand-200 font-semibold">Hạn chót bảo vệ</span>
+            <span class="text-2xl font-black mt-1" id="dashDeadlineDate">15/06/2026</span>
+            <div class="mt-2 inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-amber-400/25 text-amber-300 text-xs font-bold" id="dashDaysLeft">
+              <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+              <span>Đang tính...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
+      </div>
+
+      <!-- KPI Metric Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold">Tiến độ Tổng thể</span>
+            <i data-lucide="activity" class="w-4 h-4 text-brand-500"></i>
+          </div>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-2xl font-bold text-slate-900 dark:text-white" id="statOverallProgress">0%</span>
+            <span class="text-xs text-slate-500" id="statTasksCount">0/0 task</span>
+          </div>
+          <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
+            <div id="statProgressBar" class="bg-brand-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold">Tính Năng Cốt Lõi</span>
+            <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
+          </div>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-2xl font-bold text-slate-900 dark:text-white" id="statFeatureActive">0</span>
+            <span class="text-xs text-slate-500" id="statFeatureScrapped">(0 đã bỏ)</span>
+          </div>
+          <div class="flex items-center space-x-1.5 mt-3 text-[11px] text-slate-500">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span id="statMustHaveCount">0 Cốt lõi</span>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold">Sơ Đồ CSDL</span>
+            <i data-lucide="database" class="w-4 h-4 text-indigo-500"></i>
+          </div>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-2xl font-bold text-slate-900 dark:text-white" id="statTableCount">8</span>
+            <span class="text-xs text-slate-500">bảng thực thể</span>
+          </div>
+          <div class="flex items-center space-x-1.5 mt-3 text-[11px] text-indigo-600 dark:text-indigo-400">
+            <i data-lucide="check" class="w-3 h-3"></i>
+            <span>Sơ đồ kéo thả SSMS sẵn sàng</span>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold">Tài Liệu & Asset</span>
+            <i data-lucide="folder-git-2" class="w-4 h-4 text-emerald-500"></i>
+          </div>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-2xl font-bold text-slate-900 dark:text-white" id="statDocCount">4</span>
+            <span class="text-xs text-slate-500">tài liệu dự án</span>
+          </div>
+          <div class="flex items-center space-x-1.5 mt-3 text-[11px] text-emerald-600 dark:text-emerald-400">
+            <i data-lucide="link-2" class="w-3 h-3"></i>
+            <span>Figma, SRS, SQL Seeder</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Task Overview -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Urgent Tasks -->
+        <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center space-x-2">
+              <i data-lucide="list-todo" class="w-4 h-4 text-brand-500"></i>
+              <span>Công việc đang thực hiện & Cần làm ngay</span>
+            </h3>
+            <button onclick="switchTab('weekly')" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline">Xem lịch trình chi tiết &rarr;</button>
+          </div>
+          <div id="dashUrgentTaskList" class="space-y-2">
+            <!-- Dynamic urgent tasks -->
+          </div>
+        </div>
+
+        <!-- PBL Phases Checklist -->
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center space-x-2">
+            <i data-lucide="milestone" class="w-4 h-4 text-purple-500"></i>
+            <span>Các giai đoạn đồ án PBL</span>
+          </h3>
+          <div id="dashPhasesList" class="space-y-3">
+            <!-- Dynamic Phase checklist -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: TÍNH NĂNG & ƯU TIÊN (1 CỘT SẮP XẾP) ==================== -->
+    <section id="view-ideas" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div>
+          <h2 class="font-bold text-lg text-slate-900 dark:text-white flex items-center space-x-2">
+            <i data-lucide="sparkles" class="w-5 h-5 text-amber-500"></i>
+            <span>Danh Mục Tính Năng & Mức Độ Ưu Tiên Hoàn Thiện</span>
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Danh sách tính năng được sắp xếp theo thứ tự ưu tiên từ trên xuống dưới. Dễ dàng đổi vị trí, phân công và ghi chú lý do nếu lược bỏ.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Preset Suggestions Button -->
+          <button onclick="openPresetsModal()" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>Gợi Ý Tính Năng Thư Viện</span>
+          </button>
+          
+          <!-- Add Idea Button -->
+          <button onclick="openIdeaModal()" class="px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition-colors">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Thêm Tính Năng Mới</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Single List View with Priority Ordering -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden p-4 space-y-3">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+          <span class="font-semibold text-slate-700 dark:text-slate-300">Thứ tự ưu tiên triển khai (1 = Cao nhất)</span>
+          <div class="flex items-center space-x-3 text-[11px]">
+            <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Cốt lõi (Must)</span></span>
+            <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span>Quan trọng (Should)</span></span>
+            <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-purple-500"></span><span>Mở rộng (Nice)</span></span>
+            <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span><span>Đã lược bỏ</span></span>
+          </div>
+        </div>
+
+        <div id="singleIdeaList" class="space-y-2.5">
+          <!-- Dynamic 1-column Ordered List -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: LỊCH TRÌNH & PHÂN CÔNG NHÓM ==================== -->
+    <section id="view-weekly" class="hidden space-y-6">
+      <!-- Toolbar -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div>
+          <h2 class="font-bold text-lg text-slate-900 dark:text-white flex items-center space-x-2">
+            <i data-lucide="calendar" class="w-5 h-5 text-brand-500"></i>
+            <span>Lịch Trình Quá Trình Dự Án & Phân Công Nhiệm Vụ</span>
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Phân chia công việc rõ ràng cho Nam (BE), Kiên (FE/DB), Nhật (TechLead) theo từng tuần để xuất vào Báo cáo nộp thầy.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Filter Assignee -->
+          <select id="filterAssignee" onchange="renderTasks()" class="text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">
+            <option value="ALL">Tất cả thành viên</option>
+          </select>
+
+          <!-- Add Week -->
+          <button onclick="addNewWeekPrompt()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <span>Thêm Tuần</span>
+          </button>
+
+          <!-- Add Task -->
+          <button onclick="openTaskModal()" class="px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition-colors">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Thêm Task Mới</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Weekly Accordion Container -->
+      <div id="container-weekly-view" class="space-y-4">
+        <!-- Dynamic Weeks & Tasks -->
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: SƠ ĐỒ CSDL (SSMS STYLE CANVAS DIAGRAM) ==================== -->
+    <section id="view-erd" class="hidden space-y-4">
+      <!-- Toolbar -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div>
+          <h2 class="font-bold text-lg text-slate-900 dark:text-white flex items-center space-x-2">
+            <i data-lucide="database" class="w-5 h-5 text-indigo-500"></i>
+            <span>Sơ Đồ Thiết Kế CSDL Kéo Thả (SQL Server Diagram Style)</span>
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Kéo thả di chuyển vị trí bảng, <strong>cuộn chuột giữa để Zoom In/Out</strong>, tạo liên kết hoặc <strong>nạp file .SQL từ MySQL</strong>.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Zoom Controls -->
+          <div class="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg text-xs">
+            <button onclick="zoomCanvas(-0.1)" class="p-1 text-slate-600 hover:text-slate-900 dark:text-slate-300 rounded" title="Thu nhỏ"><i data-lucide="minus" class="w-3.5 h-3.5"></i></button>
+            <span id="canvasZoomLabel" class="px-2 font-mono font-semibold">100%</span>
+            <button onclick="zoomCanvas(0.1)" class="p-1 text-slate-600 hover:text-slate-900 dark:text-slate-300 rounded" title="Phóng to"><i data-lucide="plus" class="w-3.5 h-3.5"></i></button>
+            <button onclick="resetCanvasPosition()" title="Đặt lại vị trí ban đầu (100%)" class="p-1 text-slate-600 hover:text-slate-900 dark:text-slate-300 rounded"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i></button>
+            <button onclick="fitCanvasView()" title="Căn chỉnh vừa toàn bộ bảng (Fit View)" class="p-1 text-slate-600 hover:text-slate-900 dark:text-slate-300 rounded"><i data-lucide="maximize" class="w-3.5 h-3.5"></i></button>
+          </div>
+
+          <!-- Import MySQL File Button -->
+          <button onclick="openImportSQLModal()" class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors" title="Nạp file .sql từ MySQL Workbench/phpMyAdmin để tự động tạo bảng">
+            <i data-lucide="file-up" class="w-4 h-4"></i>
+            <span>Nạp File .SQL</span>
+          </button>
+
+          <!-- Manage Relationships Modal Button -->
+          <button onclick="openRelationshipsModal()" class="px-3 py-2 bg-pink-50 hover:bg-pink-100 text-pink-700 dark:bg-pink-950/50 dark:hover:bg-pink-900/50 dark:text-pink-300 border border-pink-200 dark:border-pink-800 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors">
+            <i data-lucide="git-merge" class="w-4 h-4"></i>
+            <span>Nối Quan Hệ (<span id="relCountBadge">7</span>)</span>
+          </button>
+
+          <!-- Export SQL Script -->
+          <button onclick="exportSQLModal()" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors">
+            <i data-lucide="code-2" class="w-4 h-4"></i>
+            <span>Xuất SQL DDL</span>
+          </button>
+
+          <!-- Add Table -->
+          <button onclick="openTableModal()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition-colors">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Thêm Bảng Mới</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SSMS Interactive Drag & Drop Diagram Canvas -->
+      <div id="diagramViewport" class="relative w-full h-[650px] bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-inner diagram-canvas cursor-grab active:cursor-grabbing">
+        
+        <!-- Transformable Canvas Plane -->
+        <div id="diagramPlane" class="absolute inset-0 origin-top-left" style="transform: translate(0px, 0px) scale(1);">
+          
+          <!-- SVG Connector Lines for Relationships -->
+          <svg id="diagramSvg" class="absolute inset-0 w-[3000px] h-[3000px] pointer-events-none z-10">
+            <!-- Dynamic relationship curves -->
+          </svg>
+
+          <!-- Draggable Table Nodes Container -->
+          <div id="tablesContainer" class="absolute inset-0 w-[3000px] h-[3000px]">
+            <!-- Dynamic Table Cards -->
+          </div>
+        </div>
+
+        <!-- Canvas Mini Overlay Indicator -->
+        <div class="absolute bottom-3 left-3 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 shadow-sm flex items-center space-x-2 pointer-events-none">
+          <i data-lucide="mouse" class="w-3.5 h-3.5 text-indigo-500"></i>
+          <span>Cuộn chuột giữa để Zoom In/Out &bull; Kéo tiêu đề bảng để di chuyển &bull; Kéo nền canvas để cuộn</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: TÀI LIỆU & TÀI NGUYÊN (NEW) ==================== -->
+    <section id="view-documents" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div>
+          <h2 class="font-bold text-lg text-slate-900 dark:text-white flex items-center space-x-2">
+            <i data-lucide="folder-git-2" class="w-5 h-5 text-emerald-500"></i>
+            <span>Kho Tài Liệu, Liên Kết & Tài Nguyên Dự Án</span>
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Lưu trữ các đường link Figma, file SRS, tài liệu kiến trúc, ảnh chụp màn hình hoặc script mẫu của nhóm.</p>
+        </div>
+
+        <button onclick="openDocumentModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition-colors">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Thêm Tài Liệu Mới</span>
+        </button>
+      </div>
+
+      <!-- Horizontal Cards List of Documents -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden p-4 space-y-3">
+        <div id="documentsList" class="space-y-3">
+          <!-- Dynamic Document Cards -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 6: TIÊU CHÍ HOÀN THIỆN & TEST CASES ==================== -->
+    <section id="view-dod" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Definition of Done (DoD) -->
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center space-x-2">
+                <i data-lucide="check-check" class="w-4 h-4 text-emerald-500"></i>
+                <span>Tiêu Chí Nghiệm Thu Hoàn Thiện (Definition of Done)</span>
+              </h3>
+              <p class="text-[11px] text-slate-400">Các tiêu chuẩn bắt buộc của đồ án trước khi bảo vệ</p>
+            </div>
+            <button onclick="addDodItemPrompt()" class="p-1.5 text-brand-600 hover:bg-brand-50 dark:hover:bg-slate-800 rounded-lg"><i data-lucide="plus" class="w-4 h-4"></i></button>
+          </div>
+
+          <div id="dodList" class="space-y-2.5">
+            <!-- Dynamic DoD Checkbox list -->
+          </div>
+        </div>
+
+        <!-- QA Test Cases -->
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center space-x-2">
+                <i data-lucide="flask-conical" class="w-4 h-4 text-purple-500"></i>
+                <span>Kịch Bản Kiểm Thử Nghiệp Vụ Thư Viện (Test Cases)</span>
+              </h3>
+              <p class="text-[11px] text-slate-400">Kiểm thử các ràng buộc mượn trả, vượt hạng cọc tiền, quá hạn</p>
+            </div>
+            <button onclick="openTestCaseModal()" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs font-semibold flex items-center space-x-1">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>Thêm Test Case</span>
+            </button>
+          </div>
+
+          <div id="testCasesList" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
+            <!-- Dynamic Test cases list -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 7: CẤU HÌNH & THÔNG TIN ==================== -->
+    <section id="view-settings" class="hidden space-y-6 max-w-3xl mx-auto">
+      <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+        <div>
+          <h2 class="font-bold text-base text-slate-900 dark:text-white flex items-center space-x-2">
+            <i data-lucide="settings" class="w-5 h-5 text-slate-500"></i>
+            <span>Cài Đặt Đồ Án PBL & Thành Viên Nhóm</span>
+          </h2>
+          <p class="text-xs text-slate-500">Thông tin này được sử dụng trực tiếp để xuất Báo Cáo nộp Giảng viên hướng dẫn</p>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Tên Đề Tài</label>
+            <input type="text" id="cfgProjectTitle" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Mô Tả Dự Án</label>
+            <textarea id="cfgProjectDesc" rows="2" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"></textarea>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Hạn Chót Bảo Vệ (YYYY-MM-DD)</label>
+            <input type="date" id="cfgDeadline" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+          </div>
+
+          <div class="pt-2">
+            <button onclick="saveProjectConfig()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-semibold flex items-center space-x-1.5 shadow-sm">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>Lưu Thông Tin</span>
+            </button>
+          </div>
+        </div>
+
+        <hr class="border-slate-100 dark:border-slate-800" />
+
+        <!-- Data Operations -->
+        <div class="space-y-3">
+          <h3 class="font-bold text-sm text-slate-900 dark:text-white">Khôi Phục Dữ Liệu</h3>
+          <p class="text-xs text-slate-400">Nếu muốn trở lại trạng thái mẫu ban đầu của nhóm XimiLib, bạn có thể bấm nút bên dưới:</p>
+          <button onclick="resetToDefaultsConfirm()" class="px-3.5 py-2 border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            <span>Khôi Phục Dữ Liệu Mẫu Ban Đầu</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== MODALS & DIALOGS ==================== -->
+
+  <!-- Modal: Import MySQL SQL File / Text -->
+  <div id="modalImportSQL" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+        <div>
+          <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center space-x-2">
+            <i data-lucide="file-up" class="w-5 h-5 text-emerald-500"></i>
+            <span>Nạp CSDL Từ File / Mã MySQL (.SQL)</span>
+          </h3>
+          <p class="text-xs text-slate-400">Tự động bóc tách các lệnh CREATE TABLE, cột, khóa chính và khóa ngoại để đưa vào sơ đồ kéo thả</p>
+        </div>
+        <button onclick="closeModal('modalImportSQL')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs flex-1 flex flex-col">
+        <div class="flex items-center space-x-2">
+          <label class="cursor-pointer px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg font-semibold flex items-center space-x-1.5 border border-slate-200 dark:border-slate-700">
+            <i data-lucide="upload" class="w-4 h-4 text-emerald-600"></i>
+            <span>Chọn file .SQL từ máy</span>
+            <input type="file" id="sqlFileInput" accept=".sql,.txt" class="hidden" onchange="handleSqlFileUpload(event)" />
+          </label>
+          <span class="text-slate-400">hoặc dán trực tiếp câu lệnh SQL vào ô bên dưới:</span>
+        </div>
+
+        <textarea id="sqlImportInputText" rows="12" placeholder="Dán các câu lệnh CREATE TABLE ... tại đây..." class="w-full font-mono text-xs p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-950 text-emerald-300 dark:bg-black focus:outline-none flex-1"></textarea>
+      </div>
+
+      <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+        <span class="text-[11px] text-slate-400">Lưu ý: Thao tác này sẽ cập nhật danh sách bảng vào sơ đồ hiện tại.</span>
+        <div class="flex space-x-2">
+          <button onclick="closeModal('modalImportSQL')" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold">Hủy</button>
+          <button onclick="parseAndApplySQL()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 shadow-sm">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Áp Dụng Vào Sơ Đồ</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add / Edit Document -->
+  <div id="modalDocument" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white" id="modalDocTitle">Thêm Tài Liệu / Tài Nguyên Mới</h3>
+        <button onclick="closeModal('modalDocument')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <input type="hidden" id="docEditId" />
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Tên Tài Liệu / Tiêu Đề</label>
+          <input type="text" id="docName" placeholder="Ví dụ: Link Wireframe Figma Giao diện Thư Viện" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Loại Tài Nguyên</label>
+            <select id="docType" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+              <option value="link">Đường Link (Figma, Drive, GitHub...)</option>
+              <option value="image">Hình Ảnh (UI Mockup, Sơ Đồ...)</option>
+              <option value="doc">Tài Liệu Văn Bản / PDF / Word</option>
+              <option value="sql">Mã / Script CSDL MySQL</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Người Tải Lên / Phụ Trách</label>
+            <select id="docUploader" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"></select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Đường Link URL hoặc Đường dẫn File</label>
+          <input type="text" id="docUrl" placeholder="https://www.figma.com/... hoặc docs/SRS_v1.pdf" class="w-full font-mono px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Nội Dung / Ghi Chú Chi Tiết</label>
+          <textarea id="docContent" rows="3" placeholder="Mô tả nội dung tài liệu, cách truy cập, phiên bản..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-2">
+        <button onclick="closeModal('modalDocument')" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold">Hủy</button>
+        <button onclick="saveDocument()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold">Lưu Tài Liệu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Manage Relationships -->
+  <div id="modalRelationships" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+        <div>
+          <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center space-x-2">
+            <i data-lucide="git-merge" class="w-5 h-5 text-pink-500"></i>
+            <span>Quản Lý & Nối Quan Hệ CSDL (Foreign Keys)</span>
+          </h3>
+          <p class="text-xs text-slate-400">Tạo liên kết giữa các bảng, dây nối trên sơ đồ sẽ tự động vẽ theo cấu hình</p>
+        </div>
+        <button onclick="closeModal('modalRelationships')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <!-- Add New Relationship Form -->
+      <div class="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3 text-xs">
+        <span class="font-bold text-slate-800 dark:text-slate-200">Tạo Liên Kết Mới:</span>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-600 dark:text-slate-300">Bảng Chứa Khóa Ngoại (Foreign Key Table)</label>
+            <select id="relFromTable" onchange="updateRelColumns('from')" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"></select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1 text-slate-600 dark:text-slate-300">Cột Khóa Ngoại (FK Column)</label>
+            <select id="relFromCol" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"></select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-600 dark:text-slate-300">Bảng Tham Chiếu (Primary Table)</label>
+            <select id="relToTable" onchange="updateRelColumns('to')" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"></select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1 text-slate-600 dark:text-slate-300">Cột Khóa Chính (PK Column)</label>
+            <select id="relToCol" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"></select>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-1">
+          <button onclick="addNewRelationship()" class="px-3.5 py-1.5 bg-pink-600 hover:bg-pink-700 text-white rounded-lg font-semibold flex items-center space-x-1 shadow-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Tạo Liên Kết</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Relationships List -->
+      <div class="flex-1 overflow-y-auto space-y-2 pr-1 text-xs" id="relationshipsList">
+        <!-- Dynamic relations rows -->
+      </div>
+
+      <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+        <button onclick="closeModal('modalRelationships')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 rounded-lg text-xs font-semibold">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Master Report Exporter -->
+  <div id="modalMasterReport" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-4xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 max-h-[92vh] flex flex-col">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+        <div>
+          <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center space-x-2">
+            <i data-lucide="file-check" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i>
+            <span>Bộ Tài Liệu Phụ Trợ Báo Cáo Quá Trình Đồ Án PBL</span>
+          </h3>
+          <p class="text-xs text-slate-400">Tổng hợp đầy đủ thông tin phân công 3 thành viên, tiến độ từng tuần, danh mục tính năng và thiết kế CSDL để chèn vào Báo cáo Word</p>
+        </div>
+        <button onclick="closeModal('modalMasterReport')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <textarea id="masterReportText" rows="18" readonly class="w-full font-mono text-xs p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 focus:outline-none flex-1"></textarea>
+
+      <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div class="flex space-x-2">
+          <button onclick="copyMasterReportText()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 shadow-sm">
+            <i data-lucide="copy" class="w-4 h-4"></i>
+            <span>Sao Chép Toàn Bộ (Markdown)</span>
+          </button>
+          <button onclick="downloadMasterReportFile()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 rounded-lg text-xs font-semibold flex items-center space-x-1.5 border border-indigo-200 dark:border-indigo-800">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Tải File Báo Cáo (.md)</span>
+          </button>
+          <button onclick="window.print()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>In / PDF</span>
+          </button>
+        </div>
+        <button onclick="closeModal('modalMasterReport')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 rounded-lg text-xs font-semibold">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add / Edit Idea / Feature -->
+  <div id="modalIdea" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white" id="modalIdeaTitle">Thêm Tính Năng Mới</h3>
+        <button onclick="closeModal('modalIdea')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <input type="hidden" id="ideaEditId" />
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Tên Tính Năng / Module</label>
+          <input type="text" id="ideaTitle" placeholder="Ví dụ: Đặt cọc sách online theo hạng thẻ" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Mô Tả Nghiệp Vụ Chi Tiết</label>
+          <textarea id="ideaDesc" rows="3" placeholder="Mô tả cụ thể cách hoạt động và yêu cầu nghiệp vụ..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Mức Độ Ưu Tiên</label>
+            <select id="ideaCategory" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+              <option value="must">Cốt lõi (Must Have)</option>
+              <option value="should">Quan trọng (Should Have)</option>
+              <option value="nice">Mở rộng / Điểm cộng (Nice to Have)</option>
+              <option value="scrapped">Đã Lược Bỏ / Hoãn</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Người Phụ Trách Chính</label>
+            <select id="ideaAssignee" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"></select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Module / Tag</label>
+            <input type="text" id="ideaTag" placeholder="Auth, Book, Borrow, Fine..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Trạng Thái Hoàn Thiện</label>
+            <select id="ideaStatus" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+              <option value="todo">Chưa làm</option>
+              <option value="inprogress">Đang làm</option>
+              <option value="done">Đã hoàn thành</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="ideaScrappedReasonBox" class="hidden">
+          <label class="block font-semibold mb-1 text-rose-600 dark:text-rose-400">Lý do lược bỏ / hoãn (để giải trình phản biện):</label>
+          <input type="text" id="ideaScrappedReason" placeholder="Ví dụ: Lược bỏ do giới hạn thời gian đồ án, ưu tiên hoàn thiện nghiệp vụ cốt lõi mượn trả..." class="w-full px-3 py-2 rounded-lg border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200" />
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-2">
+        <button onclick="closeModal('modalIdea')" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold">Hủy</button>
+        <button onclick="saveIdea()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold">Lưu Tính Năng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Presets Suggestions -->
+  <div id="modalPresets" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+        <div>
+          <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center space-x-2">
+            <i data-lucide="sparkles" class="w-5 h-5 text-amber-500"></i>
+            <span>Ngân Hàng Gợi Ý Tính Năng Web Quản Lý Thư Viện</span>
+          </h3>
+          <p class="text-xs text-slate-400">Chọn tính năng bên dưới để thêm ngay vào danh sách ưu tiên của nhóm</p>
+        </div>
+        <button onclick="closeModal('modalPresets')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-3 pr-1 text-xs" id="presetsList">
+        <!-- Dynamic presets -->
+      </div>
+
+      <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+        <button onclick="closeModal('modalPresets')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add / Edit Task -->
+  <div id="modalTask" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white" id="modalTaskTitle">Thêm Công Việc Mới</h3>
+        <button onclick="closeModal('modalTask')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <input type="hidden" id="taskEditId" />
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Tiêu đề công việc</label>
+          <input type="text" id="taskTitle" placeholder="Ví dụ: Thiết kế giao diện Tra cứu Sách" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Mô tả chi tiết / Kết quả cần đạt</label>
+          <textarea id="taskDesc" rows="2" placeholder="Chi tiết việc cần làm để đưa vào báo cáo tiến độ..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Tuần thực hiện</label>
+            <select id="taskWeek" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"></select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Người phụ trách</label>
+            <select id="taskAssignee" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"></select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Trạng thái</label>
+            <select id="taskStatus" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+              <option value="todo">To Do (Cần làm)</option>
+              <option value="inprogress">In Progress (Đang làm)</option>
+              <option value="review">Review (Đang duyệt)</option>
+              <option value="done">Done (Hoàn thành)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Độ ưu tiên</label>
+            <select id="taskPriority" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+              <option value="high">Cao (High)</option>
+              <option value="medium" selected>Vừa (Medium)</option>
+              <option value="low">Thấp (Low)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Module / Tag</label>
+            <input type="text" id="taskTag" placeholder="FE, BE, DB, Doc" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-2">
+        <button onclick="closeModal('modalTask')" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold">Hủy</button>
+        <button onclick="saveTask()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold">Lưu Công Việc</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add / Edit ERD Table -->
+  <div id="modalTable" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-3xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white" id="modalTableTitle">Thêm / Chỉnh Sửa Bảng CSDL</h3>
+        <button onclick="closeModal('modalTable')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <input type="hidden" id="tableEditId" />
+      <div class="space-y-3 text-xs flex-1 overflow-y-auto pr-1">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Tên Bảng (Tên chuẩn SQL)</label>
+            <input type="text" id="tableName" placeholder="Ví dụ: readers, books, borrow_tickets" class="w-full font-mono px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Mô Tả Ý Nghĩa Bảng</label>
+            <input type="text" id="tableDesc" placeholder="Bảng lưu thông tin độc giả và hạng thẻ" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="font-semibold text-slate-700 dark:text-slate-300">Các Cột Thuộc Tính (Columns)</label>
+            <button onclick="addColumnRow()" class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline flex items-center space-x-1">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>Thêm Cột</span>
+            </button>
+          </div>
+
+          <div id="tableColumnsContainer" class="space-y-2">
+            <!-- Dynamic column rows -->
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <button onclick="closeModal('modalTable')" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold">Hủy</button>
+        <button onclick="saveTable()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold">Lưu Bảng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Export SQL DDL Script -->
+  <div id="modalSQL" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center space-x-2">
+          <i data-lucide="code-2" class="w-5 h-5 text-indigo-500"></i>
+          <span>Mã SQL DDL (MySQL CREATE TABLE)</span>
+        </h3>
+        <button onclick="closeModal('modalSQL')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <p class="text-xs text-slate-500">Copy toàn bộ câu lệnh dưới đây để chạy trực tiếp trong MySQL Workbench hoặc phpMyAdmin để khởi tạo CSDL:</p>
+      
+      <textarea id="sqlOutputText" rows="14" readonly class="w-full font-mono text-xs p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-950 text-indigo-300 dark:bg-black focus:outline-none flex-1"></textarea>
+
+      <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+        <button onclick="copySQLText()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 shadow-sm">
+          <i data-lucide="copy" class="w-4 h-4"></i>
+          <span>Copy SQL</span>
+        </button>
+        <button onclick="closeModal('modalSQL')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 rounded-lg text-xs font-semibold">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add / Edit Test Case -->
+  <div id="modalTestCase" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white" id="modalTestTitle">Thêm Ca Kiểm Thử (Test Case)</h3>
+        <button onclick="closeModal('modalTestCase')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <input type="hidden" id="testEditId" />
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Tên kịch bản kiểm thử</label>
+          <input type="text" id="testName" placeholder="Ví dụ: Độc giả thẻ Bạc mượn sách Vàng (cần yêu cầu cọc)" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Dữ liệu đầu vào & Thao tác</label>
+          <textarea id="testInput" rows="2" placeholder="Đăng nhập tài khoản Bạc -> Chọn sách Hạng Vàng -> Bấm Mượn..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Kết quả mong đợi</label>
+          <input type="text" id="testExpected" placeholder="Hiển thị popup yêu cầu đặt cọc tiền chênh lệch" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Trạng thái kết quả</label>
+            <select id="testStatus" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+              <option value="passed">Passed (Đạt)</option>
+              <option value="pending" selected>Pending (Chưa test)</option>
+              <option value="failed">Failed (Lỗi)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Module liên quan</label>
+            <input type="text" id="testModule" placeholder="Mượn Trả, Độc Giả..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-2">
+        <button onclick="closeModal('modalTestCase')" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold">Hủy</button>
+        <button onclick="saveTestCase()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold">Lưu Test Case</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-2.5 rounded-xl shadow-xl flex items-center space-x-2 text-xs font-semibold">
+    <i data-lucide="info" class="w-4 h-4 text-brand-400" id="toastIcon"></i>
+    <span id="toastMsg">Thông báo</span>
+  </div>
+
+  <!-- ==================== JAVASCRIPT STATE & CORE LOGIC ==================== -->
+  <script>
+    // Storage Key
+    const STORAGE_KEY = 'ximilib_pbl_workspace_v6';
+
+    // Official Project Members
+    const DEFAULT_MEMBERS = [
+      { name: "Lê Võ Thành Nam", role: "BE", desc: "Backend & Core Business Logic" },
+      { name: "Phan Vũ Xuân Kiên", role: "FE/DB", desc: "Frontend Web & Database Design" },
+      { name: "Nguyễn Việt Nhật", role: "TechLead", desc: "Tech Lead & System Architecture" }
+    ];
+
+    // Common MySQL Data Types
+    const COMMON_DATA_TYPES = [
+      "INT",
+      "BIGINT",
+      "VARCHAR(50)",
+      "VARCHAR(100)",
+      "VARCHAR(255)",
+      "TEXT",
+      "DECIMAL(10,2)",
+      "DECIMAL(5,2)",
+      "FLOAT",
+      "DOUBLE",
+      "DATETIME",
+      "DATE",
+      "TIME",
+      "BOOLEAN"
+    ];
+
+    // Default Initial Dataset
+    const DEFAULT_DATA = {
+      project: {
+        title: "XimiLib - Web Quản Lý Thư Viện",
+        shortTitle: "XimiLib",
+        description: "Hệ thống quản lý thư viện hiện đại: quản lý sách, độc giả, thẻ thành viên theo hạng, xử lý quá hạn và báo cáo thống kê trực tuyến.",
+        team: DEFAULT_MEMBERS,
+        deadline: "2026-06-15",
+        phases: [
+          { id: 1, name: "1. Khảo sát & Đặc tả Yêu cầu (SRS)", done: true },
+          { id: 2, name: "2. Thiết kế CSDL & Sơ đồ ERD (MySQL)", done: true },
+          { id: 3, name: "3. Thiết kế UI/UX & Wireframe Web", done: true },
+          { id: 4, name: "4. Lập trình Backend (API / Business Logic)", done: false },
+          { id: 5, name: "5. Lập trình Frontend & Ghép API", done: false },
+          { id: 6, name: "6. Kiểm thử Test Cases & Nghiệm thu", done: false },
+          { id: 7, name: "7. Viết Báo Cáo Word & Slide Bảo Vệ", done: false }
+        ]
+      },
+      // Documents & Assets List
+      documents: [
+        {
+          id: "doc-1",
+          name: "Thiết kế Wireframe & UI/UX Giao diện Web Thư Viện",
+          type: "link",
+          url: "https://www.figma.com/file/ximilib-library-ui",
+          uploader: "Phan Vũ Xuân Kiên",
+          date: "2026-03-05",
+          content: "Bộ thiết kế chi tiết các màn hình: Dashboard Thủ thư, Tra cứu sách độc giả, Lập phiếu mượn/trả và Báo cáo thống kê."
+        },
+        {
+          id: "doc-2",
+          name: "Tài liệu Đặc tả Yêu cầu Phần mềm (SRS Specification v1.0)",
+          type: "doc",
+          url: "docs/SRS_Specification_XimiLib.pdf",
+          uploader: "Nguyễn Việt Nhật",
+          date: "2026-03-02",
+          content: "Đặc tả chi tiết 3 tác nhân (Admin, Thủ thư, Độc giả), biểu đồ Use Case và các ràng buộc phi chức năng."
+        },
+        {
+          id: "doc-3",
+          name: "Kịch bản Nghiệp vụ Mượn Trả & Công Thức Tính Phạt Quá Hạn",
+          type: "doc",
+          url: "docs/Business_Rules_Borrow_Fine.docx",
+          uploader: "Lê Võ Thành Nam",
+          date: "2026-03-08",
+          content: "Quy chuẩn thời hạn mượn 15 ngày, mức phạt 2.000 VNĐ / ngày trễ, đền bù x2 giá sách và công thức tính tiền cọc vượt hạng."
+        },
+        {
+          id: "doc-4",
+          name: "Script Seeder Khởi tạo Dữ liệu Sách & Độc Giả Mẫu (MySQL)",
+          type: "sql",
+          url: "plans/Database_Seeder_Sample.sql",
+          uploader: "Phan Vũ Xuân Kiên",
+          date: "2026-03-09",
+          content: "Bộ câu lệnh INSERT 50 cuốn sách mẫu, 4 hạng thẻ thành viên và 20 tài khoản độc giả phục vụ kiểm thử."
+        }
+      ],
+      // 1-column ordered list (1 = highest priority)
+      ideas: [
+        { id: "id-1", title: "Quản lý Danh mục Sách (ISBN, Vị trí kệ, Số lượng tồn)", desc: "CRUD sách, lưu trữ ISBN, tác giả, nhà xuất bản, vị trí kệ sách để thủ thư dễ định vị.", category: "must", tag: "Book", assignee: "Phan Vũ Xuân Kiên", status: "done" },
+        { id: "id-2", title: "Quản lý Độc giả & Phân Hạng Thẻ (Đồng / Bạc / Vàng)", desc: "Quản lý thẻ độc giả, phân hạng thẻ với đặc quyền số lượng và phí khác nhau.", category: "must", tag: "Reader", assignee: "Lê Võ Thành Nam", status: "inprogress" },
+        { id: "id-3", title: "Quy trình Lập Phiếu Mượn - Trả sách (Hạn 15 ngày)", desc: "Lập phiếu mượn/trả, kiểm tra giới hạn số lượng theo hạng thẻ và kiểm tra nợ phạt.", category: "must", tag: "Borrow", assignee: "Lê Võ Thành Nam", status: "inprogress" },
+        { id: "id-4", title: "Tự động tính tiền phạt trễ hạn (2.000 VNĐ / ngày / cuốn)", desc: "Hệ thống tự tính phạt khi quá 15 ngày mượn hoặc phạt 200% giá sách khi làm mất.", category: "must", tag: "Fine", assignee: "Lê Võ Thành Nam", status: "todo" },
+        { id: "id-5", title: "Cơ chế Đặt Cọc khi mượn sách Vượt Hạng", desc: "Độc giả hạng thấp muốn mượn sách quý/hạng cao bắt buộc phải đặt cọc số tiền tương ứng.", category: "should", tag: "Borrow", assignee: "Nguyễn Việt Nhật", status: "todo" },
+        { id: "id-6", title: "Dashboard Báo cáo thống kê (Xuất file Excel .xlsx)", desc: "Biểu đồ tồn kho, số lượng sách quá hạn, phân loại độc giả và kết xuất báo cáo Excel.", category: "should", tag: "Report", assignee: "Phan Vũ Xuân Kiên", status: "todo" },
+        { id: "id-7", title: "Quét mã QR / Barcode mượn trả sách nhanh", desc: "Tích hợp camera quét mã vạch trên sách để tạo phiếu mượn nhanh chóng.", category: "nice", tag: "Enhance", assignee: "Phan Vũ Xuân Kiên", status: "todo" },
+        { id: "id-8", title: "Gửi Email tự động nhắc nhở trả sách trước 2 ngày", desc: "Chạy tác vụ cron gửi mail cho độc giả sắp đến hạn trả sách.", category: "nice", tag: "Notification", assignee: "Nguyễn Việt Nhật", status: "todo" },
+        { id: "id-9", title: "Đánh giá & Gợi ý sách thông minh (Rating & Recommendation)", desc: "Độc giả đánh giá 5 sao cho sách và hệ thống gợi ý sách theo thể loại yêu thích.", category: "nice", tag: "AI/Recom", assignee: "Nguyễn Việt Nhật", status: "todo" },
+        { id: "id-10", title: "Thanh toán phí phạt online qua VNPAY / MoMo", desc: "Tích hợp cổng thanh toán trực tuyến cho tiền phạt.", category: "scrapped", tag: "Payment", assignee: "Lê Võ Thành Nam", status: "todo", scrappedReason: "Lược bỏ cổng thanh toán để giảm độ phức tạp tích hợp API bên ngoài, nhóm tập trung toàn lực cho nghiệp vụ thư viện cốt lõi." }
+      ],
+      weeks: [
+        { id: 1, title: "Tuần 1: Khảo sát & Đặc tả Yêu cầu Đồ án" },
+        { id: 2, title: "Tuần 2: Thiết kế CSDL & Mô hình Thực thể Quan hệ (ERD)" },
+        { id: 3, title: "Tuần 3: Thiết kế Giao diện Web (UI Wireframe & Layout)" },
+        { id: 4, title: "Tuần 4: Khởi tạo CSDL MySQL & Cấu trúc Dự án" },
+        { id: 5, title: "Tuần 5: Lập trình Module Độc Giả & Hạng Thẻ" },
+        { id: 6, title: "Tuần 6: Lập trình Module Quản Lý Sách & Danh Mục" },
+        { id: 7, title: "Tuần 7: Lập trình Nghiệp vụ Mượn / Trả Sách & Đặt Cọc" },
+        { id: 8, title: "Tuần 8: Lập trình Logic Tính Phạt 2.000đ/ngày & Xử Lý Quá Hạn" },
+        { id: 9, title: "Tuần 9: Xây dựng Dashboard Thống Kê & Xuất Excel" },
+        { id: 10, title: "Tuần 10: Ghép nối Frontend - Backend & Kiểm Thử QA" },
+        { id: 11, title: "Tuần 11: Fix Bug, Hoàn thiện Báo Cáo Word & Slide Bảo Vệ" }
+      ],
+      tasks: [
+        { id: "t-1", weekId: 1, title: "Viết tài liệu đặc tả yêu cầu chức năng (SRS)", desc: "Liệt kê 3 tác nhân: Admin, Thủ thư, Độc giả.", assignee: "Nguyễn Việt Nhật", status: "done", priority: "high", tag: "Doc" },
+        { id: "t-2", weekId: 2, title: "Thiết kế Sơ đồ CSDL gồm 8 bảng thực thể", desc: "Thiết kế Readers, Tiers, Books, BorrowTickets, Fines,...", assignee: "Phan Vũ Xuân Kiên", status: "done", priority: "high", tag: "DB" },
+        { id: "t-3", weekId: 3, title: "Thiết kế Layout Web HTML/CSS hiện đại", desc: "Dựng khung Sidebar, Topbar và Data Table", assignee: "Phan Vũ Xuân Kiên", status: "done", priority: "high", tag: "FE" },
+        { id: "t-4", weekId: 4, title: "Tạo Database MySQL & Nạp dữ liệu Seeder mẫu", desc: "Viết script CREATE TABLE và INSERT dữ liệu sách mẫu.", assignee: "Phan Vũ Xuân Kiên", status: "done", priority: "high", tag: "DB" },
+        { id: "t-5", weekId: 5, title: "Lập trình API & Logic Quản lý Độc giả / Hạng thẻ", desc: "CRUD thông tin độc giả, cấp thẻ, nâng/hạ hạng thẻ.", assignee: "Lê Võ Thành Nam", status: "inprogress", priority: "high", tag: "BE" },
+        { id: "t-6", weekId: 6, title: "Lập trình Giao diện & Bộ lọc Sách đa chiều", desc: "Lọc theo tên, tác giả, thể loại, tình trạng còn sách.", assignee: "Phan Vũ Xuân Kiên", status: "inprogress", priority: "medium", tag: "FE" },
+        { id: "t-7", weekId: 7, title: "Xử lý logic mượn trả và kiểm tra tiền cọc vượt hạng", desc: "Ràng buộc không cho mượn nếu nợ phạt, kiểm tra hạng sách vs hạng thẻ.", assignee: "Lê Võ Thành Nam", status: "todo", priority: "high", tag: "BE" },
+        { id: "t-8", weekId: 8, title: "Tự động tính phí phạt 2.000đ/ngày khi trả trễ", desc: "So sánh Ngày hẹn trả vs Ngày trả thực tế, phạt mất sách x2 giá.", assignee: "Lê Võ Thành Nam", status: "todo", priority: "high", tag: "BE" },
+        { id: "t-9", weekId: 9, title: "Dựng biểu đồ thống kê Chart.js & Xuất Excel .xlsx", desc: "Thống kê lượng mượn theo tháng và tỷ lệ quá hạn.", assignee: "Phan Vũ Xuân Kiên", status: "todo", priority: "medium", tag: "FE" },
+        { id: "t-10", weekId: 10, title: "Tích hợp toàn hệ thống & Đánh giá Kiến trúc", desc: "Code review, kiểm tra hiệu năng truy vấn và bảo mật API.", assignee: "Nguyễn Việt Nhật", status: "todo", priority: "high", tag: "TechLead" },
+        { id: "t-11", weekId: 11, title: "Tổng hợp Báo Cáo Đồ Án & Slide Bảo Vệ", desc: "Đóng gói toàn bộ tài liệu, test cases và slide demo.", assignee: "Nguyễn Việt Nhật", status: "todo", priority: "high", tag: "Doc" }
+      ],
+      // Tables with visual 2D coordinates for SSMS Canvas Diagram
+      tables: [
+        {
+          id: "tbl-1",
+          name: "membership_tiers",
+          desc: "Hạng thẻ thành viên (Đồng, Bạc, Vàng)",
+          x: 40,
+          y: 40,
+          columns: [
+            { name: "tier_id", type: "INT", isPk: true, isFk: false, notNull: true },
+            { name: "tier_name", type: "VARCHAR(50)", isPk: false, isFk: false, notNull: true },
+            { name: "max_borrow_books", type: "INT", isPk: false, isFk: false, notNull: true },
+            { name: "monthly_fee", type: "DECIMAL(10,2)", isPk: false, isFk: false, notNull: true },
+            { name: "deposit_rate", type: "DECIMAL(5,2)", isPk: false, isFk: false, notNull: true }
+          ]
+        },
+        {
+          id: "tbl-2",
+          name: "readers",
+          desc: "Thông tin độc giả & thẻ",
+          x: 340,
+          y: 40,
+          columns: [
+            { name: "reader_id", type: "INT", isPk: true, isFk: false, notNull: true },
+            { name: "full_name", type: "VARCHAR(100)", isPk: false, isFk: false, notNull: true },
+            { name: "email", type: "VARCHAR(100)", isPk: false, isFk: false, notNull: true },
+            { name: "phone", type: "VARCHAR(20)", isPk: false, isFk: false, notNull: true },
+            { name: "tier_id", type: "INT", isPk: false, isFk: true, notNull: true },
+            { name: "card_issued_date", type: "DATE", isPk: false, isFk: false, notNull: true },
+            { name: "card_expiry_date", type: "DATE", isPk: false, isFk: false, notNull: true },
+            { name: "status", type: "VARCHAR(20)", isPk: false, isFk: false, notNull: true }
+          ]
+        },
+        {
+          id: "tbl-3",
+          name: "categories",
+          desc: "Danh mục thể loại sách",
+          x: 40,
+          y: 350,
+          columns: [
+            { name: "category_id", type: "INT", isPk: true, isFk: false, notNull: true },
+            { name: "category_name", type: "VARCHAR(100)", isPk: false, isFk: false, notNull: true },
+            { name: "description", type: "TEXT", isPk: false, isFk: false, notNull: false }
+          ]
+        },
+        {
+          id: "tbl-4",
+          name: "books",
+          desc: "Kho sách & vị trí kệ",
+          x: 340,
+          y: 350,
+          columns: [
+            { name: "book_id", type: "INT", isPk: true, isFk: false, notNull: true },
+            { name: "isbn", type: "VARCHAR(30)", isPk: false, isFk: false, notNull: true },
+            { name: "title", type: "VARCHAR(255)", isPk: false, isFk: false, notNull: true },
+            { name: "author", type: "VARCHAR(150)", isPk: false, isFk: false, notNull: true },
+            { name: "category_id", type: "INT", isPk: false, isFk: true, notNull: true },
+            { name: "price", type: "DECIMAL(10,2)", isPk: false, isFk: false, notNull: true },
+            { name: "tier_required", type: "INT", isPk: false, isFk: false, notNull: true },
+            { name: "shelf_location", type: "VARCHAR(50)", isPk: false, isFk: false, notNull: false },
+            { name: "total_copies", type: "INT", isPk: false, isFk: false, notNull: true },
+            { name: "available_copies", type: "INT", isPk: false, isFk: false, notNull: true }
+          ]
+        },
+        {
+          id: "tbl-5",
+          name: "borrow_tickets",
+          desc: "Phiếu mượn sách tổng thể",
+          x: 670,
+          y: 40,
+          columns: [
+            { name: "ticket_id", type: "INT", isPk: true, isFk: false, notNull: true },
+            { name: "reader_id", type: "INT", isPk: false, isFk: true, notNull: true },
+            { name: "borrow_date", type: "DATETIME", isPk: false, isFk: false, notNull: true },
+            { name: "due_date", type: "DATETIME", isPk: false, isFk: false, notNull: true },
+            { name: "total_deposit", type: "DECIMAL(10,2)", isPk: false, isFk: false, notNull: true },
+            { name: "status", type: "VARCHAR(20)", isPk: false, isFk: false, notNull: true }
+          ]
+        },
+        {
+          id: "tbl-6",
+          name: "borrow_details",
+          desc: "Chi tiết các sách trong phiếu",
+          x: 670,
+          y: 350,
+          columns: [
+            { name: "detail_id", type: "INT", isPk: true, isFk: false, notNull: true },
+            { name: "ticket_id", type: "INT", isPk: false, isFk: true, notNull: true },
+            { name: "book_id", type: "INT", isPk: false, isFk: true, notNull: true },
+            { name: "return_date", type: "DATETIME", isPk: false, isFk: false, notNull: false },
+            { name: "book_condition", type: "VARCHAR(50)", isPk: false, isFk: false, notNull: true }
+          ]
+        },
+        {
+          id: "tbl-7",
+          name: "fines",
+          desc: "Xử lý phạt trễ hạn 2.000đ/ngày & đền bù",
+          x: 990,
+          y: 40,
+          columns: [
+            { name: "fine_id", type: "INT", isPk: true, isFk: false, notNull: true },
+            { name: "ticket_id", type: "INT", isPk: false, isFk: true, notNull: true },
+            { name: "reader_id", type: "INT", isPk: false, isFk: true, notNull: true },
+            { name: "overdue_days", type: "INT", isPk: false, isFk: false, notNull: false },
+            { name: "fine_amount", type: "DECIMAL(10,2)", isPk: false, isFk: false, notNull: true },
+            { name: "is_paid", type: "BOOLEAN", isPk: false, isFk: false, notNull: true }
+          ]
+        },
+        {
+          id: "tbl-8",
+          name: "users",
+          desc: "Tài khoản Admin / Thủ thư",
+          x: 990,
+          y: 350,
+          columns: [
+            { name: "user_id", type: "INT", isPk: true, isFk: false, notNull: true },
+            { name: "username", type: "VARCHAR(50)", isPk: false, isFk: false, notNull: true },
+            { name: "password_hash", type: "VARCHAR(255)", isPk: false, isFk: false, notNull: true },
+            { name: "full_name", type: "VARCHAR(100)", isPk: false, isFk: false, notNull: true },
+            { name: "role", type: "VARCHAR(20)", isPk: false, isFk: false, notNull: true }
+          ]
+        }
+      ],
+      // Explicit Relationship List
+      relationships: [
+        { id: "rel-1", fromTable: "readers", fromCol: "tier_id", toTable: "membership_tiers", toCol: "tier_id" },
+        { id: "rel-2", fromTable: "books", fromCol: "category_id", toTable: "categories", toCol: "category_id" },
+        { id: "rel-3", fromTable: "borrow_tickets", fromCol: "reader_id", toTable: "readers", toCol: "reader_id" },
+        { id: "rel-4", fromTable: "borrow_details", fromCol: "ticket_id", toTable: "borrow_tickets", toCol: "ticket_id" },
+        { id: "rel-5", fromTable: "borrow_details", fromCol: "book_id", toTable: "books", toCol: "book_id" },
+        { id: "rel-6", fromTable: "fines", fromCol: "ticket_id", toTable: "borrow_tickets", toCol: "ticket_id" },
+        { id: "rel-7", fromTable: "fines", fromCol: "reader_id", toTable: "readers", toCol: "reader_id" }
+      ],
+      dodList: [
+        { id: "dod-1", text: "Tất cả các chức năng CRUD cơ bản (Sách, Độc giả, Mượn trả) hoạt động trơn tru không lỗi", done: true },
+        { id: "dod-2", text: "Ràng buộc nghiệp vụ tính phạt 2.000 VNĐ / ngày trễ được tính toán hoàn toàn tự động", done: false },
+        { id: "dod-3", text: "Chặn mượn sách đối với độc giả đang nợ phí phạt hoặc thẻ thành viên hết hạn", done: false },
+        { id: "dod-4", text: "Logic đặt cọc khi mượn sách vượt hạng thẻ thành viên được xử lý chính xác", done: false },
+        { id: "dod-5", text: "Dữ liệu CSDL MySQL có đầy đủ ràng buộc khóa ngoại (Foreign Keys) và Index tối ưu", done: true },
+        { id: "dod-6", text: "Giao diện Web thân thiện, hỗ trợ tìm kiếm/lọc sách đa chiều và có thông báo rõ ràng", done: false },
+        { id: "dod-7", text: "Mã nguồn tuân thủ kiến trúc phân tầng rõ ràng, comment đầy đủ các thuật toán", done: false },
+        { id: "dod-8", text: "Tài liệu Báo Cáo Word và Slide thuyết trình phản biện hoàn thiện 100%", done: false }
+      ],
+      testCases: [
+        { id: "tc-1", name: "Độc giả mượn sách trong hạn 15 ngày", input: "Thẻ Bạc mượn 2 cuốn sách Hạng Bạc, trả sau 10 ngày", expected: "Trả sách thành công, tiền phạt = 0đ, không yêu cầu cọc", status: "passed", module: "Mượn Trả" },
+        { id: "tc-2", name: "Độc giả trả trễ 5 ngày", input: "Mượn 1 cuốn sách, trả trễ 5 ngày so với due_date", expected: "Hệ thống ghi nhận phạt 10.000đ (5 * 2000đ), tạo bản ghi fines", status: "pending", module: "Tính Phạt" },
+        { id: "tc-3", name: "Độc giả thẻ Đồng mượn sách Hạng Vàng (Vượt hạng)", input: "Độc giả Đồng chọn sách Vàng", expected: "Hệ thống cảnh báo và yêu cầu đặt cọc trước khi xác nhận mượn", status: "pending", module: "Hạng Thẻ" },
+        { id: "tc-4", name: "Độc giả đang nợ phạt cố tình mượn thêm sách", input: "Tài khoản có bản ghi fines is_paid = false bấm Tạo phiếu mượn", expected: "Hệ thống từ chối và báo lỗi 'Vui lòng thanh toán phí phạt trước'", status: "pending", module: "Ràng Buộc" },
+        { id: "tc-5", name: "Làm mất sách (Báo mất)", input: "Thủ thư đánh dấu cuốn sách bị mất (LOST)", expected: "Tính đền bù = 200% giá sách niêm yết, trừ tồn kho", status: "pending", module: "Xử Lý Vi Phạm" }
+      ]
+    };
+
+    // State Container
+    let appState = {};
+
+    // Initialize Application
+    function initApp() {
+      loadData();
+      renderAll();
+      initCanvasInteraction();
+      initKeyboardShortcuts();
+      lucide.createIcons();
+    }
+
+    // Load Data
+    function loadData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          appState = JSON.parse(saved);
+        } catch (e) {
+          console.error("Lỗi nạp dữ liệu cũ:", e);
+          appState = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        }
+      } else {
+        appState = JSON.parse(JSON.stringify(DEFAULT_DATA));
+      }
+
+      // Auto migrate / recover if any field is missing, corrupted, legacy object, or empty
+      if (!appState.ideas || !Array.isArray(appState.ideas) || appState.ideas.length === 0) {
+        if (appState.ideas && typeof appState.ideas === 'object' && !Array.isArray(appState.ideas)) {
+          const flat = [];
+          if (Array.isArray(appState.ideas.must)) flat.push(...appState.ideas.must.map(x => ({...x, category: 'must'})));
+          if (Array.isArray(appState.ideas.should)) flat.push(...appState.ideas.should.map(x => ({...x, category: 'should'})));
+          if (Array.isArray(appState.ideas.nice)) flat.push(...appState.ideas.nice.map(x => ({...x, category: 'nice'})));
+          if (Array.isArray(appState.ideas.scrapped)) flat.push(...appState.ideas.scrapped.map(x => ({...x, category: 'scrapped'})));
+          appState.ideas = flat.length > 0 ? flat : JSON.parse(JSON.stringify(DEFAULT_DATA.ideas));
+        } else {
+          appState.ideas = JSON.parse(JSON.stringify(DEFAULT_DATA.ideas));
+        }
+      }
+
+      if (!appState.weeks || !Array.isArray(appState.weeks) || appState.weeks.length === 0) {
+        appState.weeks = JSON.parse(JSON.stringify(DEFAULT_DATA.weeks));
+      }
+
+      if (!appState.tasks || !Array.isArray(appState.tasks) || appState.tasks.length === 0) {
+        appState.tasks = JSON.parse(JSON.stringify(DEFAULT_DATA.tasks));
+      }
+
+      if (!appState.tables || !Array.isArray(appState.tables) || appState.tables.length === 0) {
+        appState.tables = JSON.parse(JSON.stringify(DEFAULT_DATA.tables));
+      }
+
+      if (!appState.relationships || !Array.isArray(appState.relationships) || appState.relationships.length === 0) {
+        appState.relationships = JSON.parse(JSON.stringify(DEFAULT_DATA.relationships));
+      }
+
+      if (!appState.documents || !Array.isArray(appState.documents) || appState.documents.length === 0) {
+        appState.documents = JSON.parse(JSON.stringify(DEFAULT_DATA.documents || []));
+      }
+
+      if (!appState.dodList || !Array.isArray(appState.dodList) || appState.dodList.length === 0) {
+        appState.dodList = JSON.parse(JSON.stringify(DEFAULT_DATA.dodList));
+      }
+
+      if (!appState.testCases || !Array.isArray(appState.testCases) || appState.testCases.length === 0) {
+        appState.testCases = JSON.parse(JSON.stringify(DEFAULT_DATA.testCases));
+      }
+
+      if (!appState.project || !appState.project.team || !Array.isArray(appState.project.team) || appState.project.team.length === 0 || typeof appState.project.team[0] === 'string') {
+        appState.project = JSON.parse(JSON.stringify(DEFAULT_DATA.project));
+      }
+    }
+
+    // Save Data to LocalStorage (Quiet background auto-save)
+    function saveData(notify = false) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+        if (notify) {
+          showToast("Đã lưu vào bộ nhớ trình duyệt!");
+        }
+      } catch (e) {
+        console.warn("Lỗi lưu localStorage:", e);
+      }
+    }
+
+    // Generate Full Updated HTML Content with embedded state
+    function getUpdatedHtmlString() {
+      let htmlContent = document.documentElement.outerHTML;
+      const serializedData = JSON.stringify(appState, null, 2);
+      const regex = /const DEFAULT_DATA = \{[\s\S]*?\n\s*\};/;
+      htmlContent = htmlContent.replace(regex, `const DEFAULT_DATA = ${serializedData};`);
+      
+      return `<!DOCTYPE html>\n<html lang="vi" class="${document.documentElement.classList.contains('dark') ? 'dark' : ''} h-full">\n` + 
+             htmlContent.substring(htmlContent.indexOf('<head>'));
+    }
+
+    // Unified Smart Save Function (Direct File System Access or Download)
+    async function saveToFileAndGit() {
+      saveData(false);
+      const fullHtml = getUpdatedHtmlString();
+
+      // Try Modern File System Access API (Chrome/Edge/Brave/Opera)
+      if ('showSaveFilePicker' in window) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: 'pbl_workspace.html',
+            types: [{
+              description: 'HTML File (PBL Workspace)',
+              accept: { 'text/html': ['.html'] }
+            }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(fullHtml);
+          await writable.close();
+          showToast("✅ Đã ghi đè trực tiếp file pbl_workspace.html! Bạn có thể git push ngay.");
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return; // User closed dialog
+          console.warn("File System Access API fallback:", err);
+        }
+      }
+
+      // Standard Fallback: Download updated file
+      const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", url);
+      downloadAnchor.setAttribute("download", "pbl_workspace.html");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      URL.revokeObjectURL(url);
+
+      showToast("📥 Đã tải file pbl_workspace.html về! Hãy lưu đè vào thư mục plans/ rồi git push.");
+    }
+
+    // Keyboard Shortcuts (Ctrl+S / Cmd+S triggers Smart Save)
+    function initKeyboardShortcuts() {
+      window.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+          e.preventDefault();
+          saveToFileAndGit();
+        }
+      });
+    }
+
+    // Toggle Dark Mode
+    function toggleDarkMode() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('ximilib_dark_mode', isDark ? 'true' : 'false');
+      renderCanvasDiagram();
+      lucide.createIcons();
+    }
+
+    if (localStorage.getItem('ximilib_dark_mode') === 'true' || 
+       (!('ximilib_dark_mode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
+    // Tab Navigation
+    function switchTab(tabId) {
+      const views = ['dashboard', 'ideas', 'weekly', 'erd', 'documents', 'dod', 'settings'];
+      views.forEach(v => {
+        const viewEl = document.getElementById(`view-${v}`);
+        const tabEl = document.getElementById(`tab-${v}`);
+        if (viewEl && tabEl) {
+          if (v === tabId) {
+            viewEl.classList.remove('hidden');
+            tabEl.className = 'nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all text-brand-600 bg-brand-50 dark:text-brand-400 dark:bg-brand-950/60';
+          } else {
+            viewEl.classList.add('hidden');
+            tabEl.className = 'nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800';
+          }
+        }
+      });
+
+      if (tabId === 'erd') {
+        setTimeout(renderCanvasDiagram, 50);
+      }
+      lucide.createIcons();
+    }
+
+    // Render All Views
+    function renderAll() {
+      try { renderDashboard(); } catch (e) { console.error("renderDashboard error:", e); }
+      try { renderSingleIdeaList(); } catch (e) { console.error("renderSingleIdeaList error:", e); }
+      try { renderWeeksAndTasks(); } catch (e) { console.error("renderWeeksAndTasks error:", e); }
+      try { renderCanvasDiagram(); } catch (e) { console.error("renderCanvasDiagram error:", e); }
+      try { renderDocumentsList(); } catch (e) { console.error("renderDocumentsList error:", e); }
+      try { renderDoDAndTests(); } catch (e) { console.error("renderDoDAndTests error:", e); }
+      try { populateSettings(); } catch (e) { console.error("populateSettings error:", e); }
+      try { lucide.createIcons(); } catch (e) {}
+    }
+
+    // ==================== 1. DASHBOARD ====================
+    function renderDashboard() {
+      document.getElementById('headerProjectTitle').textContent = appState.project.shortTitle || "XimiLib";
+      document.getElementById('dashProjectName').textContent = appState.project.title;
+      document.getElementById('dashProjectDesc').textContent = appState.project.description;
+      
+      const teamContainer = document.getElementById('dashTeamCards');
+      teamContainer.innerHTML = appState.project.team.map(m => `
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-xl bg-white/10 dark:bg-black/25 backdrop-blur-md border border-white/15 text-xs text-brand-50">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="font-bold">${escapeHtml(m.name)}</span>
+          <span class="px-1.5 py-0.2 rounded bg-white/20 text-[10px] font-mono font-bold">${escapeHtml(m.role)}</span>
+        </div>
+      `).join('');
+
+      if (appState.project.deadline) {
+        document.getElementById('dashDeadlineDate').textContent = formatDate(appState.project.deadline);
+        const days = calculateDaysLeft(appState.project.deadline);
+        const daysEl = document.getElementById('dashDaysLeft');
+        if (days > 0) {
+          daysEl.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5"></i><span>Còn ${days} ngày nữa</span>`;
+          daysEl.className = "mt-2 inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-amber-400/25 text-amber-300 text-xs font-bold";
+        } else if (days === 0) {
+          daysEl.innerHTML = `<i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span>Hôm nay bảo vệ!</span>`;
+          daysEl.className = "mt-2 inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-rose-500/25 text-rose-300 text-xs font-bold";
+        } else {
+          daysEl.innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>Đã đến hạn bảo vệ</span>`;
+          daysEl.className = "mt-2 inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-emerald-500/25 text-emerald-300 text-xs font-bold";
+        }
+      }
+
+      const totalTasks = appState.tasks.length;
+      const doneTasks = appState.tasks.filter(t => t.status === 'done').length;
+      const progressPercent = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+      
+      document.getElementById('statOverallProgress').textContent = `${progressPercent}%`;
+      document.getElementById('statTasksCount').textContent = `${doneTasks}/${totalTasks} task`;
+      document.getElementById('statProgressBar').style.width = `${progressPercent}%`;
+      document.getElementById('badge-tasks').textContent = totalTasks;
+
+      const activeIdeas = appState.ideas.filter(i => i.category !== 'scrapped').length;
+      const scrappedIdeas = appState.ideas.filter(i => i.category === 'scrapped').length;
+      const mustIdeas = appState.ideas.filter(i => i.category === 'must').length;
+      document.getElementById('statFeatureActive').textContent = activeIdeas;
+      document.getElementById('statFeatureScrapped').textContent = `(${scrappedIdeas} đã bỏ)`;
+      document.getElementById('statMustHaveCount').textContent = `${mustIdeas} Cốt lõi`;
+      document.getElementById('badge-ideas').textContent = appState.ideas.length;
+
+      document.getElementById('statTableCount').textContent = appState.tables.length;
+      document.getElementById('badge-tables').textContent = appState.tables.length;
+      document.getElementById('relCountBadge').textContent = appState.relationships.length;
+      
+      const docCount = (appState.documents || []).length;
+      document.getElementById('statDocCount').textContent = docCount;
+      document.getElementById('badge-docs').textContent = docCount;
+
+      const totalDod = appState.dodList.length;
+      const doneDod = appState.dodList.filter(d => d.done).length;
+      const dodPercent = totalDod > 0 ? Math.round((doneDod / totalDod) * 100) : 0;
+      const passedTests = appState.testCases.filter(t => t.status === 'passed').length;
+      document.getElementById('statDodProgress').textContent = `${dodPercent}%`;
+      document.getElementById('statTestPassed').textContent = `${passedTests}/${appState.testCases.length} test passed`;
+      document.getElementById('statDodProgressBar').style.width = `${dodPercent}%`;
+
+      const urgentContainer = document.getElementById('dashUrgentTaskList');
+      const urgentList = appState.tasks
+        .filter(t => t.status === 'inprogress' || (t.status === 'todo' && t.priority === 'high'))
+        .slice(0, 5);
+
+      if (urgentList.length === 0) {
+        urgentContainer.innerHTML = `<div class="text-xs text-slate-400 py-3 text-center">Tuyệt vời! Không có công việc khẩn cấp nào tồn đọng.</div>`;
+      } else {
+        urgentContainer.innerHTML = urgentList.map(t => `
+          <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors">
+            <div class="flex items-center space-x-3">
+              <button onclick="toggleTaskStatus('${t.id}')" class="w-4 h-4 rounded border flex items-center justify-center ${t.status === 'done' ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 dark:border-slate-600'}">
+                ${t.status === 'done' ? '<i data-lucide="check" class="w-3 h-3"></i>' : ''}
+              </button>
+              <div>
+                <div class="font-semibold text-xs text-slate-900 dark:text-white">${escapeHtml(t.title)}</div>
+                <div class="text-[11px] text-slate-400 flex items-center space-x-2 mt-0.5">
+                  <span class="font-medium text-slate-600 dark:text-slate-300">${escapeHtml(t.assignee || 'Chưa giao')}</span>
+                  <span>&bull;</span>
+                  <span class="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">${escapeHtml(t.tag || 'Task')}</span>
+                </div>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${getStatusBadgeClass(t.status)}">${getStatusLabel(t.status)}</span>
+          </div>
+        `).join('');
+      }
+
+      const phasesContainer = document.getElementById('dashPhasesList');
+      phasesContainer.innerHTML = (appState.project.phases || []).map(p => `
+        <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-xs">
+          <span class="${p.done ? 'line-through text-slate-400' : 'font-medium text-slate-700 dark:text-slate-200'}">${escapeHtml(p.name)}</span>
+          <button onclick="togglePhase(${p.id})" class="w-4 h-4 rounded border flex items-center justify-center ${p.done ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 dark:border-slate-600'}">
+            ${p.done ? '<i data-lucide="check" class="w-3 h-3"></i>' : ''}
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // ==================== 2. TÍNH NĂNG & ƯU TIÊN ====================
+    function renderSingleIdeaList() {
+      const container = document.getElementById('singleIdeaList');
+      if (!container) return;
+
+      if (appState.ideas.length === 0) {
+        container.innerHTML = '<div class="text-xs text-slate-400 py-6 text-center">Chưa có tính năng nào. Hãy bấm "Thêm Tính Năng Mới" hoặc "Gợi Ý Tính Năng".</div>';
+        return;
+      }
+
+      container.innerHTML = appState.ideas.map((item, index) => {
+        const isScrapped = item.category === 'scrapped';
+        return `
+          <div class="bg-white dark:bg-slate-850 p-3.5 rounded-xl border ${isScrapped ? 'border-rose-200 dark:border-rose-900/60 bg-rose-50/30 dark:bg-rose-950/20' : 'border-slate-200 dark:border-slate-800'} shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 group hover:border-brand-400 dark:hover:border-brand-600 transition-all">
+            
+            <div class="flex items-start space-x-3 flex-1">
+              <div class="w-7 h-7 rounded-lg ${getPriorityRankBadge(index, item.category)} font-mono font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                #${index + 1}
+              </div>
+
+              <div class="space-y-1 flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h4 class="font-bold text-xs ${isScrapped ? 'line-through text-slate-400' : 'text-slate-900 dark:text-white'}">${escapeHtml(item.title)}</h4>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${getCategoryBadgeClass(item.category)}">${getCategoryLabel(item.category)}</span>
+                  <span class="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-750 text-slate-600 dark:text-slate-300 text-[10px] font-mono">${escapeHtml(item.tag || 'Module')}</span>
+                  ${item.assignee ? `<span class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center space-x-1"><i data-lucide="user" class="w-3 h-3"></i><span>${escapeHtml(item.assignee)}</span></span>` : ''}
+                </div>
+
+                ${item.desc ? `<p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">${escapeHtml(item.desc)}</p>` : ''}
+                
+                ${item.scrappedReason ? `
+                  <div class="text-[11px] p-2 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900 mt-1">
+                    ⚠️ <strong>Lý do lược bỏ:</strong> ${escapeHtml(item.scrappedReason)}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-1 self-end sm:self-center shrink-0">
+              <button onclick="moveIdeaOrder(${index}, -1)" ${index === 0 ? 'disabled' : ''} class="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-25 rounded hover:bg-slate-100 dark:hover:bg-slate-800" title="Đẩy lên ưu tiên cao hơn">
+                <i data-lucide="arrow-up" class="w-4 h-4"></i>
+              </button>
+
+              <button onclick="moveIdeaOrder(${index}, 1)" ${index === appState.ideas.length - 1 ? 'disabled' : ''} class="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-25 rounded hover:bg-slate-100 dark:hover:bg-slate-800" title="Hạ mức ưu tiên xuống">
+                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+              </button>
+
+              <button onclick="editIdea('${item.id}')" class="p-1.5 text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 rounded hover:bg-slate-100 dark:hover:bg-slate-800" title="Chỉnh sửa">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+              </button>
+
+              <button onclick="deleteIdea('${item.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded hover:bg-slate-100 dark:hover:bg-slate-800" title="Xóa">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function moveIdeaOrder(fromIndex, direction) {
+      const toIndex = fromIndex + direction;
+      if (toIndex < 0 || toIndex >= appState.ideas.length) return;
+      
+      const item = appState.ideas.splice(fromIndex, 1)[0];
+      appState.ideas.splice(toIndex, 0, item);
+      
+      saveData(false);
+      renderSingleIdeaList();
+      renderDashboard();
+    }
+
+    // ==================== 3. LỊCH TRÌNH & PHÂN CÔNG ====================
+    function renderWeeksAndTasks() {
+      populateAssigneeFilter();
+      renderTasks();
+    }
+
+    function populateAssigneeFilter() {
+      const select = document.getElementById('filterAssignee');
+      const taskAssigneeSelect = document.getElementById('taskAssignee');
+      const ideaAssigneeSelect = document.getElementById('ideaAssignee');
+      const docUploaderSelect = document.getElementById('docUploader');
+      const members = appState.project.team || [];
+      
+      const currentVal = select.value;
+      select.innerHTML = '<option value="ALL">Tất cả thành viên</option>' + 
+        members.map(m => `<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)} (${escapeHtml(m.role)})</option>`).join('');
+      if (currentVal) select.value = currentVal;
+
+      const memberOptions = '<option value="">-- Chọn thành viên --</option>' + 
+        members.map(m => `<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)} (${escapeHtml(m.role)})</option>`).join('');
+
+      if (taskAssigneeSelect) taskAssigneeSelect.innerHTML = memberOptions;
+      if (ideaAssigneeSelect) ideaAssigneeSelect.innerHTML = memberOptions;
+      if (docUploaderSelect) docUploaderSelect.innerHTML = memberOptions;
+
+      const weekSelect = document.getElementById('taskWeek');
+      if (weekSelect) {
+        weekSelect.innerHTML = appState.weeks.map(w => `<option value="${w.id}">${escapeHtml(w.title)}</option>`).join('');
+      }
+    }
+
+    function renderTasks() {
+      const filterAssignee = document.getElementById('filterAssignee')?.value || 'ALL';
+      
+      let filteredTasks = appState.tasks;
+      if (filterAssignee !== 'ALL') {
+        filteredTasks = filteredTasks.filter(t => t.assignee === filterAssignee);
+      }
+
+      const weeklyContainer = document.getElementById('container-weekly-view');
+      weeklyContainer.innerHTML = appState.weeks.map(w => {
+        const weekTasks = filteredTasks.filter(t => t.weekId === w.id);
+        const doneCount = weekTasks.filter(t => t.status === 'done').length;
+        const totalCount = weekTasks.length;
+        const percent = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+
+        return `
+          <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div class="p-4 bg-slate-50 dark:bg-slate-850/70 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 font-bold text-xs flex items-center justify-center">
+                  W${w.id}
+                </div>
+                <div>
+                  <h3 class="font-bold text-sm text-slate-900 dark:text-white">${escapeHtml(w.title)}</h3>
+                  <div class="text-[11px] text-slate-400">Tiến độ tuần: ${doneCount}/${totalCount} task (${percent}%)</div>
+                </div>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <button onclick="openTaskModalForWeek(${w.id})" class="px-2.5 py-1 bg-brand-50 hover:bg-brand-100 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 rounded-lg text-xs font-semibold flex items-center space-x-1">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                  <span>Thêm task</span>
+                </button>
+                <button onclick="editWeekPrompt(${w.id})" class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                <button onclick="deleteWeek(${w.id})" class="p-1 text-slate-400 hover:text-rose-600"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+              </div>
+            </div>
+
+            <div class="p-4 space-y-2">
+              ${weekTasks.length === 0 ? `<div class="text-xs text-slate-400 italic py-2 text-center">Chưa có công việc nào trong tuần này</div>` : 
+                weekTasks.map(t => renderTaskItemHtml(t)).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function renderTaskItemHtml(t) {
+      return `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-850 gap-2 transition-colors">
+          <div class="flex items-start space-x-3">
+            <button onclick="toggleTaskStatus('${t.id}')" class="mt-0.5 w-4 h-4 rounded border flex items-center justify-center ${t.status === 'done' ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 dark:border-slate-600'}">
+              ${t.status === 'done' ? '<i data-lucide="check" class="w-3 h-3"></i>' : ''}
+            </button>
+            <div>
+              <div class="font-semibold text-xs text-slate-900 dark:text-white ${t.status === 'done' ? 'line-through text-slate-400' : ''}">${escapeHtml(t.title)}</div>
+              ${t.desc ? `<p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">${escapeHtml(t.desc)}</p>` : ''}
+              <div class="flex flex-wrap items-center gap-2 mt-1 text-[10px] text-slate-400">
+                <span class="font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-1"><i data-lucide="user" class="w-3 h-3"></i><span>${escapeHtml(t.assignee || 'Chưa giao')}</span></span>
+                <span>&bull;</span>
+                <span class="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">${escapeHtml(t.tag || 'Task')}</span>
+                <span>&bull;</span>
+                <span class="${getPriorityClass(t.priority)} font-semibold uppercase text-[9px]">${t.priority}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-2 self-end sm:self-center">
+            <select onchange="changeTaskStatus('${t.id}', this.value)" class="text-xs px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer">
+              <option value="todo" ${t.status === 'todo' ? 'selected' : ''}>To Do</option>
+              <option value="inprogress" ${t.status === 'inprogress' ? 'selected' : ''}>In Progress</option>
+              <option value="review" ${t.status === 'review' ? 'selected' : ''}>Review</option>
+              <option value="done" ${t.status === 'done' ? 'selected' : ''}>Done</option>
+            </select>
+            <button onclick="editTask('${t.id}')" class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+            <button onclick="deleteTask('${t.id}')" class="p-1 text-slate-400 hover:text-rose-600"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== 4. SƠ ĐỒ CSDL (SSMS STYLE DRAG & DROP CANVAS) ====================
+    let canvasZoom = 1;
+    let canvasPanX = 0;
+    let canvasPanY = 0;
+    let isPanningCanvas = false;
+    let panStartMouseX = 0;
+    let panStartMouseY = 0;
+    let panStartCanvasX = 0;
+    let panStartCanvasY = 0;
+
+    let activeDragTable = null;
+
+    function renderCanvasDiagram() {
+      const container = document.getElementById('tablesContainer');
+      const svg = document.getElementById('diagramSvg');
+      if (!container || !svg) return;
+
+      document.getElementById('badge-tables').textContent = appState.tables.length;
+      document.getElementById('relCountBadge').textContent = appState.relationships.length;
+
+      // Render Table Cards
+      container.innerHTML = appState.tables.map(tbl => `
+        <div id="table-node-${tbl.id}" class="table-card absolute bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 shadow-md w-64 overflow-hidden z-20 select-none" style="left: ${tbl.x || 40}px; top: ${tbl.y || 40}px;">
+          <!-- Table Header (Drag Handle) -->
+          <div class="table-drag-handle p-2.5 bg-gradient-to-r from-slate-800 to-indigo-900 text-white flex items-center justify-between cursor-grab select-none">
+            <div class="flex items-center space-x-1.5 overflow-hidden pointer-events-none">
+              <i data-lucide="table" class="w-3.5 h-3.5 text-indigo-300 shrink-0"></i>
+              <span class="font-mono font-bold text-xs tracking-tight truncate">${escapeHtml(tbl.name)}</span>
+            </div>
+            <div class="flex items-center space-x-1 shrink-0">
+              <button onclick="editTable('${tbl.id}')" class="p-0.5 text-slate-300 hover:text-white" title="Sửa bảng"><i data-lucide="pencil" class="w-3 h-3"></i></button>
+              <button onclick="deleteTable('${tbl.id}')" class="p-0.5 text-slate-300 hover:text-rose-400" title="Xóa bảng"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+            </div>
+          </div>
+
+          <!-- Columns List -->
+          <div class="p-2 space-y-1 font-mono text-[11px] max-h-56 overflow-y-auto">
+            ${tbl.columns.map(col => `
+              <div class="flex items-center justify-between py-0.5 border-b border-slate-100 dark:border-slate-800/60">
+                <div class="flex items-center space-x-1.5 overflow-hidden pointer-events-none">
+                  ${col.isPk ? '<span class="px-1 text-[8px] rounded bg-amber-100 dark:bg-amber-900/70 text-amber-800 dark:text-amber-200 font-black">PK</span>' : ''}
+                  ${col.isFk ? '<span class="px-1 text-[8px] rounded bg-blue-100 dark:bg-blue-900/70 text-blue-800 dark:text-blue-200 font-black">FK</span>' : ''}
+                  <span class="${col.isPk ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'} truncate">${escapeHtml(col.name)}</span>
+                </div>
+                <span class="text-[10px] text-slate-400 shrink-0 pointer-events-none">${escapeHtml(col.type)}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          ${tbl.desc ? `<div class="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-400 border-t border-slate-100 dark:border-slate-800 truncate pointer-events-none">${escapeHtml(tbl.desc)}</div>` : ''}
+        </div>
+      `).join('');
+
+      drawRelationshipLines();
+      updatePlaneTransform();
+      lucide.createIcons();
+    }
+
+    function drawRelationshipLines() {
+      const svg = document.getElementById('diagramSvg');
+      if (!svg) return;
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const strokeColor = isDark ? '#818cf8' : '#4f46e5';
+
+      let pathsHtml = '';
+
+      (appState.relationships || []).forEach(rel => {
+        const tblFrom = appState.tables.find(t => t.name.toLowerCase() === rel.fromTable.toLowerCase());
+        const tblTo = appState.tables.find(t => t.name.toLowerCase() === rel.toTable.toLowerCase());
+        if (tblFrom && tblTo) {
+          const w = 256;
+          let x1, y1, x2, y2;
+          if (tblFrom.x + w < tblTo.x) {
+            x1 = tblFrom.x + w;
+            y1 = tblFrom.y + 40;
+            x2 = tblTo.x;
+            y2 = tblTo.y + 40;
+          } else if (tblTo.x + w < tblFrom.x) {
+            x1 = tblFrom.x;
+            y1 = tblFrom.y + 40;
+            x2 = tblTo.x + w;
+            y2 = tblTo.y + 40;
+          } else {
+            x1 = tblFrom.x + w / 2;
+            y1 = tblFrom.y + 40;
+            x2 = tblTo.x + w / 2;
+            y2 = tblTo.y + 40;
+          }
+
+          const dx = Math.max(30, Math.abs(x2 - x1) * 0.5);
+          const pathD = `M ${x1} ${y1} C ${x1 + (x2 >= x1 ? dx : -dx)} ${y1}, ${x2 + (x2 >= x1 ? -dx : dx)} ${y2}, ${x2} ${y2}`;
+
+          pathsHtml += `
+            <g class="rel-group">
+              <path d="${pathD}" class="rel-line" stroke="${strokeColor}" stroke-width="2.5" fill="none" stroke-dasharray="5 3" opacity="0.85" />
+              <circle cx="${x1}" cy="${y1}" r="4" fill="${strokeColor}" />
+              <circle cx="${x2}" cy="${y2}" r="4" fill="${strokeColor}" />
+            </g>
+          `;
+        }
+      });
+
+      svg.innerHTML = pathsHtml;
+    }
+
+    function initCanvasInteraction() {
+      if (window._canvasInteractionBound) return;
+      window._canvasInteractionBound = true;
+
+      const viewport = document.getElementById('diagramViewport');
+      const plane = document.getElementById('diagramPlane');
+      if (!viewport || !plane) return;
+
+      // Mouse Wheel Zoom centered at cursor position
+      viewport.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+        const oldZoom = canvasZoom;
+        const newZoom = Math.min(2.5, Math.max(0.25, Math.round(canvasZoom * zoomFactor * 100) / 100));
+        if (newZoom === oldZoom) return;
+
+        const rect = viewport.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const planeX = (mouseX - canvasPanX) / oldZoom;
+        const planeY = (mouseY - canvasPanY) / oldZoom;
+
+        canvasPanX = Math.round(mouseX - planeX * newZoom);
+        canvasPanY = Math.round(mouseY - planeY * newZoom);
+        canvasZoom = newZoom;
+
+        const label = document.getElementById('canvasZoomLabel');
+        if (label) label.textContent = `${Math.round(canvasZoom * 100)}%`;
+        updatePlaneTransform();
+      }, { passive: false });
+
+      // Viewport Mouse Down
+      viewport.addEventListener('mousedown', function(e) {
+        // If clicking a table handle
+        const handle = e.target.closest('.table-drag-handle');
+        if (handle) {
+          if (e.target.closest('button')) return; // Allow button clicks inside handle
+
+          e.preventDefault();
+          e.stopPropagation();
+
+          const card = handle.closest('.table-card');
+          if (!card) return;
+          const tableId = card.id.replace('table-node-', '');
+          const tbl = appState.tables.find(t => t.id === tableId);
+          if (tbl) {
+            activeDragTable = {
+              tbl,
+              card,
+              startMouseX: e.clientX,
+              startMouseY: e.clientY,
+              startTableX: tbl.x || 40,
+              startTableY: tbl.y || 40
+            };
+            card.classList.add('dragging');
+            return;
+          }
+        }
+
+        // If clicking on empty canvas (not inside a table card) -> Start Canvas Pan
+        if (!e.target.closest('.table-card') && !e.target.closest('button')) {
+          e.preventDefault();
+          isPanningCanvas = true;
+          panStartMouseX = e.clientX;
+          panStartMouseY = e.clientY;
+          panStartCanvasX = canvasPanX;
+          panStartCanvasY = canvasPanY;
+          viewport.classList.add('cursor-grabbing');
+        }
+      });
+
+      // Global Mouse Move
+      window.addEventListener('mousemove', function(e) {
+        if (activeDragTable) {
+          e.preventDefault();
+          const dx = (e.clientX - activeDragTable.startMouseX) / canvasZoom;
+          const dy = (e.clientY - activeDragTable.startMouseY) / canvasZoom;
+
+          const newX = Math.max(0, Math.round(activeDragTable.startTableX + dx));
+          const newY = Math.max(0, Math.round(activeDragTable.startTableY + dy));
+
+          activeDragTable.tbl.x = newX;
+          activeDragTable.tbl.y = newY;
+          activeDragTable.card.style.left = `${newX}px`;
+          activeDragTable.card.style.top = `${newY}px`;
+
+          drawRelationshipLines();
+          return;
+        }
+
+        if (isPanningCanvas) {
+          e.preventDefault();
+          canvasPanX = Math.round(panStartCanvasX + (e.clientX - panStartMouseX));
+          canvasPanY = Math.round(panStartCanvasY + (e.clientY - panStartMouseY));
+          updatePlaneTransform();
+        }
+      });
+
+      // Global Mouse Up
+      window.addEventListener('mouseup', function() {
+        if (activeDragTable) {
+          activeDragTable.card.classList.remove('dragging');
+          activeDragTable = null;
+          saveData(false);
+        }
+        if (isPanningCanvas) {
+          isPanningCanvas = false;
+          const vp = document.getElementById('diagramViewport');
+          if (vp) vp.classList.remove('cursor-grabbing');
+        }
+      });
+    }
+
+    function zoomCanvas(delta) {
+      const oldZoom = canvasZoom;
+      const newZoom = Math.min(2.5, Math.max(0.25, Math.round((canvasZoom + delta) * 100) / 100));
+      if (newZoom === oldZoom) return;
+
+      const viewport = document.getElementById('diagramViewport');
+      if (viewport) {
+        const cx = viewport.clientWidth / 2;
+        const cy = viewport.clientHeight / 2;
+        const planeX = (cx - canvasPanX) / oldZoom;
+        const planeY = (cy - canvasPanY) / oldZoom;
+        canvasPanX = Math.round(cx - planeX * newZoom);
+        canvasPanY = Math.round(cy - planeY * newZoom);
+      }
+      canvasZoom = newZoom;
+      const label = document.getElementById('canvasZoomLabel');
+      if (label) label.textContent = `${Math.round(canvasZoom * 100)}%`;
+      updatePlaneTransform();
+    }
+
+    function resetCanvasPosition() {
+      canvasZoom = 1;
+      canvasPanX = 0;
+      canvasPanY = 0;
+      const label = document.getElementById('canvasZoomLabel');
+      if (label) label.textContent = '100%';
+      updatePlaneTransform();
+    }
+
+    function fitCanvasView() {
+      if (!appState.tables || appState.tables.length === 0) return;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      appState.tables.forEach(t => {
+        const x = t.x || 0;
+        const y = t.y || 0;
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + 270);
+        maxY = Math.max(maxY, y + 250);
+      });
+
+      const viewport = document.getElementById('diagramViewport');
+      if (!viewport) return;
+      const vWidth = viewport.clientWidth || 1000;
+      const vHeight = viewport.clientHeight || 650;
+      const dWidth = Math.max(300, maxX - minX + 60);
+      const dHeight = Math.max(300, maxY - minY + 60);
+
+      const scale = Math.min(1.1, Math.max(0.35, Math.min((vWidth - 60) / dWidth, (vHeight - 60) / dHeight)));
+      canvasZoom = Math.round(scale * 100) / 100;
+      canvasPanX = Math.round((vWidth - dWidth * canvasZoom) / 2 - minX * canvasZoom + 20);
+      canvasPanY = Math.round((vHeight - dHeight * canvasZoom) / 2 - minY * canvasZoom + 20);
+
+      const label = document.getElementById('canvasZoomLabel');
+      if (label) label.textContent = `${Math.round(canvasZoom * 100)}%`;
+      updatePlaneTransform();
+    }
+
+    function updatePlaneTransform() {
+      const plane = document.getElementById('diagramPlane');
+      if (plane) {
+        plane.style.transform = `translate(${canvasPanX}px, ${canvasPanY}px) scale(${canvasZoom})`;
+      }
+    }
+
+    // ==================== 5. IMPORT MYSQL SQL FILE / PARSER ====================
+    function openImportSQLModal() {
+      document.getElementById('sqlImportInputText').value = '';
+      openModal('modalImportSQL');
+    }
+
+    function handleSqlFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        document.getElementById('sqlImportInputText').value = evt.target.result;
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    function parseAndApplySQL() {
+      const sqlText = document.getElementById('sqlImportInputText').value;
+      if (!sqlText.trim()) {
+        alert("Vui lòng dán nội dung câu lệnh SQL hoặc chọn file .SQL.");
+        return;
+      }
+
+      try {
+        const { parsedTables, parsedRelationships } = parseMySqlDDL(sqlText);
+        if (parsedTables.length === 0) {
+          alert("Không tìm thấy câu lệnh CREATE TABLE nào hợp lệ trong đoạn mã SQL.");
+          return;
+        }
+
+        // Layout tables nicely on canvas
+        parsedTables.forEach((tbl, idx) => {
+          tbl.x = 40 + (idx % 3) * 320;
+          tbl.y = 40 + Math.floor(idx / 3) * 320;
+        });
+
+        appState.tables = parsedTables;
+        appState.relationships = parsedRelationships;
+
+        saveData();
+        renderCanvasDiagram();
+        renderDashboard();
+        closeModal('modalImportSQL');
+        showToast(`Đã nạp thành công ${parsedTables.length} bảng và ${parsedRelationships.length} liên kết quan hệ từ MySQL!`);
+      } catch (err) {
+        alert("Lỗi phân tích cú pháp SQL: " + err.message);
+      }
+    }
+
+    // MySQL DDL Parser Logic
+    function parseMySqlDDL(sql) {
+      const tables = [];
+      const relationships = [];
+
+      // Clean SQL comments and formatting
+      const cleanSql = sql.replace(/--.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+      const createTableRegex = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?([a-zA-Z0-9_]+)`?\s*\(([\s\S]*?)\)(?:[^;]*);?/gi;
+
+      let match;
+      while ((match = createTableRegex.exec(cleanSql)) !== null) {
+        const tableName = match[1];
+        const body = match[2];
+        const columns = [];
+        const pks = new Set();
+
+        const lines = body.split('\n').map(l => l.trim()).filter(Boolean);
+
+        // Step 1: Look for PRIMARY KEY (...) lines
+        lines.forEach(line => {
+          const pkMatch = line.match(/^PRIMARY\s+KEY\s*\(([^)]+)\)/i);
+          if (pkMatch) {
+            const cols = pkMatch[1].split(',').map(c => c.trim().replace(/[`'"]/g, ''));
+            cols.forEach(c => pks.add(c));
+          }
+        });
+
+        // Step 2: Look for FOREIGN KEY (...) REFERENCES ...(...) lines
+        lines.forEach(line => {
+          const fkMatch = line.match(/(?:CONSTRAINT\s+`?[a-zA-Z0-9_]+`?\s+)?FOREIGN\s+KEY\s*\(`?([a-zA-Z0-9_]+)`?\)\s*REFERENCES\s*`?([a-zA-Z0-9_]+)`?\s*\(`?([a-zA-Z0-9_]+)`?\)/i);
+          if (fkMatch) {
+            relationships.push({
+              id: 'rel-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+              fromTable: tableName,
+              fromCol: fkMatch[1],
+              toTable: fkMatch[2],
+              toCol: fkMatch[3]
+            });
+          }
+        });
+
+        // Step 3: Parse Columns
+        lines.forEach(line => {
+          const cleanLine = line.replace(/,$/, '').trim();
+          if (/^(PRIMARY\s+KEY|FOREIGN\s+KEY|KEY|INDEX|UNIQUE\s+KEY|CONSTRAINT)/i.test(cleanLine)) {
+            return;
+          }
+
+          const colMatch = cleanLine.match(/^`?([a-zA-Z0-9_]+)`?\s+([a-zA-Z0-9_]+(?:\([^)]+\))?)(.*)$/i);
+          if (colMatch) {
+            const colName = colMatch[1];
+            const colType = colMatch[2].toUpperCase();
+            const rest = colMatch[3].toUpperCase();
+
+            const isPk = pks.has(colName) || rest.includes('PRIMARY KEY');
+            const notNull = rest.includes('NOT NULL') || isPk;
+            const isFk = relationships.some(r => r.fromTable === tableName && r.fromCol === colName);
+
+            columns.push({
+              name: colName,
+              type: colType,
+              isPk,
+              isFk,
+              notNull
+            });
+          }
+        });
+
+        if (columns.length > 0) {
+          tables.push({
+            id: 'tbl-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+            name: tableName,
+            desc: `Bảng ${tableName} nạp từ file MySQL`,
+            columns
+          });
+        }
+      }
+
+      return { parsedTables: tables, parsedRelationships: relationships };
+    }
+
+    // ==================== 6. TÀI LIỆU & TÀI NGUYÊN (TAB DOCUMENTS) ====================
+    function renderDocumentsList() {
+      const container = document.getElementById('documentsList');
+      if (!container) return;
+
+      const docs = appState.documents || [];
+      document.getElementById('badge-docs').textContent = docs.length;
+
+      if (docs.length === 0) {
+        container.innerHTML = '<div class="text-xs text-slate-400 py-6 text-center">Chưa có tài liệu nào. Bấm "Thêm Tài Liệu Mới" để lưu link Figma, SRS, hoặc file mẫu.</div>';
+        return;
+      }
+
+      container.innerHTML = docs.map(doc => {
+        const typeInfo = getDocTypeInfo(doc.type);
+        return `
+          <div class="bg-white dark:bg-slate-850 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-emerald-400 dark:hover:border-emerald-600 transition-all">
+            <div class="flex items-start space-x-3.5 flex-1">
+              <div class="p-2.5 rounded-xl ${typeInfo.bg} ${typeInfo.color} shrink-0 mt-0.5 shadow-sm">
+                <i data-lucide="${typeInfo.icon}" class="w-5 h-5"></i>
+              </div>
+
+              <div class="space-y-1 flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h4 class="font-bold text-xs text-slate-900 dark:text-white">${escapeHtml(doc.name)}</h4>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${typeInfo.badgeClass}">${typeInfo.label}</span>
+                  <span class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center space-x-1 font-medium">
+                    <i data-lucide="user" class="w-3 h-3"></i>
+                    <span>${escapeHtml(doc.uploader || 'Chưa rõ')}</span>
+                  </span>
+                  ${doc.date ? `<span class="text-[10px] text-slate-400">&bull; ${formatDate(doc.date)}</span>` : ''}
+                </div>
+
+                ${doc.content ? `<p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">${escapeHtml(doc.content)}</p>` : ''}
+                
+                ${doc.url ? `
+                  <div class="pt-1 flex items-center space-x-2">
+                    <a href="${escapeHtml(doc.url)}" target="_blank" class="inline-flex items-center space-x-1 font-mono text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline">
+                      <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                      <span class="truncate max-w-md">${escapeHtml(doc.url)}</span>
+                    </a>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-1.5 self-end sm:self-center shrink-0">
+              ${doc.url ? `
+                <a href="${escapeHtml(doc.url)}" target="_blank" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 rounded-lg text-xs font-semibold flex items-center space-x-1 border border-emerald-200 dark:border-emerald-800 transition-colors">
+                  <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                  <span>Mở Xem</span>
+                </a>
+              ` : ''}
+              <button onclick="editDocument('${doc.id}')" class="p-1.5 text-slate-400 hover:text-emerald-600 rounded hover:bg-slate-100 dark:hover:bg-slate-800" title="Chỉnh sửa"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+              <button onclick="deleteDocument('${doc.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded hover:bg-slate-100 dark:hover:bg-slate-800" title="Xóa"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function getDocTypeInfo(type) {
+      switch(type) {
+        case 'link':
+          return { label: 'Link / URL', icon: 'link', bg: 'bg-blue-100 dark:bg-blue-900/50', color: 'text-blue-600 dark:text-blue-300', badgeClass: 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' };
+        case 'image':
+          return { label: 'Hình Ảnh', icon: 'image', bg: 'bg-purple-100 dark:bg-purple-900/50', color: 'text-purple-600 dark:text-purple-300', badgeClass: 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' };
+        case 'sql':
+          return { label: 'Script SQL', icon: 'database', bg: 'bg-amber-100 dark:bg-amber-900/50', color: 'text-amber-600 dark:text-amber-300', badgeClass: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' };
+        default:
+          return { label: 'Tài Liệu File', icon: 'file-text', bg: 'bg-emerald-100 dark:bg-emerald-900/50', color: 'text-emerald-600 dark:text-emerald-300', badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' };
+      }
+    }
+
+    function openDocumentModal() {
+      document.getElementById('docEditId').value = '';
+      document.getElementById('docName').value = '';
+      document.getElementById('docType').value = 'link';
+      document.getElementById('docUploader').value = '';
+      document.getElementById('docUrl').value = '';
+      document.getElementById('docContent').value = '';
+      document.getElementById('modalDocTitle').textContent = 'Thêm Tài Liệu / Tài Nguyên Mới';
+      openModal('modalDocument');
+    }
+
+    function editDocument(id) {
+      const doc = (appState.documents || []).find(d => d.id === id);
+      if (!doc) return;
+      document.getElementById('docEditId').value = doc.id;
+      document.getElementById('docName').value = doc.name;
+      document.getElementById('docType').value = doc.type || 'link';
+      document.getElementById('docUploader').value = doc.uploader || '';
+      document.getElementById('docUrl').value = doc.url || '';
+      document.getElementById('docContent').value = doc.content || '';
+      document.getElementById('modalDocTitle').textContent = 'Chỉnh Sửa Tài Liệu';
+      openModal('modalDocument');
+    }
+
+    function saveDocument() {
+      const id = document.getElementById('docEditId').value;
+      const name = document.getElementById('docName').value.trim();
+      const type = document.getElementById('docType').value;
+      const uploader = document.getElementById('docUploader').value;
+      const url = document.getElementById('docUrl').value.trim();
+      const content = document.getElementById('docContent').value.trim();
+
+      if (!name) {
+        alert("Vui lòng nhập tên tài liệu.");
+        return;
+      }
+
+      if (!appState.documents) appState.documents = [];
+
+      if (id) {
+        const doc = appState.documents.find(d => d.id === id);
+        if (doc) {
+          doc.name = name;
+          doc.type = type;
+          doc.uploader = uploader;
+          doc.url = url;
+          doc.content = content;
+        }
+      } else {
+        appState.documents.push({
+          id: 'doc-' + Date.now(),
+          name,
+          type,
+          uploader,
+          url,
+          content,
+          date: new Date().toISOString().slice(0,10)
+        });
+      }
+
+      saveData();
+      renderDocumentsList();
+      renderDashboard();
+      closeModal('modalDocument');
+      lucide.createIcons();
+    }
+
+    function deleteDocument(id) {
+      if (confirm("Xóa tài liệu này khỏi danh sách?")) {
+        appState.documents = (appState.documents || []).filter(d => d.id !== id);
+        saveData();
+        renderDocumentsList();
+        renderDashboard();
+      }
+    }
+
+    // ==================== 7. RELATIONSHIPS MANAGER ====================
+    function openRelationshipsModal() {
+      populateTableDropdownsForRel();
+      renderRelationshipsList();
+      openModal('modalRelationships');
+    }
+
+    function populateTableDropdownsForRel() {
+      const fromTableSelect = document.getElementById('relFromTable');
+      const toTableSelect = document.getElementById('relToTable');
+      
+      const optionsHtml = appState.tables.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+      fromTableSelect.innerHTML = optionsHtml;
+      toTableSelect.innerHTML = optionsHtml;
+
+      if (appState.tables.length > 1) {
+        toTableSelect.selectedIndex = 1;
+      }
+
+      updateRelColumns('from');
+      updateRelColumns('to');
+    }
+
+    function updateRelColumns(type) {
+      const tableName = document.getElementById(type === 'from' ? 'relFromTable' : 'relToTable').value;
+      const colSelect = document.getElementById(type === 'from' ? 'relFromCol' : 'relToCol');
+      const tbl = appState.tables.find(t => t.name === tableName);
+      if (tbl) {
+        colSelect.innerHTML = tbl.columns.map(c => `<option value="${c.name}">${c.name} (${c.type})</option>`).join('');
+      }
+    }
+
+    function renderRelationshipsList() {
+      const container = document.getElementById('relationshipsList');
+      if (appState.relationships.length === 0) {
+        container.innerHTML = '<div class="text-slate-400 py-3 text-center">Chưa có liên kết khóa ngoại nào.</div>';
+        return;
+      }
+
+      container.innerHTML = appState.relationships.map(rel => `
+        <div class="p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 flex items-center justify-between shadow-sm">
+          <div class="flex items-center space-x-2 font-mono">
+            <span class="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-bold">${rel.fromTable}.${rel.fromCol}</span>
+            <span class="text-pink-500 font-bold">&rarr;</span>
+            <span class="px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold">${rel.toTable}.${rel.toCol}</span>
+          </div>
+          <button onclick="deleteRelationship('${rel.id}')" class="p-1 text-slate-400 hover:text-rose-600" title="Xóa liên kết"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function addNewRelationship() {
+      const fromTable = document.getElementById('relFromTable').value;
+      const fromCol = document.getElementById('relFromCol').value;
+      const toTable = document.getElementById('relToTable').value;
+      const toCol = document.getElementById('relToCol').value;
+
+      if (!fromTable || !fromCol || !toTable || !toCol) {
+        alert("Vui lòng chọn đầy đủ bảng và cột.");
+        return;
+      }
+
+      const sourceTable = appState.tables.find(t => t.name === fromTable);
+      if (sourceTable) {
+        const c = sourceTable.columns.find(x => x.name === fromCol);
+        if (c) c.isFk = true;
+      }
+
+      appState.relationships.push({
+        id: 'rel-' + Date.now(),
+        fromTable,
+        fromCol,
+        toTable,
+        toCol
+      });
+
+      saveData(false);
+      renderRelationshipsList();
+      renderCanvasDiagram();
+      showToast("Đã thêm liên kết quan hệ thành công!");
+    }
+
+    function deleteRelationship(id) {
+      if (confirm("Xóa mối quan hệ liên kết này?")) {
+        appState.relationships = appState.relationships.filter(r => r.id !== id);
+        saveData(false);
+        renderRelationshipsList();
+        renderCanvasDiagram();
+      }
+    }
+
+    // ==================== 8. MASTER REPORT EXPORTER ====================
+    function openMasterReportModal() {
+      const totalTasks = appState.tasks.length;
+      const doneTasks = appState.tasks.filter(t => t.status === 'done').length;
+      const progressPercent = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+
+      let md = `# BÁO CÁO TIẾN ĐỘ & QUÁ TRÌNH PHÁT TRIỂN ĐỒ ÁN PBL\n`;
+      md += `**Đề tài:** ${appState.project.title}\n`;
+      md += `**Đơn vị:** Trường Đại học Bách khoa - Đại học Đà Nẵng\n`;
+      md += `**Ngày kết xuất tài liệu:** ${new Date().toLocaleDateString('vi-VN')}\n\n`;
+
+      md += `## 1. THÔNG TIN NHÓM THỰC HIỆN & PHÂN CÔNG VAI TRÒ\n`;
+      md += `| STT | Họ và Tên | Vai Trò | Trách Nhiệm Chính |\n`;
+      md += `|---|---|---|---|\n`;
+      appState.project.team.forEach((m, idx) => {
+        md += `| ${idx + 1} | **${m.name}** | \`${m.role}\` | ${m.desc || ''} |\n`;
+      });
+
+      md += `\n**Tiến độ đồ án tổng thể hiện tại:** ${progressPercent}% (${doneTasks}/${totalTasks} công việc đã nghiệm thu)\n\n`;
+
+      md += `## 2. DANH MỤC TÍNH NĂNG & THỨ TỰ ƯU TIÊN TRIỂN KHAI\n`;
+      md += `| Ưu Tiên | Tên Tính Năng / Module | Phân Loại | Người Phụ Trách | Trạng Thái |\n`;
+      md += `|---|---|---|---|---|\n`;
+      appState.ideas.forEach((item, idx) => {
+        md += `| #${idx + 1} | **${item.title}** | ${getCategoryLabel(item.category)} | ${item.assignee || 'Chưa phân'} | ${item.status || 'Chưa làm'} |\n`;
+      });
+
+      const scrapped = appState.ideas.filter(i => i.category === 'scrapped');
+      if (scrapped.length > 0) {
+        md += `\n### *Giải trình các tính năng đã lược bỏ / bảo lưu:*\n`;
+        scrapped.forEach(s => {
+          md += `- **${s.title}**: ${s.scrappedReason || 'Lược bỏ để tập trung vào nghiệp vụ cốt lõi.'}\n`;
+        });
+      }
+
+      md += `\n## 3. BẢNG PHÂN CÔNG CÔNG VIỆC & LỊCH TRÌNH THEO TUẦN\n`;
+      appState.weeks.forEach(w => {
+        const weekTasks = appState.tasks.filter(t => t.weekId === w.id);
+        md += `\n### ${w.title}\n`;
+        if (weekTasks.length === 0) {
+          md += `*(Chưa có phân công chi tiết)*\n`;
+        } else {
+          md += `| Nhiệm Vụ | Người Thực Hiện | Mức Độ | Trạng Thái |\n`;
+          md += `|---|---|---|---|\n`;
+          weekTasks.forEach(t => {
+            md += `| ${t.title} | **${t.assignee || 'Chưa giao'}** | ${t.priority.toUpperCase()} | ${getStatusLabel(t.status)} |\n`;
+          });
+        }
+      });
+
+      md += `\n## 4. KHO TÀI LIỆU & TÀI NGUYÊN DỰ ÁN\n`;
+      (appState.documents || []).forEach((d, idx) => {
+        md += `${idx + 1}. **${d.name}** [${d.type.toUpperCase()}] - Phụ trách: *${d.uploader || 'Nhóm'}*\n`;
+        if (d.url) md += `   - Đường link: \`${d.url}\`\n`;
+        if (d.content) md += `   - Ghi chú: ${d.content}\n`;
+      });
+
+      md += `\n## 5. THIẾT KẾ CƠ SỞ DỮ LIỆU (${appState.tables.length} bảng thực thể)\n`;
+      appState.tables.forEach(tbl => {
+        md += `\n### Bảng: \`${tbl.name}\` (${tbl.desc || ''})\n`;
+        md += `| Tên Cột | Kiểu Dữ Liệu | Ràng Buộc |\n`;
+        md += `|---|---|---|\n`;
+        tbl.columns.forEach(c => {
+          let attrs = [];
+          if (c.isPk) attrs.push('PRIMARY KEY');
+          if (c.isFk) attrs.push('FOREIGN KEY');
+          if (c.notNull) attrs.push('NOT NULL');
+          md += `| \`${c.name}\` | \`${c.type}\` | ${attrs.join(', ') || '-'} |\n`;
+        });
+      });
+
+      md += `\n## 6. TIÊU CHUẨN HOÀN THIỆN (DEFINITION OF DONE)\n`;
+      appState.dodList.forEach(d => {
+        md += `- [${d.done ? 'x' : ' '}] ${d.text}\n`;
+      });
+
+      md += `\n## 7. KẾT QUẢ KIỂM THỬ NGHIỆP VỤ (TEST CASES)\n`;
+      md += `| Mã | Kịch Bản Kiểm Thử | Dữ Liệu & Thao Tác | Kết Quả Mong Đợi | Kết Quả |\n`;
+      md += `|---|---|---|---|---|\n`;
+      appState.testCases.forEach((tc, idx) => {
+        md += `| TC-${idx+1} | ${tc.name} | ${tc.input || ''} | ${tc.expected || ''} | **${tc.status.toUpperCase()}** |\n`;
+      });
+
+      document.getElementById('masterReportText').value = md;
+      openModal('modalMasterReport');
+    }
+
+    function copyMasterReportText() {
+      const text = document.getElementById('masterReportText').value;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("Đã sao chép toàn bộ tài liệu báo cáo Markdown!");
+      });
+    }
+
+    function downloadMasterReportFile() {
+      const text = document.getElementById('masterReportText').value;
+      const dataStr = "data:text/markdown;charset=utf-8," + encodeURIComponent(text);
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `BaoCao_PBL_XimiLib_${new Date().toISOString().slice(0,10)}.md`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("Đã tải file Báo Cáo (.md) về máy!");
+    }
+
+    // --- Ideas ---
+    function openIdeaModal() {
+      document.getElementById('ideaEditId').value = '';
+      document.getElementById('ideaTitle').value = '';
+      document.getElementById('ideaDesc').value = '';
+      document.getElementById('ideaCategory').value = 'must';
+      document.getElementById('ideaAssignee').value = '';
+      document.getElementById('ideaTag').value = '';
+      document.getElementById('ideaStatus').value = 'todo';
+      document.getElementById('ideaScrappedReason').value = '';
+      document.getElementById('ideaScrappedReasonBox').classList.add('hidden');
+      document.getElementById('modalIdeaTitle').textContent = 'Thêm Tính Năng Mới';
+      openModal('modalIdea');
+    }
+
+    document.getElementById('ideaCategory').addEventListener('change', function(e) {
+      const box = document.getElementById('ideaScrappedReasonBox');
+      if (e.target.value === 'scrapped') {
+        box.classList.remove('hidden');
+      } else {
+        box.classList.add('hidden');
+      }
+    });
+
+    function editIdea(id) {
+      const item = appState.ideas.find(i => i.id === id);
+      if (!item) return;
+      document.getElementById('ideaEditId').value = item.id;
+      document.getElementById('ideaTitle').value = item.title;
+      document.getElementById('ideaDesc').value = item.desc || '';
+      document.getElementById('ideaCategory').value = item.category;
+      document.getElementById('ideaAssignee').value = item.assignee || '';
+      document.getElementById('ideaTag').value = item.tag || '';
+      document.getElementById('ideaStatus').value = item.status || 'todo';
+      document.getElementById('ideaScrappedReason').value = item.scrappedReason || '';
+      
+      const box = document.getElementById('ideaScrappedReasonBox');
+      if (item.category === 'scrapped') {
+        box.classList.remove('hidden');
+      } else {
+        box.classList.add('hidden');
+      }
+      document.getElementById('modalIdeaTitle').textContent = 'Chỉnh Sửa Tính Năng';
+      openModal('modalIdea');
+    }
+
+    function saveIdea() {
+      const id = document.getElementById('ideaEditId').value;
+      const title = document.getElementById('ideaTitle').value.trim();
+      const desc = document.getElementById('ideaDesc').value.trim();
+      const category = document.getElementById('ideaCategory').value;
+      const assignee = document.getElementById('ideaAssignee').value;
+      const tag = document.getElementById('ideaTag').value.trim();
+      const status = document.getElementById('ideaStatus').value;
+      const scrappedReason = document.getElementById('ideaScrappedReason').value.trim();
+
+      if (!title) {
+        alert("Vui lòng nhập tên tính năng.");
+        return;
+      }
+
+      if (id) {
+        const item = appState.ideas.find(i => i.id === id);
+        if (item) {
+          item.title = title;
+          item.desc = desc;
+          item.category = category;
+          item.assignee = assignee;
+          item.tag = tag;
+          item.status = status;
+          item.scrappedReason = category === 'scrapped' ? scrappedReason : undefined;
+        }
+      } else {
+        appState.ideas.push({
+          id: 'id-' + Date.now(),
+          title,
+          desc,
+          category,
+          assignee,
+          tag: tag || 'Feature',
+          status: status || 'todo',
+          scrappedReason: category === 'scrapped' ? scrappedReason : undefined
+        });
+      }
+
+      saveData();
+      renderSingleIdeaList();
+      renderDashboard();
+      closeModal('modalIdea');
+      lucide.createIcons();
+    }
+
+    function deleteIdea(id) {
+      if (confirm("Bạn có chắc muốn xóa tính năng này?")) {
+        appState.ideas = appState.ideas.filter(i => i.id !== id);
+        saveData();
+        renderSingleIdeaList();
+        renderDashboard();
+        lucide.createIcons();
+      }
+    }
+
+    // Presets Library
+    const LIBRARY_PRESETS = [
+      { title: "Nhập sách tự động qua Google Books API bằng mã ISBN", desc: "Chỉ cần nhập mã ISBN, hệ thống tự động điền Tên sách, Tác giả, NXB và ảnh bìa.", category: "nice", tag: "API", assignee: "Phan Vũ Xuân Kiên" },
+      { title: "Tạo thẻ thư viện điện tử & Mã QR định danh độc giả", desc: "Độc giả có mã QR cá nhân trên web để thủ thư quét mã xác thực nhanh khi mượn.", category: "should", tag: "Reader", assignee: "Phan Vũ Xuân Kiên" },
+      { title: "Giới hạn số lượng sách mượn theo từng Hạng thẻ", desc: "Thẻ Đồng: max 2 cuốn, Thẻ Bạc: max 5 cuốn, Thẻ Vàng: max 10 cuốn.", category: "must", tag: "Logic", assignee: "Lê Võ Thành Nam" },
+      { title: "Tính năng Yêu cầu gia hạn sách Online (Tối đa 1 lần / 7 ngày)", desc: "Độc giả có thể xin gia hạn nếu sách chưa có ai đặt trước.", category: "should", tag: "Borrow", assignee: "Lê Võ Thành Nam" },
+      { title: "Ghi nhận lịch sử thao tác của Thủ thư (Audit Log)", desc: "Lưu vết ai đã duyệt phiếu mượn, ai đã thu tiền phạt và thời điểm thao tác.", category: "should", tag: "Security", assignee: "Nguyễn Việt Nhật" },
+      { title: "Gợi ý Top 10 cuốn sách được mượn nhiều nhất trong tháng", desc: "Thống kê hiển thị ngoài trang chủ để thu hút độc giả.", category: "nice", tag: "Report", assignee: "Phan Vũ Xuân Kiên" },
+      { title: "Cảnh báo tự động sách sắp hết trong kho (Tồn kho < 2)", desc: "Hiển thị thông báo trên Dashboard của Thủ thư để lên kế hoạch nhập thêm.", category: "should", tag: "Book", assignee: "Lê Võ Thành Nam" }
+    ];
+
+    function openPresetsModal() {
+      const container = document.getElementById('presetsList');
+      container.innerHTML = LIBRARY_PRESETS.map((p, idx) => `
+        <div class="p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 flex items-start justify-between gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 font-bold text-[10px]">${p.category.toUpperCase()}</span>
+              <h4 class="font-bold text-xs text-slate-900 dark:text-white">${escapeHtml(p.title)}</h4>
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">${escapeHtml(p.desc)}</p>
+          </div>
+          <button onclick="addPresetToIdeas(${idx})" class="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-md text-xs font-semibold whitespace-nowrap shadow-sm">
+            + Thêm
+          </button>
+        </div>
+      `).join('');
+      openModal('modalPresets');
+    }
+
+    function addPresetToIdeas(idx) {
+      const preset = LIBRARY_PRESETS[idx];
+      if (!preset) return;
+      appState.ideas.push({
+        id: 'id-' + Date.now(),
+        title: preset.title,
+        desc: preset.desc,
+        category: preset.category,
+        tag: preset.tag,
+        assignee: preset.assignee || '',
+        status: 'todo'
+      });
+      saveData();
+      renderSingleIdeaList();
+      renderDashboard();
+      showToast(`Đã thêm "${preset.title}" vào danh sách!`);
+      closeModal('modalPresets');
+    }
+
+    // --- Tasks ---
+    function openTaskModal() {
+      document.getElementById('taskEditId').value = '';
+      document.getElementById('taskTitle').value = '';
+      document.getElementById('taskDesc').value = '';
+      document.getElementById('taskStatus').value = 'todo';
+      document.getElementById('taskPriority').value = 'medium';
+      document.getElementById('taskTag').value = '';
+      document.getElementById('modalTaskTitle').textContent = 'Thêm Công Việc Mới';
+      openModal('modalTask');
+    }
+
+    function openTaskModalForWeek(weekId) {
+      openTaskModal();
+      document.getElementById('taskWeek').value = weekId;
+    }
+
+    function editTask(id) {
+      const t = appState.tasks.find(x => x.id === id);
+      if (!t) return;
+      document.getElementById('taskEditId').value = t.id;
+      document.getElementById('taskTitle').value = t.title;
+      document.getElementById('taskDesc').value = t.desc || '';
+      document.getElementById('taskWeek').value = t.weekId;
+      document.getElementById('taskAssignee').value = t.assignee || '';
+      document.getElementById('taskStatus').value = t.status || 'todo';
+      document.getElementById('taskPriority').value = t.priority || 'medium';
+      document.getElementById('taskTag').value = t.tag || '';
+      document.getElementById('modalTaskTitle').textContent = 'Chỉnh Sửa Công Việc';
+      openModal('modalTask');
+    }
+
+    function saveTask() {
+      const id = document.getElementById('taskEditId').value;
+      const title = document.getElementById('taskTitle').value.trim();
+      const desc = document.getElementById('taskDesc').value.trim();
+      const weekId = parseInt(document.getElementById('taskWeek').value);
+      const assignee = document.getElementById('taskAssignee').value;
+      const status = document.getElementById('taskStatus').value;
+      const priority = document.getElementById('taskPriority').value;
+      const tag = document.getElementById('taskTag').value.trim();
+
+      if (!title) {
+        alert("Vui lòng nhập tiêu đề công việc.");
+        return;
+      }
+
+      if (id) {
+        const t = appState.tasks.find(x => x.id === id);
+        if (t) {
+          t.title = title;
+          t.desc = desc;
+          t.weekId = weekId;
+          t.assignee = assignee;
+          t.status = status;
+          t.priority = priority;
+          t.tag = tag;
+        }
+      } else {
+        appState.tasks.push({
+          id: 't-' + Date.now(),
+          weekId,
+          title,
+          desc,
+          assignee,
+          status,
+          priority,
+          tag: tag || 'Task'
+        });
+      }
+
+      saveData();
+      renderTasks();
+      renderDashboard();
+      closeModal('modalTask');
+      lucide.createIcons();
+    }
+
+    function deleteTask(id) {
+      if (confirm("Bạn có chắc muốn xóa công việc này?")) {
+        appState.tasks = appState.tasks.filter(t => t.id !== id);
+        saveData();
+        renderTasks();
+        renderDashboard();
+        lucide.createIcons();
+      }
+    }
+
+    function toggleTaskStatus(id) {
+      const t = appState.tasks.find(x => x.id === id);
+      if (t) {
+        t.status = t.status === 'done' ? 'inprogress' : 'done';
+        saveData();
+        renderTasks();
+        renderDashboard();
+        lucide.createIcons();
+      }
+    }
+
+    function changeTaskStatus(id, newStatus) {
+      const t = appState.tasks.find(x => x.id === id);
+      if (t) {
+        t.status = newStatus;
+        saveData();
+        renderTasks();
+        renderDashboard();
+        lucide.createIcons();
+      }
+    }
+
+    // --- Weeks ---
+    function addNewWeekPrompt() {
+      const nextId = appState.weeks.length + 1;
+      const title = prompt(`Nhập tên tuần mới:`, `Tuần ${nextId}: Hoàn thiện & Nghiệm thu`);
+      if (title) {
+        appState.weeks.push({ id: nextId, title });
+        saveData();
+        renderWeeksAndTasks();
+      }
+    }
+
+    function editWeekPrompt(weekId) {
+      const w = appState.weeks.find(x => x.id === weekId);
+      if (!w) return;
+      const title = prompt("Sửa tên tuần:", w.title);
+      if (title) {
+        w.title = title;
+        saveData();
+        renderWeeksAndTasks();
+      }
+    }
+
+    function deleteWeek(weekId) {
+      if (confirm(`Bạn có chắc muốn xóa Tuần ${weekId} và toàn bộ task trong tuần này?`)) {
+        appState.weeks = appState.weeks.filter(w => w.id !== weekId);
+        appState.tasks = appState.tasks.filter(t => t.weekId !== weekId);
+        saveData();
+        renderWeeksAndTasks();
+        renderDashboard();
+      }
+    }
+
+    // --- Tables & Columns with Data Type Dropdown ---
+    function openTableModal() {
+      document.getElementById('tableEditId').value = '';
+      document.getElementById('tableName').value = '';
+      document.getElementById('tableDesc').value = '';
+      document.getElementById('tableColumnsContainer').innerHTML = '';
+      addColumnRow('id', 'INT', true, false, true);
+      document.getElementById('modalTableTitle').textContent = 'Thêm Bảng CSDL Mới';
+      openModal('modalTable');
+    }
+
+    function addColumnRow(name = '', type = 'VARCHAR(100)', isPk = false, isFk = false, notNull = true) {
+      const container = document.getElementById('tableColumnsContainer');
+      const div = document.createElement('div');
+      div.className = "flex items-center space-x-2 py-1.5 border-b border-slate-100 dark:border-slate-800 text-xs column-row";
+      
+      let typeOptions = COMMON_DATA_TYPES.map(t => `<option value="${t}" ${t.toUpperCase() === type.toUpperCase() ? 'selected' : ''}>${t}</option>`).join('');
+      if (!COMMON_DATA_TYPES.some(t => t.toUpperCase() === type.toUpperCase())) {
+        typeOptions = `<option value="${escapeHtml(type)}" selected>${escapeHtml(type)} (Custom)</option>` + typeOptions;
+      }
+      typeOptions += `<option value="CUSTOM">-- Nhập kiểu khác... --</option>`;
+
+      div.innerHTML = `
+        <input type="text" placeholder="Tên cột" value="${escapeHtml(name)}" class="w-1/3 font-mono px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white col-name" />
+        
+        <div class="w-1/3 flex items-center space-x-1">
+          <select onchange="handleTypeSelectChange(this)" class="w-full font-mono px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white col-type-select text-xs">
+            ${typeOptions}
+          </select>
+          <input type="text" placeholder="Kiểu" value="${escapeHtml(type)}" class="hidden w-full font-mono px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white col-type-custom text-xs" />
+        </div>
+
+        <label class="inline-flex items-center space-x-1 cursor-pointer">
+          <input type="checkbox" ${isPk ? 'checked' : ''} class="rounded text-amber-500 col-pk" />
+          <span class="text-[10px] font-bold text-amber-600">PK</span>
+        </label>
+        <label class="inline-flex items-center space-x-1 cursor-pointer">
+          <input type="checkbox" ${isFk ? 'checked' : ''} class="rounded text-blue-500 col-fk" />
+          <span class="text-[10px] font-bold text-blue-600">FK</span>
+        </label>
+        <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-rose-500 p-1"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+      `;
+      container.appendChild(div);
+      lucide.createIcons();
+    }
+
+    function handleTypeSelectChange(selectEl) {
+      const customInput = selectEl.parentElement.querySelector('.col-type-custom');
+      if (selectEl.value === 'CUSTOM') {
+        selectEl.classList.add('hidden');
+        customInput.classList.remove('hidden');
+        customInput.value = '';
+        customInput.focus();
+      }
+    }
+
+    function editTable(id) {
+      const tbl = appState.tables.find(t => t.id === id);
+      if (!tbl) return;
+      document.getElementById('tableEditId').value = tbl.id;
+      document.getElementById('tableName').value = tbl.name;
+      document.getElementById('tableDesc').value = tbl.desc || '';
+      
+      const container = document.getElementById('tableColumnsContainer');
+      container.innerHTML = '';
+      tbl.columns.forEach(col => {
+        addColumnRow(col.name, col.type, col.isPk, col.isFk, col.notNull);
+      });
+
+      document.getElementById('modalTableTitle').textContent = 'Chỉnh Sửa Bảng CSDL';
+      openModal('modalTable');
+    }
+
+    function saveTable() {
+      const id = document.getElementById('tableEditId').value;
+      const name = document.getElementById('tableName').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+      const desc = document.getElementById('tableDesc').value.trim();
+
+      if (!name) {
+        alert("Vui lòng nhập tên bảng hợp lệ.");
+        return;
+      }
+
+      const colRows = document.querySelectorAll('#tableColumnsContainer .column-row');
+      const columns = [];
+      colRows.forEach(row => {
+        const cName = row.querySelector('.col-name').value.trim();
+        const selectType = row.querySelector('.col-type-select');
+        const customType = row.querySelector('.col-type-custom');
+        
+        let cType = selectType.classList.contains('hidden') ? customType.value.trim() : selectType.value;
+        if (!cType || cType === 'CUSTOM') cType = 'VARCHAR(100)';
+
+        const isPk = row.querySelector('.col-pk').checked;
+        const isFk = row.querySelector('.col-fk').checked;
+        if (cName) {
+          columns.push({
+            name: cName,
+            type: cType,
+            isPk,
+            isFk,
+            notNull: isPk ? true : false
+          });
+        }
+      });
+
+      if (columns.length === 0) {
+        alert("Bảng cần ít nhất 1 cột thuộc tính.");
+        return;
+      }
+
+      if (id) {
+        const tbl = appState.tables.find(t => t.id === id);
+        if (tbl) {
+          tbl.name = name;
+          tbl.desc = desc;
+          tbl.columns = columns;
+        }
+      } else {
+        const nextX = 50 + (appState.tables.length % 3) * 320;
+        const nextY = 50 + Math.floor(appState.tables.length / 3) * 300;
+        appState.tables.push({
+          id: 'tbl-' + Date.now(),
+          name,
+          desc,
+          x: nextX,
+          y: nextY,
+          columns
+        });
+      }
+
+      saveData();
+      renderCanvasDiagram();
+      renderDashboard();
+      closeModal('modalTable');
+    }
+
+    function deleteTable(id) {
+      if (confirm("Bạn có chắc muốn xóa bảng này khỏi sơ đồ CSDL?")) {
+        const tbl = appState.tables.find(t => t.id === id);
+        if (tbl) {
+          appState.relationships = appState.relationships.filter(r => r.fromTable !== tbl.name && r.toTable !== tbl.name);
+        }
+        appState.tables = appState.tables.filter(t => t.id !== id);
+        saveData();
+        renderCanvasDiagram();
+        renderDashboard();
+      }
+    }
+
+    function exportSQLModal() {
+      let sql = `-- ========================================================\n`;
+      sql += `-- CƠ SỞ DỮ LIỆU: XimiLib (Quản Lý Thư Viện)\n`;
+      sql += `-- Hệ quản trị: MySQL 8.0\n`;
+      sql += `-- Thiết kế: Phan Vũ Xuân Kiên (FE/DB) & Lê Võ Thành Nam (BE)\n`;
+      sql += `-- Ngày khởi tạo: ${new Date().toLocaleDateString('vi-VN')}\n`;
+      sql += `-- ========================================================\n\n`;
+      sql += `CREATE DATABASE IF NOT EXISTS \`ximilib_db\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\n`;
+      sql += `USE \`ximilib_db\`;\n\n`;
+
+      appState.tables.forEach(tbl => {
+        sql += `-- Bảng: ${tbl.name} (${tbl.desc || ''})\n`;
+        sql += `CREATE TABLE IF NOT EXISTS \`${tbl.name}\` (\n`;
+        const lines = [];
+        const pks = [];
+
+        tbl.columns.forEach(c => {
+          let line = `  \`${c.name}\` ${c.type}`;
+          if (c.notNull) line += ` NOT NULL`;
+          if (c.isPk && c.type.toUpperCase().includes('INT')) line += ` AUTO_INCREMENT`;
+          lines.push(line);
+          if (c.isPk) pks.push(`\`${c.name}\``);
+        });
+
+        if (pks.length > 0) {
+          lines.push(`  PRIMARY KEY (${pks.join(', ')})`);
+        }
+
+        const fks = appState.relationships.filter(r => r.fromTable === tbl.name);
+        fks.forEach((fk, idx) => {
+          lines.push(`  CONSTRAINT \`fk_${tbl.name}_${fk.fromCol}_${idx+1}\` FOREIGN KEY (\`${fk.fromCol}\`) REFERENCES \`${fk.toTable}\` (\`${fk.toCol}\`) ON DELETE CASCADE`);
+        });
+
+        sql += lines.join(',\n');
+        sql += `\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+      });
+
+      document.getElementById('sqlOutputText').value = sql;
+      openModal('modalSQL');
+    }
+
+    function copySQLText() {
+      const text = document.getElementById('sqlOutputText').value;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("Đã sao chép mã SQL DDL vào Clipboard!");
+      });
+    }
+
+    // --- DoD & Tests ---
+    function renderDoDAndTests() {
+      const dodContainer = document.getElementById('dodList');
+      dodContainer.innerHTML = appState.dodList.map(item => `
+        <div class="flex items-start space-x-3 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors">
+          <button onclick="toggleDod('${item.id}')" class="mt-0.5 w-4 h-4 rounded border flex items-center justify-center ${item.done ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 dark:border-slate-600'}">
+            ${item.done ? '<i data-lucide="check" class="w-3 h-3"></i>' : ''}
+          </button>
+          <div class="flex-1 text-xs ${item.done ? 'line-through text-slate-400' : 'text-slate-800 dark:text-slate-200 font-medium'}">
+            ${escapeHtml(item.text)}
+          </div>
+          <button onclick="deleteDod('${item.id}')" class="text-slate-400 hover:text-rose-500 p-0.5"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+        </div>
+      `).join('');
+
+      const testsContainer = document.getElementById('testCasesList');
+      testsContainer.innerHTML = appState.testCases.map(tc => `
+        <div class="p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 shadow-sm space-y-2">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 font-semibold uppercase">${escapeHtml(tc.module || 'General')}</span>
+              <h4 class="font-bold text-xs text-slate-900 dark:text-white mt-1">${escapeHtml(tc.name)}</h4>
+            </div>
+            <div class="flex items-center space-x-1">
+              <select onchange="changeTestStatus('${tc.id}', this.value)" class="text-[10px] px-2 py-0.5 rounded font-semibold cursor-pointer ${getTestStatusBadgeClass(tc.status)}">
+                <option value="passed" ${tc.status === 'passed' ? 'selected' : ''}>Passed</option>
+                <option value="pending" ${tc.status === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="failed" ${tc.status === 'failed' ? 'selected' : ''}>Failed</option>
+              </select>
+              <button onclick="deleteTestCase('${tc.id}')" class="text-slate-400 hover:text-rose-500 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
+            ${tc.input ? `<div><strong>Input:</strong> ${escapeHtml(tc.input)}</div>` : ''}
+            ${tc.expected ? `<div><strong>Expected:</strong> ${escapeHtml(tc.expected)}</div>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addDodItemPrompt() {
+      const text = prompt("Nhập tiêu chí nghiệm thu hoàn thiện mới:");
+      if (text) {
+        appState.dodList.push({ id: 'dod-' + Date.now(), text, done: false });
+        saveData();
+        renderDoDAndTests();
+        renderDashboard();
+      }
+    }
+
+    function toggleDod(id) {
+      const item = appState.dodList.find(d => d.id === id);
+      if (item) {
+        item.done = !item.done;
+        saveData();
+        renderDoDAndTests();
+        renderDashboard();
+      }
+    }
+
+    function deleteDod(id) {
+      appState.dodList = appState.dodList.filter(d => d.id !== id);
+      saveData();
+      renderDoDAndTests();
+      renderDashboard();
+    }
+
+    function openTestCaseModal() {
+      document.getElementById('testEditId').value = '';
+      document.getElementById('testName').value = '';
+      document.getElementById('testInput').value = '';
+      document.getElementById('testExpected').value = '';
+      document.getElementById('testStatus').value = 'pending';
+      document.getElementById('testModule').value = '';
+      openModal('modalTestCase');
+    }
+
+    function saveTestCase() {
+      const name = document.getElementById('testName').value.trim();
+      const input = document.getElementById('testInput').value.trim();
+      const expected = document.getElementById('testExpected').value.trim();
+      const status = document.getElementById('testStatus').value;
+      const module = document.getElementById('testModule').value.trim();
+
+      if (!name) {
+        alert("Vui lòng nhập tên test case.");
+        return;
+      }
+
+      appState.testCases.push({
+        id: 'tc-' + Date.now(),
+        name,
+        input,
+        expected,
+        status,
+        module: module || 'General'
+      });
+
+      saveData();
+      renderDoDAndTests();
+      renderDashboard();
+      closeModal('modalTestCase');
+    }
+
+    function changeTestStatus(id, newStatus) {
+      const tc = appState.testCases.find(t => t.id === id);
+      if (tc) {
+        tc.status = newStatus;
+        saveData();
+        renderDoDAndTests();
+        renderDashboard();
+      }
+    }
+
+    function deleteTestCase(id) {
+      if (confirm("Xóa test case này?")) {
+        appState.testCases = appState.testCases.filter(t => t.id !== id);
+        saveData();
+        renderDoDAndTests();
+        renderDashboard();
+      }
+    }
+
+    function togglePhase(id) {
+      const phase = (appState.project.phases || []).find(p => p.id === id);
+      if (phase) {
+        phase.done = !phase.done;
+        saveData();
+        renderDashboard();
+      }
+    }
+
+    // --- Settings ---
+    function populateSettings() {
+      document.getElementById('cfgProjectTitle').value = appState.project.title || '';
+      document.getElementById('cfgProjectDesc').value = appState.project.description || '';
+      document.getElementById('cfgDeadline').value = appState.project.deadline || '';
+    }
+
+    function saveProjectConfig() {
+      appState.project.title = document.getElementById('cfgProjectTitle').value;
+      appState.project.description = document.getElementById('cfgProjectDesc').value;
+      appState.project.deadline = document.getElementById('cfgDeadline').value;
+      
+      saveData();
+      renderAll();
+      showToast("Đã lưu thông tin đồ án!");
+    }
+
+    function resetToDefaultsConfirm() {
+      if (confirm("Khôi phục lại toàn bộ dữ liệu mặc định của XimiLib?")) {
+        appState = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        saveData(false);
+        renderAll();
+        showToast("Đã khôi phục dữ liệu mẫu ban đầu!");
+      }
+    }
+
+    // ==================== HELPER UTILITIES ====================
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      if (toast && toastMsg) {
+        toastMsg.textContent = msg;
+        toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+        setTimeout(() => {
+          toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
+        }, 2500);
+      }
+    }
+
+    function calculateDaysLeft(deadlineStr) {
+      if (!deadlineStr) return 0;
+      const now = new Date();
+      now.setHours(0,0,0,0);
+      const deadline = new Date(deadlineStr);
+      deadline.setHours(0,0,0,0);
+      const diffTime = deadline - now;
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('-');
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      return dateStr;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getPriorityRankBadge(idx, category) {
+      if (category === 'scrapped') return 'bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400';
+      if (idx === 0) return 'bg-amber-400 text-slate-900';
+      if (idx === 1) return 'bg-slate-300 dark:bg-slate-700 text-slate-900 dark:text-white';
+      if (idx === 2) return 'bg-amber-600/30 text-amber-900 dark:text-amber-200';
+      return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400';
+    }
+
+    function getCategoryBadgeClass(category) {
+      switch(category) {
+        case 'must': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300';
+        case 'should': return 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300';
+        case 'nice': return 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300';
+        case 'scrapped': return 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300';
+        default: return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+      }
+    }
+
+    function getCategoryLabel(category) {
+      switch(category) {
+        case 'must': return 'Cốt lõi (Must)';
+        case 'should': return 'Quan trọng (Should)';
+        case 'nice': return 'Mở rộng (Nice)';
+        case 'scrapped': return 'Đã lược bỏ';
+        default: return 'Tính năng';
+      }
+    }
+
+    function getStatusBadgeClass(status) {
+      switch(status) {
+        case 'done': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300';
+        case 'inprogress': return 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300';
+        case 'review': return 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300';
+        default: return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+      }
+    }
+
+    function getStatusLabel(status) {
+      switch(status) {
+        case 'done': return 'Hoàn Thành';
+        case 'inprogress': return 'Đang Làm';
+        case 'review': return 'Review';
+        default: return 'Cần Làm';
+      }
+    }
+
+    function getPriorityClass(p) {
+      switch(p) {
+        case 'high': return 'text-rose-500 font-bold';
+        case 'medium': return 'text-amber-500 font-medium';
+        default: return 'text-slate-400';
+      }
+    }
+
+    function getTestStatusBadgeClass(st) {
+      switch(st) {
+        case 'passed': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300';
+        case 'failed': return 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300';
+        default: return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+      }
+    }
+
+    // Startup
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
