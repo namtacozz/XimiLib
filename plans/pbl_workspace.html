@@ -4634,7 +4634,7 @@ Dựa theo đánh giá ng dùng</p>
   <!-- ==================== JAVASCRIPT STATE & CORE LOGIC ==================== -->
   <script>
     // Storage Key
-    const STORAGE_KEY = 'ximilib_pbl_workspace_v6';
+    const STORAGE_KEY = 'ximilib_pbl_workspace_v7';
 
     // Official Project Members
     const DEFAULT_MEMBERS = [
@@ -4664,24 +4664,24 @@ Dựa theo đánh giá ng dùng</p>
     // Default Initial Dataset
     const DEFAULT_DATA = {
   "project": {
-    "title": "XimiLib - Web Quản Lý Thư Viện",
+    "title": "XimiLib - Phần Mềm Quản Lý Thư Viện (Java Desktop)",
     "shortTitle": "XimiLib",
-    "description": "Hệ thống quản lý thư viện hiện đại: quản lý sách, độc giả, thẻ thành viên theo hạng, xử lý quá hạn và báo cáo thống kê trực tuyến.",
+    "description": "Hệ thống quản lý thư viện hiện đại bằng Java Desktop (3 tầng GUI - BLL - DAL): quản lý sách, độc giả, thẻ thư viện, xử lý quá hạn và báo cáo thống kê kết nối MySQL.",
     "team": [
       {
         "name": "Lê Võ Thành Nam",
-        "role": "BE",
-        "desc": "Backend & Core Business Logic"
+        "role": "BLL / BE",
+        "desc": "Business Logic Layer & Nghiệp vụ cốt lõi"
       },
       {
         "name": "Phan Vũ Xuân Kiên",
-        "role": "FE/DB",
-        "desc": "Frontend Web & Database Design"
+        "role": "GUI / DB",
+        "desc": "Presentation Layer (Java Desktop) & CSDL MySQL"
       },
       {
         "name": "Nguyễn Việt Nhật",
-        "role": "TechLead",
-        "desc": "Tech Lead & System Architecture"
+        "role": "TechLead / DAL",
+        "desc": "Tech Lead, Kiến trúc 3 tầng & Data Access Layer"
       }
     ],
     "deadline": "2026-11-25",
@@ -4698,17 +4698,17 @@ Dựa theo đánh giá ng dùng</p>
       },
       {
         "id": 3,
-        "name": "3. Thiết kế UI/UX & Wireframe Web",
+        "name": "3. Thiết kế GUI Prototype & Phân tích Kiến trúc 3 tầng",
         "done": true
       },
       {
         "id": 4,
-        "name": "4. Lập trình Backend (API / Business Logic)",
+        "name": "4. Lập trình Core Logic BLL & DAL (Java)",
         "done": false
       },
       {
         "id": 5,
-        "name": "5. Lập trình Frontend & Ghép API",
+        "name": "5. Lập trình GUI Desktop & Ghép nối BLL-DAL",
         "done": false
       },
       {
@@ -4864,31 +4864,31 @@ Dựa theo đánh giá ng dùng</p>
     },
     {
       "id": 10,
-      "title": "Tuần 10: Thực thi lập trình dự án"
+      "title": "Tuần 10: Khởi tạo Kiến trúc Java 3 tầng, CSDL & Xác thực (Auth)"
     },
     {
       "id": 11,
-      "title": "Tuần 11: Ghép nối CSDL - BE"
+      "title": "Tuần 11: Nghiệp vụ Quản lý Danh mục Sách & Độc giả"
     },
     {
       "id": 12,
-      "title": "Tuần 12: Hoàn thiện & Nghiệm thu"
+      "title": "Tuần 12: Nghiệp vụ Mượn / Trả sách & Tự động tính tiền phạt"
     },
     {
       "id": 13,
-      "title": "Tuần 13: Ghép nối Frontend - Backend & Kiểm Thử QA"
+      "title": "Tuần 13: Ghép nối GUI - BLL - DAL Toàn diện & Thống kê Báo cáo"
     },
     {
       "id": 14,
-      "title": "Tuần 14: Kiểm thử"
+      "title": "Tuần 14: Kiểm thử QA theo Test Cases & Xử lý Ngoại lệ"
     },
     {
       "id": 15,
-      "title": "Tuần 15: Fix Bug, Hoàn thiện Báo Cáo Word & Slide Bảo Vệ"
+      "title": "Tuần 15: Đóng băng Code, Đóng gói .JAR, Hoàn thiện Báo cáo & Slide"
     },
     {
       "id": 16,
-      "title": "Tuần 16: Hoàn thiện & Nghiệm thu"
+      "title": "Tuần 16: Tổng duyệt Demo Thuyết trình & Bảo vệ Đồ án"
     }
   ],
   "tasks": [
@@ -4900,6 +4900,16 @@ Dựa theo đánh giá ng dùng</p>
       "assignee": "",
       "status": "done",
       "priority": "high",
+      "tag": "Doc"
+    },
+    {
+      "id": "t-1788940094877",
+      "weekId": 2,
+      "title": "Nghiên cứu các công cụ, ngôn ngữ cần dùng",
+      "desc": "",
+      "assignee": "",
+      "status": "done",
+      "priority": "medium",
       "tag": "Doc"
     },
     {
@@ -4923,6 +4933,16 @@ Dựa theo đánh giá ng dùng</p>
       "tag": "Doc"
     },
     {
+      "id": "t-1789541336121",
+      "weekId": 4,
+      "title": "Thiết kế trang quản lý tiến trình PBL",
+      "desc": "Một trang web hỗ trợ làm việc nhóm, quản  lý quá trình được tạo đơn giản từ AI",
+      "assignee": "Lê Võ Thành Nam",
+      "status": "done",
+      "priority": "medium",
+      "tag": "Task"
+    },
+    {
       "id": "t-5",
       "weekId": 5,
       "title": "Bàn luận và chốt lại danh sách chức năng của dự án",
@@ -4930,6 +4950,16 @@ Dựa theo đánh giá ng dùng</p>
       "assignee": "Lê Võ Thành Nam",
       "status": "done",
       "priority": "high",
+      "tag": "Doc"
+    },
+    {
+      "id": "t-1789541222966",
+      "weekId": 5,
+      "title": "Vẽ sơ đồ use-case",
+      "desc": "",
+      "assignee": "Nguyễn Việt Nhật",
+      "status": "done",
+      "priority": "medium",
       "tag": "Doc"
     },
     {
@@ -4943,66 +4973,6 @@ Dựa theo đánh giá ng dùng</p>
       "tag": "DB"
     },
     {
-      "id": "t-7",
-      "weekId": 7,
-      "title": "Tiếp tục các công việc trước đó chưa hoàn thiện",
-      "desc": "",
-      "assignee": "",
-      "status": "todo",
-      "priority": "high",
-      "tag": "Task"
-    },
-    {
-      "id": "t-8",
-      "weekId": 8,
-      "title": "Hoàn thiện CSDL",
-      "desc": "Đầy đủ các đối tượng, thuộc tính, quan hệ",
-      "assignee": "Phan Vũ Xuân Kiên",
-      "status": "todo",
-      "priority": "high",
-      "tag": "DB"
-    },
-    {
-      "id": "t-9",
-      "weekId": 9,
-      "title": "Báo cáo dự án qua giai đoạn giữa kì",
-      "desc": "",
-      "assignee": "",
-      "status": "todo",
-      "priority": "high",
-      "tag": "Doc"
-    },
-    {
-      "id": "t-10",
-      "weekId": 13,
-      "title": "Tích hợp toàn hệ thống & Đánh giá Kiến trúc",
-      "desc": "Code review, kiểm tra hiệu năng truy vấn và bảo mật API.",
-      "assignee": "Nguyễn Việt Nhật",
-      "status": "todo",
-      "priority": "high",
-      "tag": "TechLead"
-    },
-    {
-      "id": "t-11",
-      "weekId": 11,
-      "title": "Đưa CSDL vào dự án",
-      "desc": "",
-      "assignee": "Nguyễn Việt Nhật",
-      "status": "todo",
-      "priority": "high",
-      "tag": "BE"
-    },
-    {
-      "id": "t-1788940094877",
-      "weekId": 2,
-      "title": "Nghiên cứu các công cụ, ngôn ngữ cần dùng",
-      "desc": "",
-      "assignee": "",
-      "status": "done",
-      "priority": "medium",
-      "tag": "Doc"
-    },
-    {
       "id": "t-1788940419107",
       "weekId": 6,
       "title": "Vẽ sơ đồ kiến trúc hệ thống",
@@ -5010,96 +4980,6 @@ Dựa theo đánh giá ng dùng</p>
       "assignee": "Nguyễn Việt Nhật",
       "status": "inprogress",
       "priority": "high",
-      "tag": "Doc"
-    },
-    {
-      "id": "t-1788940728784",
-      "weekId": 16,
-      "title": "Tổng hợp Báo Cáo Đồ Án & Slide Bảo Vệ",
-      "desc": "Đóng gói toàn bộ tài liệu, test cases và slide demo.",
-      "assignee": "Nguyễn Việt Nhật",
-      "status": "todo",
-      "priority": "high",
-      "tag": "Doc"
-    },
-    {
-      "id": "t-1788940803932",
-      "weekId": 15,
-      "title": "Hoàn thiện bước cuối",
-      "desc": "Fix bug, bắt đầu viết báo cáo",
-      "assignee": "Nguyễn Việt Nhật",
-      "status": "todo",
-      "priority": "medium",
-      "tag": "TechLead"
-    },
-    {
-      "id": "t-1788940845666",
-      "weekId": 14,
-      "title": "Kiểm thử rà soát lỗi dự án",
-      "desc": "",
-      "assignee": "Nguyễn Việt Nhật",
-      "status": "todo",
-      "priority": "high",
-      "tag": "TechLead"
-    },
-    {
-      "id": "t-1788941063066",
-      "weekId": 10,
-      "title": "Lập trình các module dự án",
-      "desc": "",
-      "assignee": "Lê Võ Thành Nam",
-      "status": "todo",
-      "priority": "high",
-      "tag": "BE"
-    },
-    {
-      "id": "t-1788941087235",
-      "weekId": 10,
-      "title": "Viết giao diện FE",
-      "desc": "",
-      "assignee": "Phan Vũ Xuân Kiên",
-      "status": "todo",
-      "priority": "high",
-      "tag": "FE"
-    },
-    {
-      "id": "t-1788941199956",
-      "weekId": 12,
-      "title": "Tiếp tục hoàn thiện các task chưa hoàn thiện",
-      "desc": "",
-      "assignee": "",
-      "status": "todo",
-      "priority": "high",
-      "tag": "Task"
-    },
-    {
-      "id": "t-1788941286056",
-      "weekId": 8,
-      "title": "Viết báo cáo demo",
-      "desc": "Viết báo cáo về quá trình làm việc, độ hoàn thiện dự án",
-      "assignee": "Lê Võ Thành Nam",
-      "status": "todo",
-      "priority": "high",
-      "tag": "Doc"
-    },
-    {
-      "id": "t-1788941537557",
-      "weekId": 7,
-      "title": "Duyệt lại các tính năng",
-      "desc": "Xem xét có thêm bớt sửa đổi gì không",
-      "assignee": "Lê Võ Thành Nam",
-      "status": "todo",
-      "priority": "medium",
-      "tag": "Task"
-    },
-    {
-      "id": "t-1789541222966",
-      "weekId": 5,
-      "title": "Vẽ sơ đồ use-case",
-      "desc": "",
-      "assignee": "Nguyễn Việt Nhật",
-      "status": "done",
-      "priority": "medium",
       "tag": "Doc"
     },
     {
@@ -5113,13 +4993,273 @@ Dựa theo đánh giá ng dùng</p>
       "tag": "Doc"
     },
     {
-      "id": "t-1789541336121",
-      "weekId": 4,
-      "title": "Thiết kế trang quản lý tiến trình PBL",
-      "desc": "Một trang web hỗ trợ làm việc nhóm, quản  lý quá trình được tạo đơn giản từ AI",
+      "id": "t-7",
+      "weekId": 7,
+      "title": "Tiếp tục các công việc trước đó chưa hoàn thiện",
+      "desc": "",
+      "assignee": "",
+      "status": "todo",
+      "priority": "high",
+      "tag": "Task"
+    },
+    {
+      "id": "t-1788941537557",
+      "weekId": 7,
+      "title": "Duyệt lại các tính năng",
+      "desc": "Xem xét có thêm bớt sửa đổi gì không",
       "assignee": "Lê Võ Thành Nam",
-      "status": "done",
+      "status": "todo",
       "priority": "medium",
+      "tag": "Task"
+    },
+    {
+      "id": "t-8",
+      "weekId": 8,
+      "title": "Hoàn thiện CSDL",
+      "desc": "Đầy đủ các đối tượng, thuộc tính, quan hệ",
+      "assignee": "Phan Vũ Xuân Kiên",
+      "status": "todo",
+      "priority": "high",
+      "tag": "DB"
+    },
+    {
+      "id": "t-1788941286056",
+      "weekId": 8,
+      "title": "Viết báo cáo demo",
+      "desc": "Viết báo cáo về quá trình làm việc, độ hoàn thiện dự án",
+      "assignee": "Lê Võ Thành Nam",
+      "status": "todo",
+      "priority": "high",
+      "tag": "Doc"
+    },
+    {
+      "id": "t-9",
+      "weekId": 9,
+      "title": "Báo cáo dự án qua giai đoạn giữa kì",
+      "desc": "",
+      "assignee": "",
+      "status": "todo",
+      "priority": "high",
+      "tag": "Doc"
+    },
+    {
+      "id": "t-w10-1",
+      "weekId": 10,
+      "title": "Khởi tạo khung dự án Java 3 tầng & Base DAL (IRepository)",
+      "desc": "Cấu hình Maven/Gradle, thiết lập cấu trúc package gui/bll/dal/dto, viết IRepository chuẩn.",
+      "assignee": "Nguyễn Việt Nhật",
+      "status": "todo",
+      "priority": "high",
+      "tag": "TechLead"
+    },
+    {
+      "id": "t-w10-2",
+      "weekId": 10,
+      "title": "Cấu hình kết nối MySQL JDBC & Nạp Schema + Seed Data",
+      "desc": "Viết class DBConnection chống leak connection, chạy schema.sql (20 bảng) và dữ liệu mẫu seed.sql.",
+      "assignee": "Nguyễn Việt Nhật",
+      "status": "todo",
+      "priority": "high",
+      "tag": "DB"
+    },
+    {
+      "id": "t-w10-3",
+      "weekId": 10,
+      "title": "Lập trình AuthService & Quản lý Phân quyền (BLL)",
+      "desc": "Logic đăng nhập, kiểm tra tài khoản khóa tạm 15 phút nếu sai 5 lần, mã hóa mật khẩu và phân quyền Role-Based.",
+      "assignee": "Lê Võ Thành Nam",
+      "status": "todo",
+      "priority": "high",
+      "tag": "BE"
+    },
+    {
+      "id": "t-w10-4",
+      "weekId": 10,
+      "title": "Thiết kế Giao diện Khung (Main Dashboard) & Form Đăng nhập (GUI)",
+      "desc": "Xây dựng LoginForm, RegisterForm, MainDashboardView có MenuBar/Sidebar điều hướng linh hoạt.",
+      "assignee": "Phan Vũ Xuân Kiên",
+      "status": "inprogress",
+      "priority": "high",
+      "tag": "GUI"
+    },
+    {
+      "id": "t-w11-1",
+      "weekId": 11,
+      "title": "Lập trình BookService & ReaderService (BLL)",
+      "desc": "Nghiệp vụ thêm, sửa, xóa mềm (Soft-delete) sách; cấp và gia hạn thẻ độc giả; logic tìm kiếm sách đa tiêu chí.",
+      "assignee": "Lê Võ Thành Nam",
+      "status": "todo",
+      "priority": "high",
+      "tag": "BE"
+    },
+    {
+      "id": "t-w11-2",
+      "weekId": 11,
+      "title": "Thiết kế Giao diện Quản lý Sách & Quản lý Độc giả (GUI)",
+      "desc": "TableView danh sách sách, thanh tìm kiếm tức thời, dialog thêm/sửa sách, form quản lý hồ sơ độc giả.",
+      "assignee": "Phan Vũ Xuân Kiên",
+      "status": "todo",
+      "priority": "high",
+      "tag": "GUI"
+    },
+    {
+      "id": "t-w11-3",
+      "weekId": 11,
+      "title": "Xây dựng BookDAL, ReaderDAL & Module Quản lý Kho Kệ Sách (DAL)",
+      "desc": "Viết các hàm CRUD sử dụng PreparedStatement chống SQL Injection, quản lý Khu vực và Kệ sách.",
+      "assignee": "Nguyễn Việt Nhật",
+      "status": "todo",
+      "priority": "high",
+      "tag": "DAL"
+    },
+    {
+      "id": "t-w12-1",
+      "weekId": 12,
+      "title": "Lập trình BorrowService & ReturnService (BLL)",
+      "desc": "Quy trình lập phiếu mượn (tối đa 14 ngày, đọc tại chỗ), kiểm tra nợ phạt, tính phạt trễ hạn 2.000đ/ngày và mất sách 200%.",
+      "assignee": "Lê Võ Thành Nam",
+      "status": "todo",
+      "priority": "high",
+      "tag": "BE"
+    },
+    {
+      "id": "t-w12-2",
+      "weekId": 12,
+      "title": "Thiết kế Giao diện Quầy Mượn/Trả & Thu Phạt (GUI)",
+      "desc": "Màn hình quầy thủ thư: tra cứu mã thẻ, chọn sách vào phiếu, dialog xử lý trả sách và xác nhận nộp phạt.",
+      "assignee": "Phan Vũ Xuân Kiên",
+      "status": "todo",
+      "priority": "high",
+      "tag": "GUI"
+    },
+    {
+      "id": "t-w12-3",
+      "weekId": 12,
+      "title": "Xây dựng BorrowDAL với Transaction & Viết Unit Tests Phạt (TechLead)",
+      "desc": "Quản lý Transaction JDBC (tạo phiếu mượn và trừ tồn kho atomicity), viết Unit Test JUnit kiểm tra công thức tính phạt.",
+      "assignee": "Nguyễn Việt Nhật",
+      "status": "todo",
+      "priority": "high",
+      "tag": "TechLead"
+    },
+    {
+      "id": "t-w13-1",
+      "weekId": 13,
+      "title": "Ghép nối toàn diện GUI - BLL - DAL & Bắt lỗi Form (GUI)",
+      "desc": "Ráp sự kiện các nút bấm, validation dữ liệu đầu vào, hiển thị thông báo lỗi thân thiện (Alert/JOptionPane).",
+      "assignee": "Phan Vũ Xuân Kiên",
+      "status": "todo",
+      "priority": "high",
+      "tag": "GUI"
+    },
+    {
+      "id": "t-w13-2",
+      "weekId": 13,
+      "title": "Lập trình StatisticService & Module Thông Báo (BLL)",
+      "desc": "Nghiệp vụ tổng hợp số liệu mượn/trả, lọc sách quá hạn cần cảnh báo, cơ chế thông báo nhắc hạn bạn đọc.",
+      "assignee": "Lê Võ Thành Nam",
+      "status": "todo",
+      "priority": "high",
+      "tag": "BE"
+    },
+    {
+      "id": "t-w13-3",
+      "weekId": 13,
+      "title": "Xây dựng Dashboard Biểu đồ & Xuất Báo Cáo Excel qua Apache POI (TechLead)",
+      "desc": "Biểu đồ trực quan thống kê lượt đọc/doanh thu phạt, xuất bảng tính Excel (.xlsx), tối ưu chỉ mục CSDL (Index).",
+      "assignee": "Nguyễn Việt Nhật",
+      "status": "todo",
+      "priority": "high",
+      "tag": "TechLead"
+    },
+    {
+      "id": "t-w14-1",
+      "weekId": 14,
+      "title": "Chạy nghiệm thu 4 Test Cases cốt lõi & Test Tải CSDL (TechLead)",
+      "desc": "Thực thi TC-1 (Mượn đúng hạn), TC-2 (Trễ 5 ngày), TC-3 (Nợ phạt), TC-4 (Mất sách); test với dữ liệu lớn 1.000+ bản ghi.",
+      "assignee": "Nguyễn Việt Nhật",
+      "status": "todo",
+      "priority": "high",
+      "tag": "TechLead"
+    },
+    {
+      "id": "t-w14-2",
+      "weekId": 14,
+      "title": "Xử lý Custom Exceptions & Khắc phục lỗi BLL (BLL)",
+      "desc": "Xử lý ngoại lệ nghiệp vụ (BookNotAvailable, ReaderBlocked,...), sửa toàn bộ lỗi logic phát hiện trong test cases.",
+      "assignee": "Lê Võ Thành Nam",
+      "status": "todo",
+      "priority": "high",
+      "tag": "BE"
+    },
+    {
+      "id": "t-w14-3",
+      "weekId": 14,
+      "title": "Rà soát giao diện (UX Polish) & Định dạng chuẩn VN (GUI)",
+      "desc": "Định dạng tiền tệ VNĐ, ngày tháng dd/MM/yyyy, thêm hộp thoại xác nhận trước các thao tác nhạy cảm.",
+      "assignee": "Phan Vũ Xuân Kiên",
+      "status": "todo",
+      "priority": "high",
+      "tag": "GUI"
+    },
+    {
+      "id": "t-w15-1",
+      "weekId": 15,
+      "title": "Đóng gói ứng dụng Java (.jar / jpackage) & Thiết lập môi trường (TechLead)",
+      "desc": "Build file thực thi độc lập, kiểm tra chạy trên máy trạm không cần cài IDE, xuất file cấu hình kết nối DB bên ngoài.",
+      "assignee": "Nguyễn Việt Nhật",
+      "status": "todo",
+      "priority": "high",
+      "tag": "TechLead"
+    },
+    {
+      "id": "t-w15-2",
+      "weekId": 15,
+      "title": "Chủ trì biên tập Báo Cáo Đồ Án hoàn chỉnh & Thiết kế Slide (TechLead)",
+      "desc": "Tổng hợp toàn bộ tài liệu Báo cáo Word theo chuẩn khoa CNTT, thiết kế slide thuyết trình bảo vệ đề tài.",
+      "assignee": "Nguyễn Việt Nhật",
+      "status": "todo",
+      "priority": "high",
+      "tag": "Doc"
+    },
+    {
+      "id": "t-w15-3",
+      "weekId": 15,
+      "title": "Soạn nội dung BLL, Sơ đồ tuần tự & Thuật toán nghiệp vụ (BLL)",
+      "desc": "Viết chi tiết các Use-cases, sơ đồ Sequence Diagram mượn/trả/phạt và giải thuật đưa vào Báo cáo Word.",
+      "assignee": "Lê Võ Thành Nam",
+      "status": "todo",
+      "priority": "medium",
+      "tag": "Doc"
+    },
+    {
+      "id": "t-w15-4",
+      "weekId": 15,
+      "title": "Chụp ảnh màn hình giao diện & Chuẩn bị CSDL Demo sống (GUI)",
+      "desc": "Chụp ảnh sắc nét các màn hình đưa vào báo cáo; chuẩn bị dữ liệu mẫu sống (sách, độc giả, nợ phạt) sẵn sàng Live Demo.",
+      "assignee": "Phan Vũ Xuân Kiên",
+      "status": "todo",
+      "priority": "medium",
+      "tag": "Doc"
+    },
+    {
+      "id": "t-w16-1",
+      "weekId": 16,
+      "title": "Tổ chức tổng duyệt thuyết trình phản biện (Mock Defense)",
+      "desc": "Họp nhóm chạy thử kịch bản bảo vệ, phân chia trả lời câu hỏi phản biện của hội đồng cho 3 người.",
+      "assignee": "Nguyễn Việt Nhật",
+      "status": "todo",
+      "priority": "high",
+      "tag": "TechLead"
+    },
+    {
+      "id": "t-w16-2",
+      "weekId": 16,
+      "title": "Nghiệm thu 100% tiêu chí hoàn thành (DoD) & Bàn giao đồ án",
+      "desc": "Kiểm tra chốt checklist Definition of Done, đóng gói file nộp (source code, CSDL, báo cáo, slide).",
+      "assignee": "Lê Võ Thành Nam",
+      "status": "todo",
+      "priority": "high",
       "tag": "Task"
     }
   ],
@@ -6266,7 +6406,7 @@ Dựa theo đánh giá ng dùng</p>
     },
     {
       "id": "dod-6",
-      "text": "Giao diện Web thân thiện, hỗ trợ tìm kiếm/lọc sách đa chiều và có thông báo rõ ràng",
+      "text": "Giao diện Java Desktop thân thiện, hỗ trợ tìm kiếm/lọc sách đa chiều trên TableView và có thông báo rõ ràng",
       "done": false
     },
     {
