@@ -1,0 +1,19 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# Package Files (except libraries if any)
+sources/target/
+target/
+
+# VS Code
+.vscode/.project
+.vscode/.classpath
+.vscode/.factorypath
+
+# OS generated
+Thumbs.db
+.DS_Store
+desktop.ini
