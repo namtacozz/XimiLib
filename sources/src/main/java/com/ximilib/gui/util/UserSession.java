@@ -1,8 +1,8 @@
 package com.ximilib.gui.util;
 
 import com.ximilib.models.User;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * UserSession: Quản lý danh sách tài khoản mẫu trong bộ nhớ
@@ -11,10 +11,20 @@ import java.util.List;
  */
 public class UserSession {
 
-    private static final List<User> USERS = new ArrayList<>();
-    private static User currentUser = null;
+    private static final List<User> USERS = new CopyOnWriteArrayList<>();
+    private static volatile User currentUser = null;
 
     static {
+        resetDefaultUsers();
+    }
+
+    /**
+     * Khởi tạo lại danh sách tài khoản mặc định (hỗ trợ cả chạy thật và Unit Test)
+     */
+    public static void resetDefaultUsers() {
+        USERS.clear();
+        currentUser = null;
+
         // 1. Tài khoản Quản Trị Viên (TechLead Nhật)
         USERS.add(new User(
             "ND001", "admin", "123456",
@@ -49,10 +59,12 @@ public class UserSession {
      */
     public static User authenticate(String usernameOrEmail, String password) {
         if (usernameOrEmail == null || password == null) return null;
+        String query = usernameOrEmail.trim();
+
         for (User user : USERS) {
-            boolean matchesIdentifier = user.getUsername().equalsIgnoreCase(usernameOrEmail) 
-                                     || user.getEmail().equalsIgnoreCase(usernameOrEmail);
-            if (matchesIdentifier && user.getPassword().equals(password)) {
+            boolean matchesIdentifier = (user.getUsername() != null && user.getUsername().equalsIgnoreCase(query))
+                                     || (user.getEmail() != null && user.getEmail().equalsIgnoreCase(query));
+            if (matchesIdentifier && user.getPassword() != null && user.getPassword().equals(password)) {
                 currentUser = user;
                 return user;
             }
@@ -64,9 +76,20 @@ public class UserSession {
      * Đăng ký tài khoản mới vào hệ thống
      */
     public static boolean register(User newUser) {
+        if (newUser == null || newUser.getUsername() == null || newUser.getUsername().trim().isEmpty()) {
+            return false;
+        }
+
+        String newUsername = newUser.getUsername().trim();
+        String newEmail = (newUser.getEmail() != null) ? newUser.getEmail().trim() : null;
+
         for (User user : USERS) {
-            if (user.getUsername().equalsIgnoreCase(newUser.getUsername()) ||
-                user.getEmail().equalsIgnoreCase(newUser.getEmail())) {
+            boolean duplicateUsername = user.getUsername() != null 
+                                     && user.getUsername().equalsIgnoreCase(newUsername);
+            boolean duplicateEmail = user.getEmail() != null && newEmail != null 
+                                  && !newEmail.isEmpty() 
+                                  && user.getEmail().equalsIgnoreCase(newEmail);
+            if (duplicateUsername || duplicateEmail) {
                 return false; // Trùng username hoặc email
             }
         }

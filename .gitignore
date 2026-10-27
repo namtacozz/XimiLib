@@ -1,19 +1,49 @@
-# Compiled class file
+# ========================================================
+# Git Ignore: XimiLib (Enterprise Java 17 + MySQL Desktop)
+# ========================================================
+
+# Compiled class files & build artifacts
 *.class
-
-# Log file
-*.log
-
-# Package Files (except libraries if any)
-sources/target/
 target/
+sources/target/
 
-# VS Code
+# Package Files (except release dist JAR if tracked)
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Runtime logs
+*.log
+logs/*
+!logs/.gitkeep
+
+# Database backups (preserve folder structure)
+database/backups/*
+!database/backups/.gitkeep
+
+# IDE & Editor specific files
 .vscode/.project
 .vscode/.classpath
 .vscode/.factorypath
+.idea/
+*.iml
+*.iws
+*.ipr
+.settings/
+.project
+.classpath
 
-# OS generated
+# Operating System specific
 Thumbs.db
 .DS_Store
 desktop.ini
+$RECYCLE.BIN/
+
+
+# Heavy 3D assets (>100MB exceeds GitHub limits)
+assets/3dmodels/
+*.glb
+*.blend

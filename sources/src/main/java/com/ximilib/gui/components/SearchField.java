@@ -30,7 +30,7 @@ public class SearchField extends JTextField {
         putClientProperty("JComponent.roundRect", true);
 
         // Thêm icon kính lúp thông qua FlatLaf leadingIcon
-        Icon searchIcon = IconFactory.createSearchIcon(new Color(148, 163, 184), 16);
+        Icon searchIcon = IconFactory.createSearchIcon(UITheme.TEXT_MUTED, 16);
         putClientProperty("JTextField.leadingIcon", searchIcon);
 
         if (isFlatLaf) {
@@ -55,7 +55,7 @@ public class SearchField extends JTextField {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             // 1. Vẽ icon kính lúp
-            g2.setColor(new Color(148, 163, 184));
+            g2.setColor(UITheme.TEXT_MUTED);
             g2.setStroke(new BasicStroke(1.8f));
             int cy = getHeight() / 2;
             int r = 5;
@@ -65,7 +65,7 @@ public class SearchField extends JTextField {
             // 2. Vẽ Placeholder khi ô rỗng
             if (getText() == null || getText().isEmpty()) {
                 g2.setFont(getFont());
-                g2.setColor(new Color(148, 163, 184));
+                g2.setColor(UITheme.TEXT_MUTED);
                 FontMetrics fm = g2.getFontMetrics();
                 int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
                 g2.drawString(placeholder, 36, y);

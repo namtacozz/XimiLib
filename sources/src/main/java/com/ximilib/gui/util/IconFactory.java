@@ -206,6 +206,52 @@ public class IconFactory {
     /**
      * Tạo icon bánh răng (Cài đặt quy định)
      */
+    /**
+     * Tạo icon cây bút chì / chỉnh sửa (Edit/Action)
+     */
+    public static Icon createEditIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            int x1 = 3, y1 = h - 4;
+            int x2 = w - 4, y2 = 3;
+            g2.drawLine(x1 + 3, y1, x2, y2 + 3);
+            g2.drawLine(x1, y1 - 3, x2 - 3, y2);
+            g2.drawLine(x2 - 3, y2, x2, y2 + 3);
+            g2.drawLine(x1, y1 - 3, x1, y1);
+            g2.drawLine(x1 + 3, y1, x1, y1);
+            g2.drawLine(x1, h - 1, w - 2, h - 1);
+        });
+    }
+
+    /**
+     * Tạo icon mũi tên sang trái (Chevron Left cho Phân trang)
+     */
+    public static Icon createChevronLeftIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            int cx = w / 2;
+            int cy = h / 2;
+            g2.drawLine(cx + 2, cy - 4, cx - 2, cy);
+            g2.drawLine(cx - 2, cy, cx + 2, cy + 4);
+        });
+    }
+
+    /**
+     * Tạo icon mũi tên sang phải (Chevron Right cho Phân trang)
+     */
+    public static Icon createChevronRightIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            int cx = w / 2;
+            int cy = h / 2;
+            g2.drawLine(cx - 2, cy - 4, cx + 2, cy);
+            g2.drawLine(cx + 2, cy, cx - 2, cy + 4);
+        });
+    }
+
     public static Icon createSettingsIcon(Color color, int size) {
         return new VectorIcon(size, size, color, (g2, w, h, c) -> {
             g2.setColor(c);

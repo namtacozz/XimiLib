@@ -3,6 +3,7 @@ package com.ximilib.gui.components;
 import com.ximilib.gui.util.UITheme;
 import java.awt.*;
 import javax.swing.*;
+import com.ximilib.presentation.util.UiModalHelper;
 
 /**
  * ActiveLoanCard: Thẻ hiển thị từng đầu sách đang mượn kèm thời hạn và nút "Gia hạn"
@@ -86,13 +87,14 @@ public class ActiveLoanCard extends JPanel {
         statusRow.setOpaque(false);
 
         // Pill badge trạng thái hạn trả
+        // Trạng thái mượn sách giữ nguyên chuẩn success (còn hạn), warning, danger
         Color badgeBg = switch (status) {
-            case NORMAL -> UITheme.PRIMARY_MINT;
+            case NORMAL -> UITheme.SUCCESS_BG;
             case WARNING -> UITheme.WARNING_BG;
             case OVERDUE -> UITheme.DANGER_BG;
         };
         Color badgeFg = switch (status) {
-            case NORMAL -> UITheme.PRIMARY;
+            case NORMAL -> UITheme.SUCCESS_TEXT;
             case WARNING -> UITheme.WARNING_TEXT;
             case OVERDUE -> UITheme.DANGER_TEXT;
         };
@@ -120,10 +122,7 @@ public class ActiveLoanCard extends JPanel {
             btnExtend.setFont(UITheme.FONT_BADGE);
             btnExtend.setMargin(new Insets(2, 10, 2, 10));
             btnExtend.addActionListener(e -> {
-                JOptionPane.showMessageDialog(this,
-                    "Gia hạn thành công cuốn sách: " + title + " thêm 7 ngày!",
-                    "Gia Hạn Mượn Sách",
-                    JOptionPane.INFORMATION_MESSAGE);
+                UiModalHelper.showToastSuccess(this, "Gia hạn thành công cuốn sách: " + title + " thêm 7 ngày (BR-03)!");
             });
             statusRow.add(btnExtend);
         }

@@ -56,7 +56,7 @@ public class HeroBannerPanel extends JPanel {
 
         JLabel lblAddress = new JLabel("Địa chỉ: 54 Nguyễn Lương Bằng, P. Hoà Khánh Bắc, Q. Liên Chiểu, Đà Nẵng");
         lblAddress.setFont(UITheme.FONT_SMALL);
-        lblAddress.setForeground(new Color(240, 253, 244)); // Xanh bạc hà rất sáng
+        lblAddress.setForeground(UITheme.TINT_LIGHT); // Hồng pastel nhạt đạt tương phản cao
 
         infoPanel.add(Box.createVerticalGlue());
         infoPanel.add(lblTitle);
@@ -70,9 +70,12 @@ public class HeroBannerPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // Nền xanh lá tươi mờ
-                g2.setColor(new Color(16, 185, 129, 230));
+                // Nền trắng mờ cao cấp phong cách Glassmorphism đồng bộ tuyệt đối với icon bên trái
+                g2.setColor(new Color(255, 255, 255, 45));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), getHeight(), getHeight());
+                // Viền trắng mờ mảnh tinh tế
+                g2.setColor(new Color(255, 255, 255, 90));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, getHeight(), getHeight());
                 // Chấm tròn nhỏ trắng
                 g2.setColor(Color.WHITE);
                 g2.fillOval(12, getHeight() / 2 - 3, 7, 7);
@@ -82,7 +85,7 @@ public class HeroBannerPanel extends JPanel {
         };
         statusBadge.setOpaque(false);
         statusBadge.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 6));
-        statusBadge.setPreferredSize(new Dimension(110, 32));
+        statusBadge.setPreferredSize(new Dimension(116, 32));
         
         JLabel lblStatus = new JLabel("   Đang mở cửa");
         lblStatus.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -104,10 +107,10 @@ public class HeroBannerPanel extends JPanel {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Vẽ nền Gradient xanh ngọc bích chuẩn LibRack
+        // Vẽ nền Gradient hồng pastel đậm bảo đảm chữ trắng đạt chuẩn WCAG >= 4.5:1
         GradientPaint gradient = new GradientPaint(
             0, 0, UITheme.PRIMARY,
-            getWidth(), getHeight(), UITheme.PRIMARY_LIGHT
+            getWidth(), getHeight(), UITheme.PRIMARY_PRESSED
         );
         g2.setPaint(gradient);
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);

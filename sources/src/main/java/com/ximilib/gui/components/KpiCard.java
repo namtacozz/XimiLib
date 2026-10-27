@@ -32,28 +32,29 @@ public class KpiCard extends JPanel {
 
         switch (type) {
             case TOTAL_BOOKS -> {
-                iconBg = UITheme.SUCCESS_BG;
-                iconColor = UITheme.SUCCESS_TEXT;
+                iconBg = UITheme.TINT;
+                iconColor = UITheme.PRIMARY;
                 iconSymbol = "📄";
             }
             case ACTIVE_LOANS -> {
-                iconBg = UITheme.PRIMARY_MINT;
-                iconColor = UITheme.PRIMARY;
+                iconBg = UITheme.PASTEL;
+                iconColor = UITheme.ON_PASTEL;
                 iconSymbol = "✔";
             }
             case MEMBERS -> {
-                iconBg = UITheme.PURPLE_BG;
-                iconColor = UITheme.PURPLE_TEXT;
+                iconBg = UITheme.TINT;
+                iconColor = UITheme.PRIMARY;
                 iconSymbol = "👥";
             }
             case OVERDUE -> {
+                // Thẻ quá hạn giữ nguyên màu danger cảnh báo
                 iconBg = UITheme.DANGER_BG;
                 iconColor = UITheme.DANGER_TEXT;
                 numberColor = UITheme.DANGER_TEXT;
                 iconSymbol = "⚠";
             }
             default -> {
-                iconBg = UITheme.BG_LIGHT;
+                iconBg = UITheme.PAGE_BG;
                 iconColor = UITheme.TEXT_MUTED;
                 iconSymbol = "•";
             }

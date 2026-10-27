@@ -6,6 +6,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
+import com.ximilib.presentation.util.UiModalHelper;
 
 /**
  * SidebarPanel: Thanh điều hướng bên trái phân quyền động theo 3 vai trò,
@@ -13,6 +14,12 @@ import javax.swing.*;
  * Tác giả: Phan Vũ Xuân Kiên (GUI / DB)
  */
 public class SidebarPanel extends JPanel {
+
+    public interface NavigationListener {
+        void onNavigate(String routeName);
+    }
+
+    private NavigationListener navigationListener;
 
     private final List<JButton> menuButtons = new ArrayList<>();
     private JButton activeButton = null;
@@ -88,8 +95,9 @@ public class SidebarPanel extends JPanel {
         menuContainer.setOpaque(false);
         menuContainer.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
 
-        boolean isAdmin = roleName.contains("Quản Trị") || roleName.equalsIgnoreCase("Admin");
-        boolean isLibrarian = roleName.contains("Thủ Thư");
+        String normRole = (roleName != null) ? roleName.trim().toUpperCase() : "";
+        boolean isAdmin = normRole.contains("QUẢN TRỊ") || normRole.contains("ADMIN");
+        boolean isLibrarian = normRole.contains("THỦ THƯ") || normRole.contains("LIBRARIAN");
 
         // Nhóm 1: MENU CHÍNH
         menuContainer.add(createCategoryLabel("MENU CHÍNH"));
@@ -107,10 +115,14 @@ public class SidebarPanel extends JPanel {
         }
         menuContainer.add(Box.createVerticalStrut(12));
 
-        // Nhóm 3: QUẢN LÝ ĐỘC GIẢ (Chỉ Quản trị và Thủ thư)
+        // Nhóm 3: QUẢN LÝ ĐỘC GIẢ & TÀI KHOẢN (Chỉ Quản trị và Thủ thư)
         if (isAdmin || isLibrarian) {
-            menuContainer.add(createCategoryLabel("QUẢN LÝ ĐỘC GIẢ"));
+            menuContainer.add(createCategoryLabel(isAdmin ? "QUẢN TRỊ & TÀI KHOẢN" : "QUẢN LÝ ĐỘC GIẢ"));
             menuContainer.add(createMenuItem("Hồ sơ độc giả & Thẻ", IconFactory.createUsersIcon(UITheme.TEXT_MUTED, 16), false));
+            if (isAdmin) {
+                menuContainer.add(Box.createVerticalStrut(4));
+                menuContainer.add(createMenuItem("Tài khoản & Phân quyền (RBAC)", IconFactory.createSettingsIcon(UITheme.TEXT_MUTED, 16), false));
+            }
             menuContainer.add(Box.createVerticalStrut(12));
         }
 
@@ -126,6 +138,8 @@ public class SidebarPanel extends JPanel {
             menuContainer.add(createMenuItem("Đăng ký mượn sách", IconFactory.createBookIcon(UITheme.TEXT_MUTED, 16), false));
             menuContainer.add(Box.createVerticalStrut(4));
             menuContainer.add(createMenuItem("Phiếu mượn của tôi", IconFactory.createHistoryIcon(UITheme.TEXT_MUTED, 16), false));
+            menuContainer.add(Box.createVerticalStrut(4));
+            menuContainer.add(createMenuItem("Góp ý & Phản hồi", IconFactory.createHelpIcon(UITheme.TEXT_MUTED, 16), false));
         }
         menuContainer.add(Box.createVerticalStrut(12));
 
@@ -135,6 +149,8 @@ public class SidebarPanel extends JPanel {
             menuContainer.add(createMenuItem("Thống kê thư viện", IconFactory.createChartIcon(UITheme.TEXT_MUTED, 16), false));
             menuContainer.add(Box.createVerticalStrut(4));
             menuContainer.add(createMenuItem("Thùng rác & Khôi phục", IconFactory.createTrashIcon(UITheme.TEXT_MUTED, 16), false));
+            menuContainer.add(Box.createVerticalStrut(4));
+            menuContainer.add(createMenuItem("Hộp thư góp ý", IconFactory.createHelpIcon(UITheme.TEXT_MUTED, 16), false));
 
             if (isAdmin) {
                 menuContainer.add(Box.createVerticalStrut(4));
@@ -165,7 +181,7 @@ public class SidebarPanel extends JPanel {
         String displayRole = isAdmin ? "Quản Trị" : (isLibrarian ? "Thủ Thư" : "Độc Giả");
         JLabel lblRole = new JLabel("Vai trò: " + displayRole);
         lblRole.setFont(UITheme.FONT_BADGE);
-        lblRole.setForeground(UITheme.PRIMARY);
+        lblRole.setForeground(UITheme.ON_TINT);
         lblRole.setBorder(BorderFactory.createEmptyBorder(6, 6, 0, 0));
 
         footerPanel.add(btnHelp);
@@ -180,7 +196,7 @@ public class SidebarPanel extends JPanel {
     private JLabel createCategoryLabel(String text) {
         JLabel lbl = new JLabel(text);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        lbl.setForeground(new Color(148, 163, 184));
+        lbl.setForeground(UITheme.TEXT_MUTED);
         lbl.setBorder(BorderFactory.createEmptyBorder(4, 10, 6, 0));
         lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
         return lbl;
@@ -197,9 +213,16 @@ public class SidebarPanel extends JPanel {
                 if (isCurrent) {
                     g2.setColor(UITheme.PRIMARY);
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                    setForeground(Color.WHITE);
                 } else if (getModel().isRollover()) {
-                    g2.setColor(new Color(240, 253, 244));
+                    g2.setColor(UITheme.TINT_LIGHT);
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                    setForeground(UITheme.PRIMARY);
+                } else {
+                    setForeground(UITheme.TEXT_MAIN);
+                }
+                if (getIcon() instanceof IconFactory.DynamicIcon dynamicIcon) {
+                    dynamicIcon.setColor(isCurrent ? Color.WHITE : (getModel().isRollover() ? UITheme.PRIMARY : UITheme.TEXT_MUTED));
                 }
                 g2.dispose();
                 super.paintComponent(g);
@@ -233,14 +256,38 @@ public class SidebarPanel extends JPanel {
             }
             repaint();
 
-            if (!title.equals("Trang chủ")) {
-                JOptionPane.showMessageDialog(this,
-                    "Mô-đun [" + title.trim() + "] sẽ kết nối với logic tầng BLL & CSDL MySQL!",
-                    "Chức Năng Phân Quyền", JOptionPane.INFORMATION_MESSAGE);
+            if (navigationListener != null) {
+                navigationListener.onNavigate(title.trim());
+            } else if (!title.equals("Trang chủ")) {
+                UiModalHelper.showToastInfo(this, "Mô-đun [" + title.trim() + "] sẽ kết nối với logic tầng BLL & CSDL MySQL!");
             }
         });
 
         menuButtons.add(btn);
         return btn;
+    }
+
+    public void setNavigationListener(NavigationListener listener) {
+        this.navigationListener = listener;
+    }
+
+    public void setActiveRoute(String routeName) {
+        if (routeName == null) return;
+        for (JButton b : menuButtons) {
+            boolean isTarget = b.getText().trim().equalsIgnoreCase(routeName.trim());
+            if (isTarget) {
+                activeButton = b;
+                b.setForeground(Color.WHITE);
+                if (b.getIcon() instanceof IconFactory.DynamicIcon dynamicIcon) {
+                    dynamicIcon.setColor(Color.WHITE);
+                }
+            } else {
+                b.setForeground(UITheme.TEXT_MAIN);
+                if (b.getIcon() instanceof IconFactory.DynamicIcon dynamicIcon) {
+                    dynamicIcon.setColor(UITheme.TEXT_MUTED);
+                }
+            }
+        }
+        repaint();
     }
 }

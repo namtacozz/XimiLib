@@ -1,0 +1,222 @@
+﻿id_nguon,Masach,Tensach,Matheloai,Tentheloai,Manxb,Tennxb,Isbn,Namxb,Giabia,Hinhanh,Matacgia,Tentacgia,IsDeleted
+B001,MS0001,Sapiens: Lược Sử Loài Người,4,Lịch sử & Địa lý,NXB13,NXB Thế Giới,978-604-56-4275-7,2014,189000.00,/assets/covers/sapiens.jpg,TG062,Yuval Noah Harari,0
+B002,MS0002,Dune: Xứ Cát,5,Khoa học viễn tưởng,NXB17,NXB Văn Học,978-604-56-6890-0,1965,245000.00,/assets/covers/dune.jpg,TG013,Frank Herbert,0
+B003,MS0003,Educated: Được Học,7,Hồi ký & Tự truyện,NXB12,NXB Phụ Nữ,978-604-56-7812-1,2018,165000.00,/assets/covers/educated.jpg,TG050,Tara Westover,0
+B004,MS0004,Atomic Habits: Thay Đổi Tí Hon,6,Kỹ năng sống & Tâm lý,NXB13,NXB Thế Giới,978-604-56-8923-2,2018,179000.00,/assets/covers/atomic_habits.jpg,TG023,James Clear,0
+B005,MS0005,1984,8,Tiểu thuyết hiện đại,NXB17,NXB Văn Học,978-604-56-3412-9,1949,115000.00,/assets/covers/1984.jpg,TG016,George Orwell,0
+BK001,MS0006,Tư Tưởng Hồ Chí Minh,1,Lý luận chính trị & Triết học,NXB04,NXB Chính Trị Quốc Gia,978-604-90-1122-1,2021,95000.00,/assets/covers/tu_tuong_hcm.jpg,TG020,Hồ Chí Minh,0
+BK002,MS0007,Đồi Gió Hú (Wuthering Heights),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-90-2233-2,2019,135000.00,/assets/covers/doi_gio_hu.jpg,TG010,Emily Brontë,0
+BK003,MS0008,Cánh Đồng Hoang,2,Văn học kinh điển,NXB15,NXB Trẻ,978-604-90-3344-3,2020,110000.00,/assets/covers/canh_dong_hoang.jpg,TG035,Nguyễn Thị Bé,0
+BK004,MS0009,Toán Rời Rạc,3,Toán học & Khoa học tự nhiên,NXB05,NXB Giáo Dục,978-604-90-4455-4,2022,85000.00,/assets/covers/toan_roi_rac.jpg,TG037,Nguyễn Văn An,0
+BK005,MS0010,Số Đỏ,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-1188-3,1936,75000.00,/assets/covers/so_do.jpg,TG060,Vũ Trọng Phụng,0
+BK006,MS0011,Chiến Tranh Và Hòa Bình (War and Peace),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-2299-4,1869,380000.00,/assets/covers/chien_tranh_hoa_binh.jpg,TG027,Leo Tolstoy,0
+BK007,MS0012,Những Người Khốn Khổ (Les Misérables),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-3311-5,1862,290000.00,/assets/covers/nhung_nguoi_khon_kho.jpg,TG059,Victor Hugo,0
+BK008,MS0013,Người Về Từ Sao Hỏa (The Martian),5,Khoa học viễn tưởng,NXB06,NXB Hội Nhà Văn,978-604-56-4422-6,2011,155000.00,/assets/covers/nguoi_ve_tu_sao_hoa.jpg,TG004,Andy Weir,0
+BK009,MS0014,Tam Thể (The Three-Body Problem),5,Khoa học viễn tưởng,NXB17,NXB Văn Học,978-604-56-5533-7,2008,220000.00,/assets/covers/tam_the.jpg,TG028,Lưu Từ Hân,0
+BK010,MS0015,Clean Code: Mã Sạch,9,Công nghệ thông tin,NXB07,NXB Khoa Học & Kỹ Thuật,978-013-23-5088-4,2008,320000.00,/assets/covers/clean_code.jpg,TG045,Robert C. Martin,0
+BK011,MS0016,Design Patterns: Elements of Reusable Object-Oriented Software,9,Công nghệ thông tin,NXB01,Addison-Wesley,978-020-16-3361-0,1994,360000.00,/assets/covers/design_patterns.jpg,TG012,Erich Gamma,0
+BK012,MS0017,Designing Data-Intensive Applications,9,Công nghệ thông tin,NXB18,O Reilly Media,978-144-93-7332-0,2017,450000.00,/assets/covers/ddia.jpg,TG031,Martin Kleppmann,0
+BK013,MS0018,Introduction to Algorithms (CLRS),9,Công nghệ thông tin,NXB03,MIT Press,978-026-20-3384-8,2009,520000.00,/assets/covers/clrs.jpg,TG052,Thomas H. Cormen,0
+BK014,MS0019,Cộng Hòa (The Republic),1,Lý luận chính trị & Triết học,NXB13,NXB Thế Giới,978-604-56-7744-8,2020,175000.00,/assets/covers/cong_hoa.jpg,TG043,Plato,0
+BK015,MS0020,Bàn Về Khế Ước Xã Hội,1,Lý luận chính trị & Triết học,NXB14,NXB Tri Thức,978-604-56-8855-9,2019,140000.00,/assets/covers/khe_uoc_xa_hoi.jpg,TG025,Jean-Jacques Rousseau,0
+BK016,MS0021,Đại Việt Sử Ký Toàn Thư,4,Lịch sử & Địa lý,NXB08,NXB Khoa Học Xã Hội,978-604-90-5566-5,1479,420000.00,/assets/covers/dai_viet_su_ky.jpg,TG039,Ngô Sĩ Liên,0
+BK017,MS0022,"Súng, Vi Trùng Và Thép (Guns, Germs, and Steel)",4,Lịch sử & Địa lý,NXB14,NXB Tri Thức,978-604-56-9966-0,1997,215000.00,/assets/covers/sung_vi_trung_thep.jpg,TG024,Jared Diamond,0
+BK018,MS0023,"Tư Duy Nhanh Và Chậm (Thinking, Fast and Slow)",6,Kỹ năng sống & Tâm lý,NXB13,NXB Thế Giới,978-604-56-1234-5,2011,198000.00,/assets/covers/tu_duy_nhanh_cham.jpg,TG009,Daniel Kahneman,0
+BK019,MS0024,Đắc Nhân Tâm (How to Win Friends and Influence People),6,Kỹ năng sống & Tâm lý,NXB16,NXB Tổng Hợp TP.HCM,978-604-56-2345-6,1936,98000.00,/assets/covers/dac_nhan_tam.jpg,TG007,Dale Carnegie,0
+BK020,MS0025,Khi Hơi Thở Hóa Thinh Không (When Breath Becomes Air),7,Hồi ký & Tự truyện,NXB06,NXB Hội Nhà Văn,978-604-56-3456-7,2016,125000.00,/assets/covers/khi_hoi_tho_hoa_thinh_khong.jpg,TG040,Paul Kalanithi,0
+BK021,MS0026,Trăm Năm Cô Đơn (One Hundred Years of Solitude),8,Tiểu thuyết hiện đại,NXB17,NXB Văn Học,978-604-56-4567-8,1967,185000.00,/assets/covers/tram_nam_co_don.jpg,TG015,Gabriel García Márquez,0
+BK022,MS0027,Rừng Na Uy (Norwegian Wood),8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5678-9,1987,145000.00,/assets/covers/rung_na_uy.jpg,TG018,Haruki Murakami,0
+BK023,MS0028,English Grammar in Use (5th Edition),10,Ngoại ngữ & Từ điển,NXB02,Cambridge University Press,978-110-84-5765-1,2019,260000.00,/assets/covers/english_grammar.jpg,TG044,Raymond Murphy,0
+BK024,MS0029,Oxford Advanced Learners Dictionary,10,Ngoại ngữ & Từ điển,NXB19,Oxford University Press,978-019-47-9848-8,2020,580000.00,/assets/covers/oxford_dict.jpg,TG002,AS Hornby,0
+BK025,MS0030,Minna no Nihongo I,10,Ngoại ngữ & Từ điển,NXB15,NXB Trẻ,978-488-31-9603-6,2018,135000.00,/assets/covers/minna_nihongo.jpg,TG001,3A Corporation,0
+BK026,MS0031,Giải Tích 1 & 2 Dành Cho Kỹ Sư,3,Toán học & Khoa học tự nhiên,NXB05,NXB Giáo Dục,978-604-90-6677-6,2021,120000.00,/assets/covers/giai_tich.jpg,TG038,Nguyễn Đình Trí,0
+BK027,MS0032,Doraemon - Tuyển Tập Tranh Truyện Màu,11,Truyện tranh & Sách thiếu nhi,NXB09,NXB Kim Đồng,978-604-2-22441-1,1970,45000.00,/assets/covers/doraemon.jpg,TG014,Fujiko F. Fujio,0
+BK028,MS0033,Thám Tử Lừng Danh Conan,11,Truyện tranh & Sách thiếu nhi,NXB09,NXB Kim Đồng,978-604-2-18542-2,1994,35000.00,/assets/covers/conan.jpg,TG017,Gosho Aoyama,0
+BK029,MS0034,Dế Mèn Phiêu Lưu Ký,11,Truyện tranh & Sách thiếu nhi,NXB09,NXB Kim Đồng,978-604-2-08533-3,1941,60000.00,/assets/covers/de_men.jpg,TG058,Tô Hoài,0
+BK030,MS0035,Kính Vạn Hoa,11,Truyện tranh & Sách thiếu nhi,NXB09,NXB Kim Đồng,978-604-2-09414-4,1995,85000.00,/assets/covers/kinh_van_hoa.jpg,TG034,Nguyễn Nhật Ánh,0
+BK031,MS0036,Hoàng Tử Bé (Le Petit Prince),11,Truyện tranh & Sách thiếu nhi,NXB06,NXB Hội Nhà Văn,978-604-56-7890-9,1943,70000.00,/assets/covers/hoang_tu_be.jpg,TG005,Antoine de Saint-Exupéry,0
+BK032,MS0037,Harry Potter và Hòn Đá Phù Thủy,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-08123-5,1997,160000.00,/assets/covers/harry_potter.jpg,TG022,J.K. Rowling,0
+BK033,MS0038,Totto-chan Bên Cửa Sổ,11,Truyện tranh & Sách thiếu nhi,NXB17,NXB Văn Học,978-604-56-3245-7,1981,98000.00,/assets/covers/totto_chan.jpg,TG051,Tetsuko Kuroyanagi,0
+BK034,MS0039,Đảo Giấu Vàng (Treasure Island),11,Truyện tranh & Sách thiếu nhi,NXB17,NXB Văn Học,978-604-56-6543-2,1883,88000.00,/assets/covers/dao_giau_vang.jpg,TG046,Robert Louis Stevenson,0
+BK035,MS0040,Không Gia Đình (Sans Famille),11,Truyện tranh & Sách thiếu nhi,NXB17,NXB Văn Học,978-604-56-8877-1,1878,135000.00,/assets/covers/khong_gia_dinh.jpg,TG019,Hector Malot,0
+BK036,MS0041,Góc Sân Và Khoảng Trời,11,Truyện tranh & Sách thiếu nhi,NXB09,NXB Kim Đồng,978-604-2-07654-6,1968,55000.00,/assets/covers/goc_san_khoang_troi.jpg,TG057,Trần Đăng Khoa,0
+BK037,MS0042,Homo Deus: Lược Sử Tương Lai,4,Lịch sử & Địa lý,NXB13,NXB Thế Giới,978-604-56-4276-4,2016,195000.00,/assets/covers/homo_deus.jpg,TG062,Yuval Noah Harari,0
+BK038,MS0043,21 Bài Học Cho Thế Kỷ 21,4,Lịch sử & Địa lý,NXB13,NXB Thế Giới,978-604-56-4277-1,2018,175000.00,/assets/covers/21_bai_hoc.jpg,TG062,Yuval Noah Harari,0
+BK039,MS0044,Clean Architecture: Kiến Trúc Sạch,9,Công nghệ thông tin,NXB20,Prentice Hall,978-013-44-9416-6,2017,350000.00,/assets/covers/clean_architecture.jpg,TG045,Robert C. Martin,0
+BK040,MS0045,The Clean Coder: Cẩm Nang Cho Lập Trình Viên,9,Công nghệ thông tin,NXB20,Prentice Hall,978-013-70-8107-3,2011,280000.00,/assets/covers/clean_coder.jpg,TG045,Robert C. Martin,0
+BK041,MS0046,Cho Tôi Xin Một Vé Đi Tuổi Thơ,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-2-09415-1,2008,85000.00,/assets/covers/cho_toi_xin_mot_ve_di_tuoi_tho.jpg,TG034,Nguyễn Nhật Ánh,0
+BK042,MS0047,Tôi Thấy Hoa Vàng Trên Cỏ Xanh,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-2-09416-8,2010,95000.00,/assets/covers/toi_thay_hoa_vang_tren_co_xanh.jpg,TG034,Nguyễn Nhật Ánh,0
+BK043,MS0048,Harry Potter và Phòng Chứa Bí Mật,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-08124-2,1998,170000.00,/assets/covers/harry_potter_2.jpg,TG022,J.K. Rowling,0
+BK044,MS0049,Harry Potter và Tên Tù Nhân Ngục Azkaban,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-08125-9,1999,185000.00,/assets/covers/harry_potter_3.jpg,TG022,J.K. Rowling,0
+BK045,MS0050,Mắt Biếc,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12301-1,1990,110000.00,/assets/covers/mat_biec.jpg,TG034,Nguyễn Nhật Ánh,0
+BK046,MS0051,Cô Gái Đến Từ Hôm Qua,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12302-8,1989,90000.00,/assets/covers/co_gai_den_tu_hom_qua.jpg,TG034,Nguyễn Nhật Ánh,0
+BK047,MS0052,Bảy Bước Tới Mùa Hè,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12303-5,2015,95000.00,/assets/covers/bay_buoc_toi_mua_he.jpg,TG034,Nguyễn Nhật Ánh,0
+BK048,MS0053,Cảm Ơn Người Lớn,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12304-2,2018,115000.00,/assets/covers/cam_on_nguoi_lon.jpg,TG034,Nguyễn Nhật Ánh,0
+BK049,MS0054,Đi Qua Hoa Cúc,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12305-9,1990,75000.00,/assets/covers/di_qua_hoa_cuc.jpg,TG034,Nguyễn Nhật Ánh,0
+BK050,MS0055,Hạ Đỏ,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12306-6,1991,80000.00,/assets/covers/ha_do.jpg,TG034,Nguyễn Nhật Ánh,0
+BK051,MS0056,Chúc Một Ngày Tốt Lành,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12307-3,2014,95000.00,/assets/covers/chuc_mot_ngay_tot_lanh.jpg,TG034,Nguyễn Nhật Ánh,0
+BK052,MS0057,Ngày Xưa Có Một Chuyện Tình,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12308-0,2016,105000.00,/assets/covers/ngay_xua_co_mot_chuyen_tinh.jpg,TG034,Nguyễn Nhật Ánh,0
+BK053,MS0058,Cây Chuối Non Đi Giày Xanh,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12309-7,2017,110000.00,/assets/covers/cay_chuoi_non_di_giay_xanh.jpg,TG034,Nguyễn Nhật Ánh,0
+BK054,MS0059,Làm Bạn Với Bầu Trời,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12310-3,2019,110000.00,/assets/covers/lam_ban_voi_bau_troi.jpg,TG034,Nguyễn Nhật Ánh,0
+BK055,MS0060,Quán Gò Đi Đi,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12311-0,1999,85000.00,/assets/covers/quan_go_di_di.jpg,TG034,Nguyễn Nhật Ánh,0
+BK056,MS0061,Còn Chút Gì Để Nhớ,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12312-7,1988,88000.00,/assets/covers/con_chut_gi_de_nho.jpg,TG034,Nguyễn Nhật Ánh,0
+BK057,MS0062,Bồ Câu Không Đưa Thư,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12313-4,1993,78000.00,/assets/covers/bo_cau_khong_dua_thu.jpg,TG034,Nguyễn Nhật Ánh,0
+BK058,MS0063,Thằng Quỷ Nhỏ,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-12314-1,1990,82000.00,/assets/covers/thang_quy_nho.jpg,TG034,Nguyễn Nhật Ánh,0
+BK059,MS0064,Harry Potter và Chiếc Cốc Lửa,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-08126-6,2000,220000.00,/assets/covers/harry_potter_4.jpg,TG022,J.K. Rowling,0
+BK060,MS0065,Harry Potter và Hội Phượng Hoàng,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-08127-3,2003,260000.00,/assets/covers/harry_potter_5.jpg,TG022,J.K. Rowling,0
+BK061,MS0066,Harry Potter và Hoàng Tử Lai,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-08128-0,2005,230000.00,/assets/covers/harry_potter_6.jpg,TG022,J.K. Rowling,0
+BK062,MS0067,Harry Potter và Bảo Bối Tử Thần,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-08129-7,2007,280000.00,/assets/covers/harry_potter_7.jpg,TG022,J.K. Rowling,0
+BK063,MS0068,Sinh Vật Huyền Bí và Nơi Tìm Ra Chúng,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-08130-3,2001,125000.00,/assets/covers/fantastic_beasts.jpg,TG022,J.K. Rowling,0
+BK064,MS0069,Quidditch Qua Các Thời Đại,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-08131-0,2001,105000.00,/assets/covers/quidditch.jpg,TG022,J.K. Rowling,0
+BK065,MS0070,Những Chuyện Kể Của Beedle Người Hát Rong,11,Truyện tranh & Sách thiếu nhi,NXB15,NXB Trẻ,978-604-1-08132-7,2008,110000.00,/assets/covers/beedle_bard.jpg,TG022,J.K. Rowling,0
+BK066,MS0071,The Casual Vacancy: Khoảng Trống Cuộc Đời,8,Tiểu thuyết hiện đại,NXB15,NXB Trẻ,978-604-1-08133-4,2012,195000.00,/assets/covers/casual_vacancy.jpg,TG022,J.K. Rowling,0
+BK067,MS0072,Sapiens: Nền Tảng Khởi Sinh (Graphic Novel Tập 1),4,Lịch sử & Địa lý,NXB13,NXB Thế Giới,978-604-56-4278-8,2020,250000.00,/assets/covers/sapiens_graphic_1.jpg,TG062,Yuval Noah Harari,0
+BK068,MS0073,Sapiens: Trụ Cột Nền Văn Minh (Graphic Novel Tập 2),4,Lịch sử & Địa lý,NXB13,NXB Thế Giới,978-604-56-4279-5,2021,260000.00,/assets/covers/sapiens_graphic_2.jpg,TG062,Yuval Noah Harari,0
+BK069,MS0074,Nexus: Lược Sử Các Mạng Lưới Thông Tin,4,Lịch sử & Địa lý,NXB13,NXB Thế Giới,978-604-56-4280-1,2024,280000.00,/assets/covers/nexus_harari.jpg,TG062,Yuval Noah Harari,0
+BK070,MS0075,Clean Craftsmanship: Kỹ Nghệ Phần Mềm Sạch,9,Công nghệ thông tin,NXB20,Prentice Hall,978-013-69-1424-9,2021,380000.00,/assets/covers/clean_craftsmanship.jpg,TG045,Robert C. Martin,0
+BK071,MS0076,Clean Agile: Phương Pháp Agile Thực Tiễn,9,Công nghệ thông tin,NXB20,Prentice Hall,978-013-57-8186-9,2019,310000.00,/assets/covers/clean_agile.jpg,TG045,Robert C. Martin,0
+BK072,MS0077,"Agile Principles, Patterns, and Practices in C#",9,Công nghệ thông tin,NXB20,Prentice Hall,978-013-18-5725-4,2006,420000.00,/assets/covers/agile_principles.jpg,TG045,Robert C. Martin,0
+BK073,MS0078,Kafka Bên Bờ Biển (Kafka on the Shore),8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5679-6,2002,175000.00,/assets/covers/kafka_on_the_shore.jpg,TG018,Haruki Murakami,0
+BK074,MS0079,1Q84 (Tập 1),8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5680-2,2009,160000.00,/assets/covers/1q84_tap_1.jpg,TG018,Haruki Murakami,0
+BK075,MS0080,1Q84 (Tập 2),8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5681-9,2009,160000.00,/assets/covers/1q84_tap_2.jpg,TG018,Haruki Murakami,0
+BK076,MS0081,1Q84 (Tập 3),8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5682-6,2010,170000.00,/assets/covers/1q84_tap_3.jpg,TG018,Haruki Murakami,0
+BK077,MS0082,Biên Niên Ký Chim Vặn Dây Cót,8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5683-3,1994,210000.00,/assets/covers/wind_up_bird.jpg,TG018,Haruki Murakami,0
+BK078,MS0083,"Phía Nam Biên Giới, Phía Tây Mặt Trời",8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5684-0,1992,120000.00,/assets/covers/south_of_border.jpg,TG018,Haruki Murakami,0
+BK079,MS0084,Lắng Nghe Gió Hát (Hear the Wind Sing),8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5685-7,1979,95000.00,/assets/covers/hear_the_wind_sing.jpg,TG018,Haruki Murakami,0
+BK080,MS0085,Cuộc Săn Cừu Hoang (A Wild Sheep Chase),8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5686-4,1982,135000.00,/assets/covers/wild_sheep_chase.jpg,TG018,Haruki Murakami,0
+BK081,MS0086,Xứ Sở Diệu Kỳ Và Chốn Tận Cùng Thế Giới,8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5687-1,1985,185000.00,/assets/covers/hard_boiled_wonderland.jpg,TG018,Haruki Murakami,0
+BK082,MS0087,Người Tình Sputnik (Sputnik Sweetheart),8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5688-8,1999,125000.00,/assets/covers/sputnik_sweetheart.jpg,TG018,Haruki Murakami,0
+BK083,MS0088,Tôi Nói Gì Khi Nói Về Chạy Bộ,7,Hồi ký & Tự truyện,NXB06,NXB Hội Nhà Văn,978-604-56-5689-5,2007,115000.00,/assets/covers/running_murakami.jpg,TG018,Haruki Murakami,0
+BK084,MS0089,Mật Mã Da Vinci (The Da Vinci Code),8,Tiểu thuyết hiện đại,NXB17,NXB Văn Học,978-604-56-7801-1,2003,195000.00,/assets/covers/da_vinci_code.jpg,TG008,Dan Brown,0
+BK085,MS0090,Thiên Thần & Ác Quỷ (Angels & Demons),8,Tiểu thuyết hiện đại,NXB17,NXB Văn Học,978-604-56-7802-8,2000,185000.00,/assets/covers/angels_and_demons.jpg,TG008,Dan Brown,0
+BK086,MS0091,Biểu Tượng Thất Truyền (The Lost Symbol),8,Tiểu thuyết hiện đại,NXB17,NXB Văn Học,978-604-56-7803-5,2009,190000.00,/assets/covers/lost_symbol.jpg,TG008,Dan Brown,0
+BK087,MS0092,Hỏa Ngục (Inferno),8,Tiểu thuyết hiện đại,NXB17,NXB Văn Học,978-604-56-7804-2,2013,210000.00,/assets/covers/inferno_dan_brown.jpg,TG008,Dan Brown,0
+BK088,MS0093,Nguồn Cội (Origin),8,Tiểu thuyết hiện đại,NXB17,NXB Văn Học,978-604-56-7805-9,2017,225000.00,/assets/covers/origin_dan_brown.jpg,TG008,Dan Brown,0
+BK089,MS0094,Pháo Đài Số (Digital Fortress),8,Tiểu thuyết hiện đại,NXB17,NXB Văn Học,978-604-56-7806-6,1998,145000.00,/assets/covers/digital_fortress.jpg,TG008,Dan Brown,0
+BK090,MS0095,Điểm Dối Lừa (Deception Point),8,Tiểu thuyết hiện đại,NXB17,NXB Văn Học,978-604-56-7807-3,2001,155000.00,/assets/covers/deception_point.jpg,TG008,Dan Brown,0
+BK091,MS0096,Chiếc Nhẫn Tình Cờ (A Study in Scarlet),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-8901-1,1887,95000.00,/assets/covers/study_in_scarlet.jpg,TG006,Arthur Conan Doyle,0
+BK092,MS0097,Dấu Bộ Tứ (The Sign of the Four),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-8902-8,1890,90000.00,/assets/covers/sign_of_four.jpg,TG006,Arthur Conan Doyle,0
+BK093,MS0098,Con Chó Của Dòng Họ Baskerville,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-8903-5,1902,115000.00,/assets/covers/hound_of_baskervilles.jpg,TG006,Arthur Conan Doyle,0
+BK094,MS0099,Thung Lũng Khủng Khiếp (The Valley of Fear),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-8904-2,1915,105000.00,/assets/covers/valley_of_fear.jpg,TG006,Arthur Conan Doyle,0
+BK095,MS0100,Những Cuộc Phiêu Lưu Của Sherlock Holmes,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-8905-9,1892,140000.00,/assets/covers/adventures_sherlock.jpg,TG006,Arthur Conan Doyle,0
+BK096,MS0101,Hồi Ức Về Sherlock Holmes (The Memoirs),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-8906-6,1893,135000.00,/assets/covers/memoirs_sherlock.jpg,TG006,Arthur Conan Doyle,0
+BK097,MS0102,Sự Trở Lại Của Sherlock Holmes,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-8907-3,1905,145000.00,/assets/covers/return_sherlock.jpg,TG006,Arthur Conan Doyle,0
+BK098,MS0103,Cung Đàn Sau Cùng (His Last Bow),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-8908-0,1917,120000.00,/assets/covers/his_last_bow.jpg,TG006,Arthur Conan Doyle,0
+BK099,MS0104,Hồ Sơ Sherlock Holmes (The Case-Book),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-8909-7,1927,125000.00,/assets/covers/casebook_sherlock.jpg,TG006,Arthur Conan Doyle,0
+BK100,MS0105,Thế Giới Đã Mất (The Lost World),5,Khoa học viễn tưởng,NXB17,NXB Văn Học,978-604-56-8910-3,1912,110000.00,/assets/covers/lost_world_doyle.jpg,TG006,Arthur Conan Doyle,0
+BK101,MS0106,Quẳng Gánh Lo Đi Và Vui Sống,6,Kỹ năng sống & Tâm lý,NXB16,NXB Tổng Hợp TP.HCM,978-604-56-9101-1,1948,115000.00,/assets/covers/quang_ganh_lo_di.jpg,TG007,Dale Carnegie,0
+BK102,MS0107,Khéo Ăn Nói Sẽ Được Lòng Người,6,Kỹ năng sống & Tâm lý,NXB16,NXB Tổng Hợp TP.HCM,978-604-56-9102-8,1950,105000.00,/assets/covers/kheo_an_noi.jpg,TG007,Dale Carnegie,0
+BK103,MS0108,Phát Huy Giá Trị Bản Thân,6,Kỹ năng sống & Tâm lý,NXB16,NXB Tổng Hợp TP.HCM,978-604-56-9103-5,1955,95000.00,/assets/covers/phat_huy_gia_tri.jpg,TG007,Dale Carnegie,0
+BK104,MS0109,Thu Hút Người Khác Và Giao Tiếp Hiệu Quả,6,Kỹ năng sống & Tâm lý,NXB16,NXB Tổng Hợp TP.HCM,978-604-56-9104-2,1952,98000.00,/assets/covers/giao_tiep_hieu_qua.jpg,TG007,Dale Carnegie,0
+BK105,MS0110,Nghệ Thuật Diễn Thuyết Trước Công Chúng,6,Kỹ năng sống & Tâm lý,NXB16,NXB Tổng Hợp TP.HCM,978-604-56-9105-9,1926,125000.00,/assets/covers/dien_thuyet_cong_chung.jpg,TG007,Dale Carnegie,0
+BK106,MS0111,Nhà Giả Kim (The Alchemist),8,Tiểu thuyết hiện đại,NXB11,NXB Nhã Nam,978-604-56-9201-1,1988,99000.00,/assets/covers/nha_gia_kim.jpg,TG041,Paulo Coelho,0
+BK107,MS0112,Veronika Quyết Chết (Veronika Decides to Die),8,Tiểu thuyết hiện đại,NXB11,NXB Nhã Nam,978-604-56-9202-8,1998,115000.00,/assets/covers/veronika_decides_to_die.jpg,TG041,Paulo Coelho,0
+BK108,MS0113,Bên Bờ Sông Piedra Tôi Ngồi Xuống Và Tôi Khóc,8,Tiểu thuyết hiện đại,NXB11,NXB Nhã Nam,978-604-56-9203-5,1994,105000.00,/assets/covers/by_river_piedra.jpg,TG041,Paulo Coelho,0
+BK109,MS0114,Quỷ Dữ Và Chàng Prym,8,Tiểu thuyết hiện đại,NXB11,NXB Nhã Nam,978-604-56-9204-2,2000,110000.00,/assets/covers/devil_and_miss_prym.jpg,TG041,Paulo Coelho,0
+BK110,MS0115,Maktub,6,Kỹ năng sống & Tâm lý,NXB11,NXB Nhã Nam,978-604-56-9205-9,1994,95000.00,/assets/covers/maktub_coelho.jpg,TG041,Paulo Coelho,0
+BK111,MS0116,Ngoại Tình (Adultery),8,Tiểu thuyết hiện đại,NXB11,NXB Nhã Nam,978-604-56-9206-6,2014,125000.00,/assets/covers/adultery_coelho.jpg,TG041,Paulo Coelho,0
+BK112,MS0117,Cẩm Nang Của Người Chiến Binh Ánh Sáng,6,Kỹ năng sống & Tâm lý,NXB11,NXB Nhã Nam,978-604-56-9207-3,1997,105000.00,/assets/covers/warrior_of_light.jpg,TG041,Paulo Coelho,0
+BK113,MS0118,Như Dòng Sông Chảy (Like the Flowing River),7,Hồi ký & Tự truyện,NXB11,NXB Nhã Nam,978-604-56-9208-0,2006,115000.00,/assets/covers/like_flowing_river.jpg,TG041,Paulo Coelho,0
+BK114,MS0119,Chuyện Ở Nông Trại (Animal Farm),8,Tiểu thuyết hiện đại,NXB17,NXB Văn Học,978-604-56-9301-1,1945,85000.00,/assets/covers/animal_farm.jpg,TG016,George Orwell,0
+BK115,MS0120,Đảo Xứ Miến Điện (Burmese Days),8,Tiểu thuyết hiện đại,NXB17,NXB Văn Học,978-604-56-9302-8,1934,110000.00,/assets/covers/burmese_days.jpg,TG016,George Orwell,0
+BK116,MS0121,Đường Về Wigan Pier (The Road to Wigan Pier),4,Lịch sử & Địa lý,NXB17,NXB Văn Học,978-604-56-9303-5,1937,125000.00,/assets/covers/road_to_wigan_pier.jpg,TG016,George Orwell,0
+BK117,MS0122,Một Chút Không Khí Để Thở (Coming Up for Air),8,Tiểu thuyết hiện đại,NXB17,NXB Văn Học,978-604-56-9304-2,1939,105000.00,/assets/covers/coming_up_for_air.jpg,TG016,George Orwell,0
+BK118,MS0123,Những Người Khốn Khổ (Tập 1 - Fantine),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-9401-1,1862,120000.00,/assets/covers/les_miserables_1.jpg,TG059,Victor Hugo,0
+BK119,MS0124,Những Người Khốn Khổ (Tập 2 - Cosette),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-9402-8,1862,120000.00,/assets/covers/les_miserables_2.jpg,TG059,Victor Hugo,0
+BK120,MS0125,Những Người Khốn Khổ (Tập 3 - Jean Valjean),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-9403-5,1862,130000.00,/assets/covers/les_miserables_3.jpg,TG059,Victor Hugo,0
+BK121,MS0126,Nhà Thờ Đức Bà Paris (Notre-Dame de Paris),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-9404-2,1831,155000.00,/assets/covers/notre_dame_paris.jpg,TG059,Victor Hugo,0
+BK122,MS0127,Thằng Cười (The Man Who Laughs),2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-9405-9,1869,165000.00,/assets/covers/the_man_who_laughs.jpg,TG059,Victor Hugo,0
+BK123,MS0128,Chí Phèo,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-9501-1,1941,65000.00,/assets/covers/chi_pheo.jpg,TG032,Nam Cao,0
+BK124,MS0129,Lão Hạc,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-9502-8,1943,60000.00,/assets/covers/lao_hac.jpg,TG032,Nam Cao,0
+BK125,MS0130,Sống Mòn,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-9503-5,1944,85000.00,/assets/covers/song_mon.jpg,TG032,Nam Cao,0
+BK126,MS0131,Đời Thừa,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-9504-2,1943,65000.00,/assets/covers/doi_thua.jpg,TG032,Nam Cao,0
+BK127,MS0132,Giăng Sáng,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-9505-9,1942,60000.00,/assets/covers/giang_sang.jpg,TG032,Nam Cao,0
+BK128,MS0133,Đôi Mắt,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-9506-6,1948,60000.00,/assets/covers/doi_mat.jpg,TG032,Nam Cao,0
+BK129,MS0134,Vợ Chồng A Phủ,2,Văn học kinh điển,NXB09,NXB Kim Đồng,978-604-2-08534-0,1952,70000.00,/assets/covers/vo_chong_a_phu.jpg,TG058,Tô Hoài,0
+BK130,MS0135,O Chuột,11,Truyện tranh & Sách thiếu nhi,NXB09,NXB Kim Đồng,978-604-2-08535-7,1942,60000.00,/assets/covers/o_chuot.jpg,TG058,Tô Hoài,0
+BK131,MS0136,Quê Người,2,Văn học kinh điển,NXB09,NXB Kim Đồng,978-604-2-08536-4,1941,85000.00,/assets/covers/que_nguoi.jpg,TG058,Tô Hoài,0
+BK132,MS0137,Cát Bụi Chân Ai,7,Hồi ký & Tự truyện,NXB06,NXB Hội Nhà Văn,978-604-2-08537-1,1992,110000.00,/assets/covers/cat_bui_chan_ai.jpg,TG058,Tô Hoài,0
+BK133,MS0138,Ba Người Khác,8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-2-08538-8,2006,115000.00,/assets/covers/ba_nguoi_khac.jpg,TG058,Tô Hoài,0
+BK134,MS0139,Giông Tố,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-1189-0,1936,85000.00,/assets/covers/giong_to.jpg,TG060,Vũ Trọng Phụng,0
+BK135,MS0140,Vỡ Đê,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-1190-6,1936,80000.00,/assets/covers/vo_de.jpg,TG060,Vũ Trọng Phụng,0
+BK136,MS0141,Cơm Thầy Cơm Cô,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-1191-3,1936,75000.00,/assets/covers/com_thay_com_co.jpg,TG060,Vũ Trọng Phụng,0
+BK137,MS0142,Lục Xì,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-1192-0,1937,70000.00,/assets/covers/luc_xi.jpg,TG060,Vũ Trọng Phụng,0
+BK138,MS0143,Điểm Bùng Phát (The Tipping Point),6,Kỹ năng sống & Tâm lý,NXB13,NXB Thế Giới,978-604-56-9601-1,2000,145000.00,/assets/covers/tipping_point.jpg,TG029,Malcolm Gladwell,0
+BK139,MS0144,Trong Chớp Mắt (Blink),6,Kỹ năng sống & Tâm lý,NXB13,NXB Thế Giới,978-604-56-9602-8,2005,150000.00,/assets/covers/blink_gladwell.jpg,TG029,Malcolm Gladwell,0
+BK140,MS0145,Những Kẻ Xuất Chúng (Outliers),6,Kỹ năng sống & Tâm lý,NXB13,NXB Thế Giới,978-604-56-9603-5,2008,165000.00,/assets/covers/outliers_gladwell.jpg,TG029,Malcolm Gladwell,0
+BK141,MS0146,Chú Bé David và Gã Khổng Lồ Goliath,6,Kỹ năng sống & Tâm lý,NXB13,NXB Thế Giới,978-604-56-9604-2,2013,155000.00,/assets/covers/david_and_goliath.jpg,TG029,Malcolm Gladwell,0
+BK142,MS0147,Đọc Vị Người Lạ (Talking to Strangers),6,Kỹ năng sống & Tâm lý,NXB13,NXB Thế Giới,978-604-56-9605-9,2019,175000.00,/assets/covers/talking_to_strangers.jpg,TG029,Malcolm Gladwell,0
+BK143,MS0148,Trái Lựu Đạn Của Bombe (The Bomber Mafia),4,Lịch sử & Địa lý,NXB13,NXB Thế Giới,978-604-56-9606-6,2021,160000.00,/assets/covers/bomber_mafia.jpg,TG029,Malcolm Gladwell,0
+BK144,MS0149,Steve Jobs: Tiểu Sử,7,Hồi ký & Tự truyện,NXB15,NXB Trẻ,978-604-56-9701-1,2011,280000.00,/assets/covers/steve_jobs_isaacson.jpg,TG061,Walter Isaacson,0
+BK145,MS0150,Leonardo Da Vinci: Tiểu Sử Danh Họa,7,Hồi ký & Tự truyện,NXB13,NXB Thế Giới,978-604-56-9702-8,2017,320000.00,/assets/covers/leonardo_da_vinci.jpg,TG061,Walter Isaacson,0
+BK146,MS0151,Einstein: Cuộc Đời Và Vũ Trụ,7,Hồi ký & Tự truyện,NXB13,NXB Thế Giới,978-604-56-9703-5,2007,290000.00,/assets/covers/einstein_isaacson.jpg,TG061,Walter Isaacson,0
+BK147,MS0152,Những Người Tiên Phong (The Innovators),9,Công nghệ thông tin,NXB13,NXB Thế Giới,978-604-56-9704-2,2014,260000.00,/assets/covers/the_innovators.jpg,TG061,Walter Isaacson,0
+BK148,MS0153,Benjamin Franklin: Một Đời Độc Lập,7,Hồi ký & Tự truyện,NXB13,NXB Thế Giới,978-604-56-9705-9,2003,270000.00,/assets/covers/benjamin_franklin.jpg,TG061,Walter Isaacson,0
+BK149,MS0154,Elon Musk: Tiểu Sử Vị Tỷ Phú Công Nghệ,7,Hồi ký & Tự truyện,NXB15,NXB Trẻ,978-604-56-9706-6,2023,350000.00,/assets/covers/elon_musk_isaacson.jpg,TG061,Walter Isaacson,0
+BK150,MS0155,Lược Sử Thời Gian (A Brief History of Time),3,Toán học & Khoa học tự nhiên,NXB15,NXB Trẻ,978-604-56-9801-1,1988,135000.00,/assets/covers/brief_history_of_time.jpg,TG048,Stephen Hawking,0
+BK151,MS0156,Vũ Trụ Trong Vỏ Hạt Dẻ,3,Toán học & Khoa học tự nhiên,NXB15,NXB Trẻ,978-604-56-9802-8,2001,165000.00,/assets/covers/universe_nutshell.jpg,TG048,Stephen Hawking,0
+BK152,MS0157,Bản Thiết Kế Vĩ Đại (The Grand Design),3,Toán học & Khoa học tự nhiên,NXB15,NXB Trẻ,978-604-56-9803-5,2010,145000.00,/assets/covers/the_grand_design.jpg,TG048,Stephen Hawking,0
+BK153,MS0158,Những Câu Hỏi Lớn Dành Cho Nhân Loại,3,Toán học & Khoa học tự nhiên,NXB15,NXB Trẻ,978-604-56-9804-2,2018,155000.00,/assets/covers/brief_answers.jpg,TG048,Stephen Hawking,0
+BK154,MS0159,Lỗ Đen và Vũ Trụ Sơ Khai,3,Toán học & Khoa học tự nhiên,NXB15,NXB Trẻ,978-604-56-9805-9,1993,125000.00,/assets/covers/black_holes_hawking.jpg,TG048,Stephen Hawking,0
+BK155,MS0160,Lược Sử Tương Lai Vũ Trụ,3,Toán học & Khoa học tự nhiên,NXB15,NXB Trẻ,978-604-56-9806-6,2005,140000.00,/assets/covers/briefer_history_time.jpg,TG048,Stephen Hawking,0
+BK156,MS0161,Refactoring: Cải Tiến Mã Nguồn Hiện Có,9,Công nghệ thông tin,NXB01,Addison-Wesley,978-013-47-5759-9,2018,420000.00,/assets/covers/refactoring_fowler.jpg,TG030,Martin Fowler,0
+BK157,MS0162,Patterns of Enterprise Application Architecture,9,Công nghệ thông tin,NXB01,Addison-Wesley,978-032-11-2742-6,2002,460000.00,/assets/covers/poeaa_fowler.jpg,TG030,Martin Fowler,0
+BK158,MS0163,UML Distilled: Tóm Lược Ngôn Ngữ Mô Hình Hóa,9,Công nghệ thông tin,NXB01,Addison-Wesley,978-032-11-9368-1,2003,220000.00,/assets/covers/uml_distilled.jpg,TG030,Martin Fowler,0
+BK159,MS0164,Domain-Specific Languages (DSL),9,Công nghệ thông tin,NXB01,Addison-Wesley,978-032-17-1294-3,2010,450000.00,/assets/covers/dsl_fowler.jpg,TG030,Martin Fowler,0
+BK160,MS0165,NoSQL Distilled: Tinh Hoa Cơ Sở Dữ Liệu NoSQL,9,Công nghệ thông tin,NXB01,Addison-Wesley,978-032-18-2662-6,2012,280000.00,/assets/covers/nosql_distilled.jpg,TG030,Martin Fowler,0
+BK161,MS0166,Giận (Anger: Wisdom for Cooling the Flames),6,Kỹ năng sống & Tâm lý,NXB11,NXB Nhã Nam,978-604-56-9901-1,2001,110000.00,/assets/covers/gian_tnh.jpg,TG053,Thích Nhất Hạnh,0
+BK162,MS0167,Phép Lạ Của Sự Tỉnh Thức,6,Kỹ năng sống & Tâm lý,NXB11,NXB Nhã Nam,978-604-56-9902-8,1975,95000.00,/assets/covers/phep_la_tinh_thuc.jpg,TG053,Thích Nhất Hạnh,0
+BK163,MS0168,Không Diệt Không Sinh Đừng Sợ Hãi,6,Kỹ năng sống & Tâm lý,NXB11,NXB Nhã Nam,978-604-56-9903-5,2002,105000.00,/assets/covers/khong_diet_khong_sinh.jpg,TG053,Thích Nhất Hạnh,0
+BK164,MS0169,An Lạc Từng Bước Chân,6,Kỹ năng sống & Tâm lý,NXB11,NXB Nhã Nam,978-604-56-9904-2,1990,100000.00,/assets/covers/an_lac_tung_buoc_chan.jpg,TG053,Thích Nhất Hạnh,0
+BK165,MS0170,Nẻo Về Của Ý,1,Lý luận chính trị & Triết học,NXB11,NXB Nhã Nam,978-604-56-9905-9,1972,115000.00,/assets/covers/neo_ve_cua_y.jpg,TG053,Thích Nhất Hạnh,0
+BK166,MS0171,Trái Tim Của Bụt,1,Lý luận chính trị & Triết học,NXB11,NXB Nhã Nam,978-604-56-9906-6,1998,160000.00,/assets/covers/trai_tim_cua_but.jpg,TG053,Thích Nhất Hạnh,0
+BK167,MS0172,Thầy Cô Giáo Hạnh Phúc Sẽ Thay Đổi Thế Giới,6,Kỹ năng sống & Tâm lý,NXB11,NXB Nhã Nam,978-604-56-9907-3,2017,135000.00,/assets/covers/thay_co_hanh_phuc.jpg,TG053,Thích Nhất Hạnh,0
+BK168,MS0173,Hạnh Phúc Cầm Tay,6,Kỹ năng sống & Tâm lý,NXB11,NXB Nhã Nam,978-604-56-9908-0,2015,105000.00,/assets/covers/hanh_phuc_cam_tay.jpg,TG053,Thích Nhất Hạnh,0
+BK169,MS0174,Mười Người Da Đen Nhỏ (And Then There Were None),8,Tiểu thuyết hiện đại,NXB15,NXB Trẻ,978-604-56-7701-1,1939,115000.00,/assets/covers/and_then_there_were_none.jpg,TG003,Agatha Christie,0
+BK170,MS0175,Án Mạng Trên Chuyến Tàu Tốc Hành Phương Đông,8,Tiểu thuyết hiện đại,NXB15,NXB Trẻ,978-604-56-7702-8,1934,125000.00,/assets/covers/murder_orient_express.jpg,TG003,Agatha Christie,0
+BK171,MS0176,Án Mạng Trên Sông Nile (Death on the Nile),8,Tiểu thuyết hiện đại,NXB15,NXB Trẻ,978-604-56-7703-5,1937,130000.00,/assets/covers/death_on_the_nile.jpg,TG003,Agatha Christie,0
+BK172,MS0177,Vụ Ám Sát Roger Ackroyd,8,Tiểu thuyết hiện đại,NXB15,NXB Trẻ,978-604-56-7704-2,1926,120000.00,/assets/covers/murder_roger_ackroyd.jpg,TG003,Agatha Christie,0
+BK173,MS0178,Chuỗi Án Mạng A.B.C,8,Tiểu thuyết hiện đại,NXB15,NXB Trẻ,978-604-56-7705-9,1936,110000.00,/assets/covers/abc_murders.jpg,TG003,Agatha Christie,0
+BK174,MS0179,Giáng Sinh Của Poirot,8,Tiểu thuyết hiện đại,NXB15,NXB Trẻ,978-604-56-7706-6,1938,115000.00,/assets/covers/hercule_poirots_christmas.jpg,TG003,Agatha Christie,0
+BK175,MS0180,Đêm Vô Tận (Endless Night),8,Tiểu thuyết hiện đại,NXB15,NXB Trẻ,978-604-56-7707-3,1967,105000.00,/assets/covers/endless_night.jpg,TG003,Agatha Christie,0
+BK176,MS0181,Ngôi Nhà Quái Dị (Crooked House),8,Tiểu thuyết hiện đại,NXB15,NXB Trẻ,978-604-56-7708-0,1949,110000.00,/assets/covers/crooked_house.jpg,TG003,Agatha Christie,0
+BK177,MS0182,Năm Chú Heo Con (Five Little Pigs),8,Tiểu thuyết hiện đại,NXB15,NXB Trẻ,978-604-56-7709-7,1942,105000.00,/assets/covers/five_little_pigs.jpg,TG003,Agatha Christie,0
+BK178,MS0183,Thảm Kịch Ba Hồi (Three Act Tragedy),8,Tiểu thuyết hiện đại,NXB15,NXB Trẻ,978-604-56-7710-3,1934,115000.00,/assets/covers/three_act_tragedy.jpg,TG003,Agatha Christie,0
+BK179,MS0184,Tiếu Ngạo Giang Hồ,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-6601-1,1967,350000.00,/assets/covers/tieu_ngao_giang_ho.jpg,TG026,Kim Dung,0
+BK180,MS0185,Anh Hùng Xạ Điêu,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-6602-8,1957,340000.00,/assets/covers/anh_hung_xa_dieu.jpg,TG026,Kim Dung,0
+BK181,MS0186,Thần Điêu Đại Hiệp,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-6603-5,1959,360000.00,/assets/covers/than_dieu_dai_hiep.jpg,TG026,Kim Dung,0
+BK182,MS0187,Ỷ Thiên Đồ Long Ký,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-6604-2,1961,380000.00,/assets/covers/y_thien_do_long_ky.jpg,TG026,Kim Dung,0
+BK183,MS0188,Thiên Long Bát Bộ,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-6605-9,1963,420000.00,/assets/covers/thien_long_bat_bo.jpg,TG026,Kim Dung,0
+BK184,MS0189,Lộc Đỉnh Ký,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-6606-6,1969,450000.00,/assets/covers/loc_dinh_ky.jpg,TG026,Kim Dung,0
+BK185,MS0190,Bích Huyết Kiếm,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-6607-3,1956,210000.00,/assets/covers/bich_huyet_kiem.jpg,TG026,Kim Dung,0
+BK186,MS0191,Tuyết Sơn Phi Hồ,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-6608-0,1959,170000.00,/assets/covers/tuyet_son_phi_ho.jpg,TG026,Kim Dung,0
+BK187,MS0192,Hiệp Khách Hành,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-6609-7,1965,260000.00,/assets/covers/hiep_khach_hanh.jpg,TG026,Kim Dung,0
+BK188,MS0193,Liên Thành Quyết,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-6610-3,1963,185000.00,/assets/covers/lien_thanh_quyet.jpg,TG026,Kim Dung,0
+BK189,MS0194,The Shining: Ngôi Nhà Ma Ám,8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5501-1,1977,195000.00,/assets/covers/the_shining.jpg,TG049,Stephen King,0
+BK190,MS0195,IT: Gã Hề Ma Quái,8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5502-8,1986,290000.00,/assets/covers/it_stephen_king.jpg,TG049,Stephen King,0
+BK191,MS0196,Misery: Nỗi Ám Ảnh Bị Giam Cầm,8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5503-5,1987,165000.00,/assets/covers/misery_king.jpg,TG049,Stephen King,0
+BK192,MS0197,Carrie: Cơn Thịnh Nộ Của Carrie,8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5504-2,1974,135000.00,/assets/covers/carrie_king.jpg,TG049,Stephen King,0
+BK193,MS0198,Pet Sematary: Nghĩa Địa Thú Cưng,8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5505-9,1983,175000.00,/assets/covers/pet_sematary.jpg,TG049,Stephen King,0
+BK194,MS0199,The Green Mile: Dặm Xanh Kỳ Diệu,8,Tiểu thuyết hiện đại,NXB06,NXB Hội Nhà Văn,978-604-56-5506-6,1996,185000.00,/assets/covers/green_mile.jpg,TG049,Stephen King,0
+BK195,MS0200,Nhật Ký Trong Tù,1,Lý luận chính trị & Triết học,NXB04,NXB Chính Trị Quốc Gia,978-604-90-1123-8,1943,75000.00,/assets/covers/nhat_ky_trong_tu.jpg,TG020,Hồ Chí Minh,0
+BK196,MS0201,Tuyên Ngôn Độc Lập & Các Tác Phẩm Chọn Lọc,1,Lý luận chính trị & Triết học,NXB04,NXB Chính Trị Quốc Gia,978-604-90-1124-5,1945,85000.00,/assets/covers/tuyen_ngon_doc_lap.jpg,TG020,Hồ Chí Minh,0
+BK197,MS0202,Bản Án Chế Độ Thực Dân Pháp,1,Lý luận chính trị & Triết học,NXB04,NXB Chính Trị Quốc Gia,978-604-90-1125-2,1925,80000.00,/assets/covers/ban_an_thuc_dan.jpg,TG020,Hồ Chí Minh,0
+BK198,MS0203,Truyện Kiều,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-4401-1,1820,95000.00,/assets/covers/truyen_kieu.jpg,TG033,Nguyễn Du,0
+BK199,MS0204,Văn Tế Thập Loại Chúng Sinh,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-4402-8,1820,55000.00,/assets/covers/van_te_thap_loai.jpg,TG033,Nguyễn Du,0
+BK200,MS0205,Vang Bóng Một Thời,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-4403-5,1940,85000.00,/assets/covers/vang_bong_mot_thoi.jpg,TG036,Nguyễn Tuân,0
+BK201,MS0206,Gió Đầu Mùa,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-4404-2,1937,70000.00,/assets/covers/gio_dau_mua.jpg,TG054,Thạch Lam,0
+BK202,MS0207,Hà Nội Băm Sáu Phố Phường,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-4405-9,1938,75000.00,/assets/covers/ha_noi_36_pho_phuong.jpg,TG054,Thạch Lam,0
+BK203,MS0208,Nắng Trong Vườn,2,Văn học kinh điển,NXB17,NXB Văn Học,978-604-56-4406-6,1938,68000.00,/assets/covers/nang_trong_vuon.jpg,TG054,Thạch Lam,0
+BK204,MS0209,Cà Phê Cùng Tony,6,Kỹ năng sống & Tâm lý,NXB15,NXB Trẻ,978-604-1-03451-4,2014,85000.00,/assets/covers/ca_phe_cung_tony.jpg,TG056,Tony Buổi Sáng,0
+BK205,MS0210,Trên Đường Băng,6,Kỹ năng sống & Tâm lý,NXB15,NXB Trẻ,978-604-1-03452-1,2015,95000.00,/assets/covers/tren_duong_bang.jpg,TG056,Tony Buổi Sáng,0
+BK206,MS0211,Dấn Thân (Lean In),6,Kỹ năng sống & Tâm lý,NXB15,NXB Trẻ,978-604-56-3399-1,2013,145000.00,/assets/covers/lean_in_sandberg.jpg,TG047,Sheryl Sandberg,0
+BK207,MS0212,Tuần Làm Việc 4 Giờ,6,Kỹ năng sống & Tâm lý,NXB10,NXB Lao Động,978-604-56-3398-4,2007,165000.00,/assets/covers/4_hour_workweek.jpg,TG055,Timothy Ferriss,0
+BK208,MS0213,Khởi Nghiệp Tinh Gọn (The Lean Startup),9,Công nghệ thông tin,NXB16,NXB Tổng Hợp TP.HCM,978-604-56-3397-7,2011,155000.00,/assets/covers/the_lean_startup.jpg,TG011,Eric Ries,0
+BK209,MS0214,Không Đến Một (Zero to One),9,Công nghệ thông tin,NXB15,NXB Trẻ,978-604-56-3396-0,2014,140000.00,/assets/covers/zero_to_one.jpg,TG042,Peter Thiel,0
+BK210,MS0215,Dune: Cứu Tinh Xứ Cát (Dune Messiah),5,Khoa học viễn tưởng,NXB17,NXB Văn Học,978-604-56-6891-7,1969,185000.00,/assets/covers/dune_messiah.jpg,TG013,Frank Herbert,0
+BK211,MS0216,Dune: Con Trẻ Xứ Cát (Children of Dune),5,Khoa học viễn tưởng,NXB17,NXB Văn Học,978-604-56-6892-4,1976,210000.00,/assets/covers/children_of_dune.jpg,TG013,Frank Herbert,0
+BK212,MS0217,Artemis: Thành Phố Trên Mặt Trăng,5,Khoa học viễn tưởng,NXB06,NXB Hội Nhà Văn,978-604-56-4423-3,2017,165000.00,/assets/covers/artemis_weir.jpg,TG004,Andy Weir,0
+BK213,MS0218,Dự Án Hail Mary (Project Hail Mary),5,Khoa học viễn tưởng,NXB06,NXB Hội Nhà Văn,978-604-56-4424-0,2021,215000.00,/assets/covers/project_hail_mary.jpg,TG004,Andy Weir,0
+BK214,MS0219,Foundation: Đế Chế (Tập 1),5,Khoa học viễn tưởng,NXB17,NXB Văn Học,978-604-56-4425-7,1951,175000.00,/assets/covers/foundation_asimov.jpg,TG021,Isaac Asimov,0
+BK215,MS0220,Foundation và Đế Chế (Tập 2),5,Khoa học viễn tưởng,NXB17,NXB Văn Học,978-604-56-4426-4,1952,180000.00,/assets/covers/foundation_and_empire.jpg,TG021,Isaac Asimov,0
+BK216,MS0221,Đế Chế Đệ Nhị (Second Foundation),5,Khoa học viễn tưởng,NXB17,NXB Văn Học,978-604-56-4427-1,1953,185000.00,/assets/covers/second_foundation.jpg,TG021,Isaac Asimov,0

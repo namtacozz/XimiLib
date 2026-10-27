@@ -1,0 +1,222 @@
+﻿id_nguon,Masach,Tensach,Matacgia,Tentacgia,Matheloai,Manxb
+B001,MS0001,Sapiens: Lược Sử Loài Người,TG062,Yuval Noah Harari,4,NXB13
+B002,MS0002,Dune: Xứ Cát,TG013,Frank Herbert,5,NXB17
+B003,MS0003,Educated: Được Học,TG050,Tara Westover,7,NXB12
+B004,MS0004,Atomic Habits: Thay Đổi Tí Hon,TG023,James Clear,6,NXB13
+B005,MS0005,1984,TG016,George Orwell,8,NXB17
+BK001,MS0006,Tư Tưởng Hồ Chí Minh,TG020,Hồ Chí Minh,1,NXB04
+BK002,MS0007,Đồi Gió Hú (Wuthering Heights),TG010,Emily Brontë,2,NXB17
+BK003,MS0008,Cánh Đồng Hoang,TG035,Nguyễn Thị Bé,2,NXB15
+BK004,MS0009,Toán Rời Rạc,TG037,Nguyễn Văn An,3,NXB05
+BK005,MS0010,Số Đỏ,TG060,Vũ Trọng Phụng,2,NXB17
+BK006,MS0011,Chiến Tranh Và Hòa Bình (War and Peace),TG027,Leo Tolstoy,2,NXB17
+BK007,MS0012,Những Người Khốn Khổ (Les Misérables),TG059,Victor Hugo,2,NXB17
+BK008,MS0013,Người Về Từ Sao Hỏa (The Martian),TG004,Andy Weir,5,NXB06
+BK009,MS0014,Tam Thể (The Three-Body Problem),TG028,Lưu Từ Hân,5,NXB17
+BK010,MS0015,Clean Code: Mã Sạch,TG045,Robert C. Martin,9,NXB07
+BK011,MS0016,Design Patterns: Elements of Reusable Object-Oriented Software,TG012,Erich Gamma,9,NXB01
+BK012,MS0017,Designing Data-Intensive Applications,TG031,Martin Kleppmann,9,NXB18
+BK013,MS0018,Introduction to Algorithms (CLRS),TG052,Thomas H. Cormen,9,NXB03
+BK014,MS0019,Cộng Hòa (The Republic),TG043,Plato,1,NXB13
+BK015,MS0020,Bàn Về Khế Ước Xã Hội,TG025,Jean-Jacques Rousseau,1,NXB14
+BK016,MS0021,Đại Việt Sử Ký Toàn Thư,TG039,Ngô Sĩ Liên,4,NXB08
+BK017,MS0022,"Súng, Vi Trùng Và Thép (Guns, Germs, and Steel)",TG024,Jared Diamond,4,NXB14
+BK018,MS0023,"Tư Duy Nhanh Và Chậm (Thinking, Fast and Slow)",TG009,Daniel Kahneman,6,NXB13
+BK019,MS0024,Đắc Nhân Tâm (How to Win Friends and Influence People),TG007,Dale Carnegie,6,NXB16
+BK020,MS0025,Khi Hơi Thở Hóa Thinh Không (When Breath Becomes Air),TG040,Paul Kalanithi,7,NXB06
+BK021,MS0026,Trăm Năm Cô Đơn (One Hundred Years of Solitude),TG015,Gabriel García Márquez,8,NXB17
+BK022,MS0027,Rừng Na Uy (Norwegian Wood),TG018,Haruki Murakami,8,NXB06
+BK023,MS0028,English Grammar in Use (5th Edition),TG044,Raymond Murphy,10,NXB02
+BK024,MS0029,Oxford Advanced Learners Dictionary,TG002,AS Hornby,10,NXB19
+BK025,MS0030,Minna no Nihongo I,TG001,3A Corporation,10,NXB15
+BK026,MS0031,Giải Tích 1 & 2 Dành Cho Kỹ Sư,TG038,Nguyễn Đình Trí,3,NXB05
+BK027,MS0032,Doraemon - Tuyển Tập Tranh Truyện Màu,TG014,Fujiko F. Fujio,11,NXB09
+BK028,MS0033,Thám Tử Lừng Danh Conan,TG017,Gosho Aoyama,11,NXB09
+BK029,MS0034,Dế Mèn Phiêu Lưu Ký,TG058,Tô Hoài,11,NXB09
+BK030,MS0035,Kính Vạn Hoa,TG034,Nguyễn Nhật Ánh,11,NXB09
+BK031,MS0036,Hoàng Tử Bé (Le Petit Prince),TG005,Antoine de Saint-Exupéry,11,NXB06
+BK032,MS0037,Harry Potter và Hòn Đá Phù Thủy,TG022,J.K. Rowling,11,NXB15
+BK033,MS0038,Totto-chan Bên Cửa Sổ,TG051,Tetsuko Kuroyanagi,11,NXB17
+BK034,MS0039,Đảo Giấu Vàng (Treasure Island),TG046,Robert Louis Stevenson,11,NXB17
+BK035,MS0040,Không Gia Đình (Sans Famille),TG019,Hector Malot,11,NXB17
+BK036,MS0041,Góc Sân Và Khoảng Trời,TG057,Trần Đăng Khoa,11,NXB09
+BK037,MS0042,Homo Deus: Lược Sử Tương Lai,TG062,Yuval Noah Harari,4,NXB13
+BK038,MS0043,21 Bài Học Cho Thế Kỷ 21,TG062,Yuval Noah Harari,4,NXB13
+BK039,MS0044,Clean Architecture: Kiến Trúc Sạch,TG045,Robert C. Martin,9,NXB20
+BK040,MS0045,The Clean Coder: Cẩm Nang Cho Lập Trình Viên,TG045,Robert C. Martin,9,NXB20
+BK041,MS0046,Cho Tôi Xin Một Vé Đi Tuổi Thơ,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK042,MS0047,Tôi Thấy Hoa Vàng Trên Cỏ Xanh,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK043,MS0048,Harry Potter và Phòng Chứa Bí Mật,TG022,J.K. Rowling,11,NXB15
+BK044,MS0049,Harry Potter và Tên Tù Nhân Ngục Azkaban,TG022,J.K. Rowling,11,NXB15
+BK045,MS0050,Mắt Biếc,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK046,MS0051,Cô Gái Đến Từ Hôm Qua,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK047,MS0052,Bảy Bước Tới Mùa Hè,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK048,MS0053,Cảm Ơn Người Lớn,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK049,MS0054,Đi Qua Hoa Cúc,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK050,MS0055,Hạ Đỏ,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK051,MS0056,Chúc Một Ngày Tốt Lành,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK052,MS0057,Ngày Xưa Có Một Chuyện Tình,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK053,MS0058,Cây Chuối Non Đi Giày Xanh,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK054,MS0059,Làm Bạn Với Bầu Trời,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK055,MS0060,Quán Gò Đi Đi,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK056,MS0061,Còn Chút Gì Để Nhớ,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK057,MS0062,Bồ Câu Không Đưa Thư,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK058,MS0063,Thằng Quỷ Nhỏ,TG034,Nguyễn Nhật Ánh,11,NXB15
+BK059,MS0064,Harry Potter và Chiếc Cốc Lửa,TG022,J.K. Rowling,11,NXB15
+BK060,MS0065,Harry Potter và Hội Phượng Hoàng,TG022,J.K. Rowling,11,NXB15
+BK061,MS0066,Harry Potter và Hoàng Tử Lai,TG022,J.K. Rowling,11,NXB15
+BK062,MS0067,Harry Potter và Bảo Bối Tử Thần,TG022,J.K. Rowling,11,NXB15
+BK063,MS0068,Sinh Vật Huyền Bí và Nơi Tìm Ra Chúng,TG022,J.K. Rowling,11,NXB15
+BK064,MS0069,Quidditch Qua Các Thời Đại,TG022,J.K. Rowling,11,NXB15
+BK065,MS0070,Những Chuyện Kể Của Beedle Người Hát Rong,TG022,J.K. Rowling,11,NXB15
+BK066,MS0071,The Casual Vacancy: Khoảng Trống Cuộc Đời,TG022,J.K. Rowling,8,NXB15
+BK067,MS0072,Sapiens: Nền Tảng Khởi Sinh (Graphic Novel Tập 1),TG062,Yuval Noah Harari,4,NXB13
+BK068,MS0073,Sapiens: Trụ Cột Nền Văn Minh (Graphic Novel Tập 2),TG062,Yuval Noah Harari,4,NXB13
+BK069,MS0074,Nexus: Lược Sử Các Mạng Lưới Thông Tin,TG062,Yuval Noah Harari,4,NXB13
+BK070,MS0075,Clean Craftsmanship: Kỹ Nghệ Phần Mềm Sạch,TG045,Robert C. Martin,9,NXB20
+BK071,MS0076,Clean Agile: Phương Pháp Agile Thực Tiễn,TG045,Robert C. Martin,9,NXB20
+BK072,MS0077,"Agile Principles, Patterns, and Practices in C#",TG045,Robert C. Martin,9,NXB20
+BK073,MS0078,Kafka Bên Bờ Biển (Kafka on the Shore),TG018,Haruki Murakami,8,NXB06
+BK074,MS0079,1Q84 (Tập 1),TG018,Haruki Murakami,8,NXB06
+BK075,MS0080,1Q84 (Tập 2),TG018,Haruki Murakami,8,NXB06
+BK076,MS0081,1Q84 (Tập 3),TG018,Haruki Murakami,8,NXB06
+BK077,MS0082,Biên Niên Ký Chim Vặn Dây Cót,TG018,Haruki Murakami,8,NXB06
+BK078,MS0083,"Phía Nam Biên Giới, Phía Tây Mặt Trời",TG018,Haruki Murakami,8,NXB06
+BK079,MS0084,Lắng Nghe Gió Hát (Hear the Wind Sing),TG018,Haruki Murakami,8,NXB06
+BK080,MS0085,Cuộc Săn Cừu Hoang (A Wild Sheep Chase),TG018,Haruki Murakami,8,NXB06
+BK081,MS0086,Xứ Sở Diệu Kỳ Và Chốn Tận Cùng Thế Giới,TG018,Haruki Murakami,8,NXB06
+BK082,MS0087,Người Tình Sputnik (Sputnik Sweetheart),TG018,Haruki Murakami,8,NXB06
+BK083,MS0088,Tôi Nói Gì Khi Nói Về Chạy Bộ,TG018,Haruki Murakami,7,NXB06
+BK084,MS0089,Mật Mã Da Vinci (The Da Vinci Code),TG008,Dan Brown,8,NXB17
+BK085,MS0090,Thiên Thần & Ác Quỷ (Angels & Demons),TG008,Dan Brown,8,NXB17
+BK086,MS0091,Biểu Tượng Thất Truyền (The Lost Symbol),TG008,Dan Brown,8,NXB17
+BK087,MS0092,Hỏa Ngục (Inferno),TG008,Dan Brown,8,NXB17
+BK088,MS0093,Nguồn Cội (Origin),TG008,Dan Brown,8,NXB17
+BK089,MS0094,Pháo Đài Số (Digital Fortress),TG008,Dan Brown,8,NXB17
+BK090,MS0095,Điểm Dối Lừa (Deception Point),TG008,Dan Brown,8,NXB17
+BK091,MS0096,Chiếc Nhẫn Tình Cờ (A Study in Scarlet),TG006,Arthur Conan Doyle,2,NXB17
+BK092,MS0097,Dấu Bộ Tứ (The Sign of the Four),TG006,Arthur Conan Doyle,2,NXB17
+BK093,MS0098,Con Chó Của Dòng Họ Baskerville,TG006,Arthur Conan Doyle,2,NXB17
+BK094,MS0099,Thung Lũng Khủng Khiếp (The Valley of Fear),TG006,Arthur Conan Doyle,2,NXB17
+BK095,MS0100,Những Cuộc Phiêu Lưu Của Sherlock Holmes,TG006,Arthur Conan Doyle,2,NXB17
+BK096,MS0101,Hồi Ức Về Sherlock Holmes (The Memoirs),TG006,Arthur Conan Doyle,2,NXB17
+BK097,MS0102,Sự Trở Lại Của Sherlock Holmes,TG006,Arthur Conan Doyle,2,NXB17
+BK098,MS0103,Cung Đàn Sau Cùng (His Last Bow),TG006,Arthur Conan Doyle,2,NXB17
+BK099,MS0104,Hồ Sơ Sherlock Holmes (The Case-Book),TG006,Arthur Conan Doyle,2,NXB17
+BK100,MS0105,Thế Giới Đã Mất (The Lost World),TG006,Arthur Conan Doyle,5,NXB17
+BK101,MS0106,Quẳng Gánh Lo Đi Và Vui Sống,TG007,Dale Carnegie,6,NXB16
+BK102,MS0107,Khéo Ăn Nói Sẽ Được Lòng Người,TG007,Dale Carnegie,6,NXB16
+BK103,MS0108,Phát Huy Giá Trị Bản Thân,TG007,Dale Carnegie,6,NXB16
+BK104,MS0109,Thu Hút Người Khác Và Giao Tiếp Hiệu Quả,TG007,Dale Carnegie,6,NXB16
+BK105,MS0110,Nghệ Thuật Diễn Thuyết Trước Công Chúng,TG007,Dale Carnegie,6,NXB16
+BK106,MS0111,Nhà Giả Kim (The Alchemist),TG041,Paulo Coelho,8,NXB11
+BK107,MS0112,Veronika Quyết Chết (Veronika Decides to Die),TG041,Paulo Coelho,8,NXB11
+BK108,MS0113,Bên Bờ Sông Piedra Tôi Ngồi Xuống Và Tôi Khóc,TG041,Paulo Coelho,8,NXB11
+BK109,MS0114,Quỷ Dữ Và Chàng Prym,TG041,Paulo Coelho,8,NXB11
+BK110,MS0115,Maktub,TG041,Paulo Coelho,6,NXB11
+BK111,MS0116,Ngoại Tình (Adultery),TG041,Paulo Coelho,8,NXB11
+BK112,MS0117,Cẩm Nang Của Người Chiến Binh Ánh Sáng,TG041,Paulo Coelho,6,NXB11
+BK113,MS0118,Như Dòng Sông Chảy (Like the Flowing River),TG041,Paulo Coelho,7,NXB11
+BK114,MS0119,Chuyện Ở Nông Trại (Animal Farm),TG016,George Orwell,8,NXB17
+BK115,MS0120,Đảo Xứ Miến Điện (Burmese Days),TG016,George Orwell,8,NXB17
+BK116,MS0121,Đường Về Wigan Pier (The Road to Wigan Pier),TG016,George Orwell,4,NXB17
+BK117,MS0122,Một Chút Không Khí Để Thở (Coming Up for Air),TG016,George Orwell,8,NXB17
+BK118,MS0123,Những Người Khốn Khổ (Tập 1 - Fantine),TG059,Victor Hugo,2,NXB17
+BK119,MS0124,Những Người Khốn Khổ (Tập 2 - Cosette),TG059,Victor Hugo,2,NXB17
+BK120,MS0125,Những Người Khốn Khổ (Tập 3 - Jean Valjean),TG059,Victor Hugo,2,NXB17
+BK121,MS0126,Nhà Thờ Đức Bà Paris (Notre-Dame de Paris),TG059,Victor Hugo,2,NXB17
+BK122,MS0127,Thằng Cười (The Man Who Laughs),TG059,Victor Hugo,2,NXB17
+BK123,MS0128,Chí Phèo,TG032,Nam Cao,2,NXB17
+BK124,MS0129,Lão Hạc,TG032,Nam Cao,2,NXB17
+BK125,MS0130,Sống Mòn,TG032,Nam Cao,2,NXB17
+BK126,MS0131,Đời Thừa,TG032,Nam Cao,2,NXB17
+BK127,MS0132,Giăng Sáng,TG032,Nam Cao,2,NXB17
+BK128,MS0133,Đôi Mắt,TG032,Nam Cao,2,NXB17
+BK129,MS0134,Vợ Chồng A Phủ,TG058,Tô Hoài,2,NXB09
+BK130,MS0135,O Chuột,TG058,Tô Hoài,11,NXB09
+BK131,MS0136,Quê Người,TG058,Tô Hoài,2,NXB09
+BK132,MS0137,Cát Bụi Chân Ai,TG058,Tô Hoài,7,NXB06
+BK133,MS0138,Ba Người Khác,TG058,Tô Hoài,8,NXB06
+BK134,MS0139,Giông Tố,TG060,Vũ Trọng Phụng,2,NXB17
+BK135,MS0140,Vỡ Đê,TG060,Vũ Trọng Phụng,2,NXB17
+BK136,MS0141,Cơm Thầy Cơm Cô,TG060,Vũ Trọng Phụng,2,NXB17
+BK137,MS0142,Lục Xì,TG060,Vũ Trọng Phụng,2,NXB17
+BK138,MS0143,Điểm Bùng Phát (The Tipping Point),TG029,Malcolm Gladwell,6,NXB13
+BK139,MS0144,Trong Chớp Mắt (Blink),TG029,Malcolm Gladwell,6,NXB13
+BK140,MS0145,Những Kẻ Xuất Chúng (Outliers),TG029,Malcolm Gladwell,6,NXB13
+BK141,MS0146,Chú Bé David và Gã Khổng Lồ Goliath,TG029,Malcolm Gladwell,6,NXB13
+BK142,MS0147,Đọc Vị Người Lạ (Talking to Strangers),TG029,Malcolm Gladwell,6,NXB13
+BK143,MS0148,Trái Lựu Đạn Của Bombe (The Bomber Mafia),TG029,Malcolm Gladwell,4,NXB13
+BK144,MS0149,Steve Jobs: Tiểu Sử,TG061,Walter Isaacson,7,NXB15
+BK145,MS0150,Leonardo Da Vinci: Tiểu Sử Danh Họa,TG061,Walter Isaacson,7,NXB13
+BK146,MS0151,Einstein: Cuộc Đời Và Vũ Trụ,TG061,Walter Isaacson,7,NXB13
+BK147,MS0152,Những Người Tiên Phong (The Innovators),TG061,Walter Isaacson,9,NXB13
+BK148,MS0153,Benjamin Franklin: Một Đời Độc Lập,TG061,Walter Isaacson,7,NXB13
+BK149,MS0154,Elon Musk: Tiểu Sử Vị Tỷ Phú Công Nghệ,TG061,Walter Isaacson,7,NXB15
+BK150,MS0155,Lược Sử Thời Gian (A Brief History of Time),TG048,Stephen Hawking,3,NXB15
+BK151,MS0156,Vũ Trụ Trong Vỏ Hạt Dẻ,TG048,Stephen Hawking,3,NXB15
+BK152,MS0157,Bản Thiết Kế Vĩ Đại (The Grand Design),TG048,Stephen Hawking,3,NXB15
+BK153,MS0158,Những Câu Hỏi Lớn Dành Cho Nhân Loại,TG048,Stephen Hawking,3,NXB15
+BK154,MS0159,Lỗ Đen và Vũ Trụ Sơ Khai,TG048,Stephen Hawking,3,NXB15
+BK155,MS0160,Lược Sử Tương Lai Vũ Trụ,TG048,Stephen Hawking,3,NXB15
+BK156,MS0161,Refactoring: Cải Tiến Mã Nguồn Hiện Có,TG030,Martin Fowler,9,NXB01
+BK157,MS0162,Patterns of Enterprise Application Architecture,TG030,Martin Fowler,9,NXB01
+BK158,MS0163,UML Distilled: Tóm Lược Ngôn Ngữ Mô Hình Hóa,TG030,Martin Fowler,9,NXB01
+BK159,MS0164,Domain-Specific Languages (DSL),TG030,Martin Fowler,9,NXB01
+BK160,MS0165,NoSQL Distilled: Tinh Hoa Cơ Sở Dữ Liệu NoSQL,TG030,Martin Fowler,9,NXB01
+BK161,MS0166,Giận (Anger: Wisdom for Cooling the Flames),TG053,Thích Nhất Hạnh,6,NXB11
+BK162,MS0167,Phép Lạ Của Sự Tỉnh Thức,TG053,Thích Nhất Hạnh,6,NXB11
+BK163,MS0168,Không Diệt Không Sinh Đừng Sợ Hãi,TG053,Thích Nhất Hạnh,6,NXB11
+BK164,MS0169,An Lạc Từng Bước Chân,TG053,Thích Nhất Hạnh,6,NXB11
+BK165,MS0170,Nẻo Về Của Ý,TG053,Thích Nhất Hạnh,1,NXB11
+BK166,MS0171,Trái Tim Của Bụt,TG053,Thích Nhất Hạnh,1,NXB11
+BK167,MS0172,Thầy Cô Giáo Hạnh Phúc Sẽ Thay Đổi Thế Giới,TG053,Thích Nhất Hạnh,6,NXB11
+BK168,MS0173,Hạnh Phúc Cầm Tay,TG053,Thích Nhất Hạnh,6,NXB11
+BK169,MS0174,Mười Người Da Đen Nhỏ (And Then There Were None),TG003,Agatha Christie,8,NXB15
+BK170,MS0175,Án Mạng Trên Chuyến Tàu Tốc Hành Phương Đông,TG003,Agatha Christie,8,NXB15
+BK171,MS0176,Án Mạng Trên Sông Nile (Death on the Nile),TG003,Agatha Christie,8,NXB15
+BK172,MS0177,Vụ Ám Sát Roger Ackroyd,TG003,Agatha Christie,8,NXB15
+BK173,MS0178,Chuỗi Án Mạng A.B.C,TG003,Agatha Christie,8,NXB15
+BK174,MS0179,Giáng Sinh Của Poirot,TG003,Agatha Christie,8,NXB15
+BK175,MS0180,Đêm Vô Tận (Endless Night),TG003,Agatha Christie,8,NXB15
+BK176,MS0181,Ngôi Nhà Quái Dị (Crooked House),TG003,Agatha Christie,8,NXB15
+BK177,MS0182,Năm Chú Heo Con (Five Little Pigs),TG003,Agatha Christie,8,NXB15
+BK178,MS0183,Thảm Kịch Ba Hồi (Three Act Tragedy),TG003,Agatha Christie,8,NXB15
+BK179,MS0184,Tiếu Ngạo Giang Hồ,TG026,Kim Dung,2,NXB17
+BK180,MS0185,Anh Hùng Xạ Điêu,TG026,Kim Dung,2,NXB17
+BK181,MS0186,Thần Điêu Đại Hiệp,TG026,Kim Dung,2,NXB17
+BK182,MS0187,Ỷ Thiên Đồ Long Ký,TG026,Kim Dung,2,NXB17
+BK183,MS0188,Thiên Long Bát Bộ,TG026,Kim Dung,2,NXB17
+BK184,MS0189,Lộc Đỉnh Ký,TG026,Kim Dung,2,NXB17
+BK185,MS0190,Bích Huyết Kiếm,TG026,Kim Dung,2,NXB17
+BK186,MS0191,Tuyết Sơn Phi Hồ,TG026,Kim Dung,2,NXB17
+BK187,MS0192,Hiệp Khách Hành,TG026,Kim Dung,2,NXB17
+BK188,MS0193,Liên Thành Quyết,TG026,Kim Dung,2,NXB17
+BK189,MS0194,The Shining: Ngôi Nhà Ma Ám,TG049,Stephen King,8,NXB06
+BK190,MS0195,IT: Gã Hề Ma Quái,TG049,Stephen King,8,NXB06
+BK191,MS0196,Misery: Nỗi Ám Ảnh Bị Giam Cầm,TG049,Stephen King,8,NXB06
+BK192,MS0197,Carrie: Cơn Thịnh Nộ Của Carrie,TG049,Stephen King,8,NXB06
+BK193,MS0198,Pet Sematary: Nghĩa Địa Thú Cưng,TG049,Stephen King,8,NXB06
+BK194,MS0199,The Green Mile: Dặm Xanh Kỳ Diệu,TG049,Stephen King,8,NXB06
+BK195,MS0200,Nhật Ký Trong Tù,TG020,Hồ Chí Minh,1,NXB04
+BK196,MS0201,Tuyên Ngôn Độc Lập & Các Tác Phẩm Chọn Lọc,TG020,Hồ Chí Minh,1,NXB04
+BK197,MS0202,Bản Án Chế Độ Thực Dân Pháp,TG020,Hồ Chí Minh,1,NXB04
+BK198,MS0203,Truyện Kiều,TG033,Nguyễn Du,2,NXB17
+BK199,MS0204,Văn Tế Thập Loại Chúng Sinh,TG033,Nguyễn Du,2,NXB17
+BK200,MS0205,Vang Bóng Một Thời,TG036,Nguyễn Tuân,2,NXB17
+BK201,MS0206,Gió Đầu Mùa,TG054,Thạch Lam,2,NXB17
+BK202,MS0207,Hà Nội Băm Sáu Phố Phường,TG054,Thạch Lam,2,NXB17
+BK203,MS0208,Nắng Trong Vườn,TG054,Thạch Lam,2,NXB17
+BK204,MS0209,Cà Phê Cùng Tony,TG056,Tony Buổi Sáng,6,NXB15
+BK205,MS0210,Trên Đường Băng,TG056,Tony Buổi Sáng,6,NXB15
+BK206,MS0211,Dấn Thân (Lean In),TG047,Sheryl Sandberg,6,NXB15
+BK207,MS0212,Tuần Làm Việc 4 Giờ,TG055,Timothy Ferriss,6,NXB10
+BK208,MS0213,Khởi Nghiệp Tinh Gọn (The Lean Startup),TG011,Eric Ries,9,NXB16
+BK209,MS0214,Không Đến Một (Zero to One),TG042,Peter Thiel,9,NXB15
+BK210,MS0215,Dune: Cứu Tinh Xứ Cát (Dune Messiah),TG013,Frank Herbert,5,NXB17
+BK211,MS0216,Dune: Con Trẻ Xứ Cát (Children of Dune),TG013,Frank Herbert,5,NXB17
+BK212,MS0217,Artemis: Thành Phố Trên Mặt Trăng,TG004,Andy Weir,5,NXB06
+BK213,MS0218,Dự Án Hail Mary (Project Hail Mary),TG004,Andy Weir,5,NXB06
+BK214,MS0219,Foundation: Đế Chế (Tập 1),TG021,Isaac Asimov,5,NXB17
+BK215,MS0220,Foundation và Đế Chế (Tập 2),TG021,Isaac Asimov,5,NXB17
+BK216,MS0221,Đế Chế Đệ Nhị (Second Foundation),TG021,Isaac Asimov,5,NXB17
