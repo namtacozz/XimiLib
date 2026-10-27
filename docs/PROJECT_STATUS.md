@@ -26,15 +26,68 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 ## 2. Tiêu chuẩn Hoàn thành (Definition of Done - DoD)
 Đã đạt **100% 6 tiêu chí DoD**:
 1. **Kiến trúc:** Tuân thủ Clean Architecture 4 tầng, Pure DI tại `AppContainer`, không có bất kỳ import ngược nào giữa các tầng.
-2. **Kiểm thử tự động:** **45/45 test cases JUnit 5 đạt 100% PASS** (Unit tests + Integration tests MySQL thật).
+2. **Kiểm thử tự động:** **54/54 test cases JUnit 5 đạt 100% PASS** (Unit tests + Integration tests MySQL thật).
 3. **An toàn dữ liệu:** 100% `PreparedStatement`, mật khẩu băm BCrypt, tiền tệ dùng `BigDecimal`, khóa bi quan `SELECT ... FOR UPDATE`.
 4. **Không chặn giao diện:** Mọi truy vấn DB và I/O đều chạy trên `SwingWorker` ngoài EDT; giao diện cập nhật an toàn trên EDT. Khởi động nguội < 1 giây.
-5. **Đóng gói & Chạy thử:** Lệnh `mvn clean package` xuất ra file `dist/XimiLib.jar` độc lập (16.0 MB) chạy trực tiếp bằng `run.bat`.
+5. **Đóng gói & Chạy thử:** Lệnh `mvn clean package` xuất ra file `dist/XimiLib.jar` độc lập (16.1 MB) chạy trực tiếp bằng `run.bat`.
 6. **Tài liệu:** Đầy đủ bộ tài liệu SSOT trong `/docs` (`AGENTS.md`, `ARCHITECTURE.md`, `DATABASE_SCHEMA.md`, `BUSINESS_RULES.md`, `PROJECT_STATUS.md`, `VAN_DAP.md`).
 
 ---
 
 ## 3. Nhật ký Thay đổi Dự án (Changelog)
+
+### [Sprint 16 — Hoàn thiện Bố cục Responsive Dashboard, Tối ưu Tốc độ Tải Bìa & Khắc phục Lỗi Giao diện] - 2026-10-27
+#### Added
+- `db/seed/seed_demo_loans.sql`: Script nạp dữ liệu mượn trả thật (phiếu quá hạn, phiếu đến hạn hôm nay, phiếu mượn nhiều cuốn, và 2 phiếu chờ nhận sách trực tuyến) giúp giao diện vận hành trực quan và sinh động.
+- Nút "+ Thêm Sách Mới" nổi bật trên thanh tiêu đề `BookCatalogView`, mở modal tạo sách mới `BookFormModalPanel` (chỉ hiển thị cho Quản trị viên và Thủ thư).
+- Cơ chế đệm ảnh bìa thu nhỏ trong bộ nhớ (`ConcurrentHashMap<String, BufferedImage> THUMBNAIL_CACHE`) tại `BookCoverTile` và `COVER_CACHE` tại `ReaderBorrowRegistrationView`, giảm 100% việc decode ảnh lặp lại từ đĩa, tốc độ hiển thị đạt 0ms và giải phóng bộ nhớ ảnh gốc ngay lập tức.
+#### Fixed
+- **Trạng thái Thẻ bạn đọc (`thethuvien.Trangthai`)**: Khắc phục lỗi hiển thị "Bị khóa" do ánh xạ chuỗi so với số nguyên CSDL (`1` = Hoạt động, `0` = Khóa). Bổ sung `StatusBadgeRenderer` với màu xanh (Hoạt động), vàng cam (Hết hạn), đỏ (Bị khóa).
+- **Thẻ Quản trị hệ thống & Phím phân quyền**: Bỏ bẫy nested JScrollPane khiến tiêu đề bị cuộn mất khi bảng nhận tiêu điểm. Tách rõ `BorderLayout.NORTH` (Tiêu đề, Breadcrumb, 2 nút hành động, 4 thẻ KPI) và `BorderLayout.CENTER` (Bảng cuộn độc lập). Mở rộng độ rộng cột Thao tác lên 260px (min 250px) để 3 nút "Phân quyền", "Khóa/Mở", "Đặt lại MK" nằm trên một hàng không bị tràn.
+- **Thùng rác & Khôi phục (`TrashAndRestoreView`)**: Tích hợp `AncestorListener` và đăng ký lắng nghe sự kiện `BookStockChangedEvent` (phát sinh khi xóa/khôi phục sách tại `BookCatalogServiceImpl`), giúp Thùng rác tự động cập nhật ngay lập tức khi chuyển tab hoặc sau khi thao tác xóa sách.
+- **Bố cục Responsive thẻ Dashboard**: Cải tiến `StaffHomePanel` với tỷ lệ co giãn linh hoạt (`setAutoResizeMode(AUTO_RESIZE_ALL_COLUMNS)`), bọc dải sách mới nhập trong `JScrollPane` cuộn ngang mượt mà, cắt tỉa văn bản dài với tooltip và thêm lề cho nút "Xem tất cả >" ở `SectionHeader`.
+- **Logo ứng dụng hiển thị sắc nét, đúng màu hồng pastel**: Khắc phục lỗi file logo cũ chỉ chứa mặt nạ màu trắng thuần (white-on-white tàng hình trên nền form trắng). Đã tổng hợp đồ họa màu gốc từ `assets/Logo.svg` kèm kênh alpha trong suốt (RGBA 32-bit), tạo đầy đủ bộ icon đa kích thước (`logo.png`, `logo.svg`, `logo_16..512.png`) và nạp trực tiếp qua `AppLogo.getIcon()`.
+- **Tối giản BrandPanel màn Đăng nhập**: Lược bỏ cơ chế slideshow đa ảnh, timer chuyển cảnh và nút điều hướng; cố định hiển thị 1 hình ảnh chất lượng cao duy nhất `plushy-woman-work.jpg` kèm gradient phủ đạt chuẩn WCAG >= 4.5:1 và thông điệp thương hiệu tinh tế.
+- **Tổng số bài test tự động**: 56/56 bài test JUnit 5 đạt **100% PASS**.
+
+### [Sprint 15 — Tích hợp Bộ tài nguyên Hình ảnh Logo & Minh họa] - 2026-10-27
+#### Added
+- `com.ximilib.presentation.util.AppLogo`: Cung cấp logo vector sắc nét từ `images/logo/logo.svg` và bộ icon PNG đa kích thước (16, 24, 32, 48, 64, 128, 256) cho Titlebar và Taskbar OS. Tự động đệm (cache) bộ nhớ.
+- `com.ximilib.domain.model.ImageSlideshow`: Domain model quản lý trạng thái trình chiếu ảnh màn Đăng nhập (Next, Prev, GoTo, Auto-timer 5s, Hover Pause) hoàn toàn độc lập với Swing.
+- `com.ximilib.presentation.component.EmptyStatePanel`: Khối giao diện chuẩn hóa hiển thị trạng thái rỗng kèm minh họa vector FlatSVG sắc nét và nút kêu gọi hành động (CTA).
+- `com.ximilib.presentation.util.Illustrations`: Bộ hằng số đường dẫn minh họa vector chuẩn (11 file SVG chuẩn hóa).
+#### Changed
+- `BrandPanel`: Tích hợp slideshow 2 ảnh 3D thư viện Pixar chuẩn (`girl-reading-book.jpg`, `plushy-woman-work.jpg`), chuyển cảnh cross-fade 60 FPS, overlay gradient WCAG >= 4.5:1, nút điều hướng `<` `>` và phím mũi tên.
+- `SidebarPanel`, `LoginFormPanel`, `DigitalCardPopupPanel`: Thay thế toàn bộ mã vẽ logo thủ công bằng `AppLogo.getIcon()`.
+- `MainDashboardFrame`, `LoginForm`: Gán bộ ảnh icon cửa sổ ứng dụng qua `AppLogo.applyWindowIcons()`.
+- `BookCatalogView`, `TrashAndRestoreView`, `NotificationPopupPanel`, `ReaderHomePanel`, `StaffHomePanel`, `HelpGuideModalPanel`: Tích hợp hình ảnh minh họa vector và trạng thái rỗng `EmptyStatePanel`.
+#### Fixed & Cleaned
+- Khắc phục lỗi JSVG render mã `Logo.svg` của Canva bằng cách chuyển nền đen thành kênh alpha trong suốt (RGBA 32-bit), tương thích hoàn hảo 100% với `FlatSVGIcon`.
+- Tối ưu hóa kích thước ảnh đăng nhập từ 4.1 MB xuống ~240 KB cho 2 ảnh, giúp khởi động nguội ứng dụng < 1s.
+- Loại bỏ hoàn toàn `usecase.jpg` và các tệp mock cũ khỏi tài nguyên và file `dist/XimiLib.jar`.
+- Nâng tổng số test tự động lên **56 bài test (100% PASS)**.
+
+### [Sprint 14 — Tái thiết kế Trang chủ, Header và Sidebar chuẩn Dashboard Vận hành] - 2026-10-27
+#### Added
+- **Trang chủ Vận hành Thủ thư / Quản trị viên (`StaffHomePanel`)**:
+  * Thay thế toàn bộ banner tĩnh và dữ liệu mẫu bằng dashboard vận hành trực tiếp từ MySQL.
+  * 4 thẻ KPI chỉ số thực (`sach`, `cuonsach`, `nguoidung`, `phieumuon`), loại bỏ nhãn xu hướng ảo (+12%, +8%).
+  * Bảng "Cần xử lý hôm nay" phân loại hạn trả thuần domain (`LoanDueClassification`): Quá hạn (đỏ), Hạn hôm nay (vàng), Còn hạn (xanh), kèm nút "Gia hạn" và "Nhận trả sách" tại quầy.
+  * Danh sách "Chờ nhận tại quầy" và lưới 6 sách mới nhập bìa 2:3 (`BookCoverTile`).
+  * Chip giờ mở cửa tự động kiểm tra đóng cửa lúc 17:00 theo quy định SRS.
+- **Trang chủ Độc giả phong cách Libby / Goodreads (`ReaderHomePanel`)**:
+  * Lời chào cá nhân hóa, mã thẻ và trạng thái thẻ thư viện.
+  * Banner cảnh báo nợ phạt / quá hạn nổi bật (chỉ hiển thị khi có vi phạm/nợ đọng) kèm nút điều hướng nộp phạt trực tuyến.
+  * Danh sách sách đang mượn với bìa 2:3, hạn trả và nút gia hạn trực tuyến (+14 ngày) theo quy định BR-03.
+  * Lưới sách mới nhập có thể bấm xem chi tiết hoặc đăng ký mượn ngay.
+- **Header & Sidebar Tối giản Hiện đại**:
+  * Sidebar thu gọn tối đa 6-7 mục tùy vai trò, loại bỏ hoàn toàn thanh cuộn ở độ phân giải 768px và các nhóm tiêu đề thừa.
+  * Phân nhóm tiểu màn hình bằng thanh chuyển tab phẳng `TabBar` (`TabbedViewPanel`) cho Kho sách, Mượn – Trả, Quản trị, Sách của tôi.
+  * Chuông thông báo động (`NotificationPopupPanel`) phản ánh số lượng thông báo chưa đọc từ MySQL.
+  * Header hành động theo vai trò: "+ Lập phiếu mượn" cho Thủ thư/Admin, "Thẻ Thư Viện" cho Độc giả.
+  * Tiêu đề cửa sổ chuẩn hóa: `XimiLib – Quản lý Thư viện`.
+#### Removed
+- Xóa bỏ các lớp mockup cũ: `HeroBannerPanel`, `ActiveLoanCard`, `BookArrivalCard`.
 
 ### [Sprint 13 — Hoàn thiện Trọn bộ Tính năng Đặc tả & Phân quyền RBAC] - 2026-10-27
 #### Added

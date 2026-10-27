@@ -35,8 +35,8 @@ sources/src/main/java/com/ximilib/
 ├── presentation/                           # Giao diện người dùng Java Swing FlatLaf (In-App Modal Overlay)
 │   ├── view/                               # JFrame, JPanel màn hình (LoginForm, MainDashboard, BookCatalogView)
 │   │                                       # [ĐẶT]: Layout UI, Component binding; [CẤM]: SQL query, Transaction, OS JDialog
-│   ├── component/                          # In-App Overlays & UI components (KpiCard, ActiveLoanCard, DigitalCardPopupPanel, UserProfileModalPanel, BookFormModalPanel)
-│   └── util/                               # UiModalHelper (DJ-Raven Suite), UITheme, IconFactory, Swing EDT helpers
+│   ├── component/                          # In-App Overlays & UI components (KpiCard, EmptyStatePanel, DigitalCardPopupPanel, UserProfileModalPanel, BookFormModalPanel)
+│   └── util/                               # UiModalHelper (DJ-Raven Suite), AppLogo, Illustrations, UITheme, IconFactory, Swing EDT helpers
 └── Main.java                               # Điểm vào chính của ứng dụng: khởi tạo AppContainer và mở LoginForm
 ```
 

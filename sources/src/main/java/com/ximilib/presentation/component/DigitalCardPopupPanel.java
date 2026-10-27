@@ -1,15 +1,16 @@
 package com.ximilib.presentation.component;
 
 import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.AppLogo;
 import com.ximilib.presentation.util.UiModalHelper;
 import java.awt.*;
 import javax.swing.*;
 import raven.popup.component.GlassPaneChild;
 
 /**
- * DigitalCardPopupPanel: The Thu Vien Dien Tu dang GlassPane Popup (In-App Overlay)
- * Tich hop ma QR Code va bo goc mo phong smartphone theo dung chuan raven.glasspanepopup.
- * Thay the hoan toan OS JDialog truyen thong de tiet kiem tai nguyen RAM va tranh loi focus.
+ * DigitalCardPopupPanel: Thẻ Thư Viện Điện Tử dạng GlassPane Popup (In-App Overlay)
+ * Tích hợp mã QR Code và bo góc mô phỏng smartphone theo đúng chuẩn raven.glasspanepopup.
+ * Sử dụng AppLogo chuẩn thay cho việc vẽ thủ công bằng mã.
  */
 public class DigitalCardPopupPanel extends GlassPaneChild {
 
@@ -46,31 +47,11 @@ public class DigitalCardPopupPanel extends GlassPaneChild {
         cardContainer.setBorder(BorderFactory.createEmptyBorder(24, 28, 20, 28));
         cardContainer.setPreferredSize(new Dimension(320, 460));
 
-        // 1. Icon Header Thư viện vector xanh ngọc
-        JPanel iconPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(UITheme.PRIMARY);
-                g2.fillRoundRect(getWidth() / 2 - 20, 0, 40, 40, 12, 12);
-
-                g2.setColor(Color.WHITE);
-                g2.setStroke(new BasicStroke(1.8f));
-                int cx = getWidth() / 2;
-                int cy = 20;
-                g2.drawRoundRect(cx - 9, cy - 8, 8, 16, 2, 2);
-                g2.drawRoundRect(cx + 1, cy - 8, 8, 16, 2, 2);
-                g2.drawLine(cx - 7, cy - 4, cx - 3, cy - 4);
-                g2.drawLine(cx - 7, cy, cx - 3, cy);
-                g2.drawLine(cx + 3, cy - 4, cx + 7, cy - 4);
-                g2.drawLine(cx + 3, cy, cx + 7, cy);
-                g2.dispose();
-            }
-        };
+        // 1. Icon Header Thư viện Logo chuẩn XimiLib
+        JLabel iconPanel = new JLabel(AppLogo.getIcon(40), SwingConstants.CENTER);
+        iconPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         iconPanel.setPreferredSize(new Dimension(300, 44));
         iconPanel.setMaximumSize(new Dimension(300, 44));
-        iconPanel.setOpaque(false);
 
         // 2. Tiêu đề
         JLabel lblTitle = new JLabel("Thẻ Thư Viện Điện Tử");

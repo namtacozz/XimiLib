@@ -4,6 +4,8 @@ import com.ximilib.application.dto.BookSearchCriteria;
 import com.ximilib.application.dto.BookSummaryDto;
 import com.ximilib.application.dto.PagedResult;
 import com.ximilib.application.service.BookCatalogService;
+import com.ximilib.domain.event.BookStockChangedEvent;
+import com.ximilib.domain.event.DomainEventPublisher;
 import com.ximilib.domain.exception.BookInUseException;
 import com.ximilib.domain.repository.BookRepository;
 import com.ximilib.infrastructure.persistence.impl.BookRepositoryImpl;
@@ -51,6 +53,7 @@ public class BookCatalogServiceImpl implements BookCatalogService {
             throw new BookInUseException(bookId, activeLoans);
         }
         bookRepository.softDelete(bookId);
+        DomainEventPublisher.publish(new BookStockChangedEvent(bookId, "DELETED"));
     }
 
     @Override
@@ -62,7 +65,11 @@ public class BookCatalogServiceImpl implements BookCatalogService {
                 eligibleIds.add(id);
             }
         }
-        return bookRepository.softDeleteBatch(eligibleIds);
+        int count = bookRepository.softDeleteBatch(eligibleIds);
+        if (count > 0) {
+            DomainEventPublisher.publish(new BookStockChangedEvent("BATCH", "DELETED"));
+        }
+        return count;
     }
 
     @Override
@@ -74,6 +81,7 @@ public class BookCatalogServiceImpl implements BookCatalogService {
     public void restoreBook(String bookId) {
         if (bookId != null && !bookId.trim().isEmpty()) {
             bookRepository.restoreBook(bookId.trim());
+            DomainEventPublisher.publish(new BookStockChangedEvent(bookId.trim(), "RESTORED"));
         }
     }
 

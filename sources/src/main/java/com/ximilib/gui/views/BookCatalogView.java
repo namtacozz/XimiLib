@@ -18,6 +18,8 @@ import com.ximilib.presentation.component.BookFormModalPanel;
 import com.ximilib.presentation.component.table.*;
 import com.ximilib.presentation.component.table.FilterItems.AvailabilityItem;
 import com.ximilib.presentation.component.table.FilterItems.CategoryItem;
+import com.ximilib.presentation.component.EmptyStatePanel;
+import com.ximilib.presentation.util.Illustrations;
 import com.ximilib.presentation.util.UiModalHelper;
 
 import java.awt.*;
@@ -76,28 +78,24 @@ public class BookCatalogView extends JPanel {
     }
 
     private void initUI() {
-        JPanel mainContent = new JPanel();
-        mainContent.setOpaque(false);
-        mainContent.setLayout(new BoxLayout(mainContent, BoxLayout.Y_AXIS));
+        add(createHeaderSection(), BorderLayout.NORTH);
 
-        mainContent.add(createHeaderSection());
-        mainContent.add(Box.createVerticalStrut(18));
-        mainContent.add(createMainCardPanel());
+        JPanel centerWrap = new JPanel(new BorderLayout());
+        centerWrap.setOpaque(false);
+        centerWrap.setBorder(BorderFactory.createEmptyBorder(18, 0, 0, 0));
+        centerWrap.add(createMainCardPanel(), BorderLayout.CENTER);
 
-        JScrollPane scrollPane = new JScrollPane(mainContent);
-        scrollPane.setBorder(null);
-        scrollPane.setOpaque(false);
-        scrollPane.getViewport().setOpaque(false);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-
-        add(scrollPane, BorderLayout.CENTER);
+        add(centerWrap, BorderLayout.CENTER);
     }
 
     private JPanel createHeaderSection() {
-        JPanel panel = new JPanel();
+        JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JPanel titleBox = new JPanel();
+        titleBox.setOpaque(false);
+        titleBox.setLayout(new BoxLayout(titleBox, BoxLayout.Y_AXIS));
 
         JLabel lblTitle = new JLabel("Kho sách");
         lblTitle.setFont(UITheme.FONT_TITLE_LARGE);
@@ -122,8 +120,19 @@ public class BookCatalogView extends JPanel {
         breadcrumbPanel.add(lblSep);
         breadcrumbPanel.add(lblCurrent);
 
-        panel.add(lblTitle);
-        panel.add(breadcrumbPanel);
+        titleBox.add(lblTitle);
+        titleBox.add(breadcrumbPanel);
+
+        panel.add(titleBox, BorderLayout.WEST);
+
+        if (canManage) {
+            JButton btnAddBook = UITheme.createPillButton("+ Thêm Sách Mới", UITheme.PRIMARY, Color.WHITE);
+            btnAddBook.setFont(UITheme.FONT_BOLD);
+            btnAddBook.setPreferredSize(new Dimension(150, 38));
+            btnAddBook.addActionListener(e -> BookFormModalPanel.show(this, null, this::loadDataAsync));
+            panel.add(btnAddBook, BorderLayout.EAST);
+        }
+
         return panel;
     }
 
@@ -260,6 +269,12 @@ public class BookCatalogView extends JPanel {
         toolbar.add(leftBox, BorderLayout.WEST);
         toolbar.add(rightBox, BorderLayout.EAST);
         return toolbar;
+    }
+
+    public void setSearchKeyword(String keyword) {
+        if (txtSearch != null) {
+            txtSearch.setText(keyword != null ? keyword : "");
+        }
     }
 
     private void triggerDebounceSearch() {
@@ -421,25 +436,22 @@ public class BookCatalogView extends JPanel {
     }
 
     private JPanel createEmptyStatePanel() {
-        JPanel p = new JPanel();
-        p.setOpaque(false);
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setBorder(BorderFactory.createEmptyBorder(60, 20, 60, 20));
+        return new EmptyStatePanel(
+            Illustrations.EMPTY_SEARCH,
+            140,
+            "Không tìm thấy sách phù hợp",
+            "Hãy thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc đang chọn.",
+            "Đặt lại bộ lọc",
+            this::resetFilters
+        );
+    }
 
-        JLabel lblEmptyTitle = new JLabel("Không tìm thấy sách phù hợp");
-        lblEmptyTitle.setFont(UITheme.FONT_TITLE);
-        lblEmptyTitle.setForeground(UITheme.TEXT_MAIN);
-        lblEmptyTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel lblEmptyDesc = new JLabel("Hãy thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc Thể loại / Tình trạng.");
-        lblEmptyDesc.setFont(UITheme.FONT_REGULAR);
-        lblEmptyDesc.setForeground(UITheme.TEXT_MUTED);
-        lblEmptyDesc.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        p.add(lblEmptyTitle);
-        p.add(Box.createVerticalStrut(8));
-        p.add(lblEmptyDesc);
-        return p;
+    private void resetFilters() {
+        if (txtSearch != null) txtSearch.setText("");
+        if (cmbCategory != null && cmbCategory.getItemCount() > 0) cmbCategory.setSelectedIndex(0);
+        if (cmbAvailability != null && cmbAvailability.getItemCount() > 0) cmbAvailability.setSelectedIndex(0);
+        currentPage = 1;
+        loadDataAsync();
     }
 
     private void handleDeleteBook(BookSummaryDto book) {

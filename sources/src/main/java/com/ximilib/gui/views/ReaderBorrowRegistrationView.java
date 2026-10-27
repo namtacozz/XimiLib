@@ -612,10 +612,19 @@ public class ReaderBorrowRegistrationView extends JPanel {
         worker.execute();
     }
 
+    private static final java.util.Map<String, ImageIcon> COVER_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+
     private void loadCoverAsync(JLabel targetLabel, String coverPath) {
         if (coverPath == null || coverPath.trim().isEmpty()) {
             targetLabel.setText("No Image");
             targetLabel.setIcon(null);
+            return;
+        }
+
+        ImageIcon cached = COVER_CACHE.get(coverPath);
+        if (cached != null) {
+            targetLabel.setIcon(cached);
+            targetLabel.setText("");
             return;
         }
 
@@ -630,7 +639,9 @@ public class ReaderBorrowRegistrationView extends JPanel {
                     if (file.exists()) {
                         ImageIcon icon = new ImageIcon(file.getAbsolutePath());
                         Image img = icon.getImage().getScaledInstance(80, 110, Image.SCALE_SMOOTH);
-                        return new ImageIcon(img);
+                        ImageIcon scaled = new ImageIcon(img);
+                        COVER_CACHE.put(coverPath, scaled);
+                        return scaled;
                     }
                 } catch (Exception ignored) {}
                 return null;

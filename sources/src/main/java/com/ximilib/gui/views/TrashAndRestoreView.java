@@ -2,12 +2,19 @@ package com.ximilib.gui.views;
 
 import com.ximilib.application.dto.BookSummaryDto;
 import com.ximilib.application.service.BookCatalogService;
+import com.ximilib.domain.event.BookStockChangedEvent;
+import com.ximilib.domain.event.DomainEventListener;
+import com.ximilib.domain.event.DomainEventPublisher;
 import com.ximilib.gui.util.IconFactory;
 import com.ximilib.gui.util.UITheme;
 import com.ximilib.infrastructure.config.AppContainer;
+import com.ximilib.presentation.component.EmptyStatePanel;
+import com.ximilib.presentation.util.Illustrations;
 import com.ximilib.presentation.util.UiModalHelper;
 
 import javax.swing.*;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.util.ArrayList;
@@ -21,6 +28,8 @@ public class TrashAndRestoreView extends JPanel {
 
     private final BookCatalogService bookCatalogService;
     private final TrashTableModel tableModel = new TrashTableModel();
+    private final CardLayout cardLayout = new CardLayout();
+    private JPanel centerCardPanel;
     private JTable trashTable;
     private JLabel lblStatus;
 
@@ -37,6 +46,25 @@ public class TrashAndRestoreView extends JPanel {
 
         initUI();
         loadTrashDataAsync();
+
+        // Tự động tải lại dữ liệu khi người dùng chuyển tab sang "Thùng rác & Khôi phục"
+        addAncestorListener(new AncestorListener() {
+            @Override
+            public void ancestorAdded(AncestorEvent event) {
+                loadTrashDataAsync();
+            }
+
+            @Override
+            public void ancestorRemoved(AncestorEvent event) {}
+
+            @Override
+            public void ancestorMoved(AncestorEvent event) {}
+        });
+
+        // Lắng nghe sự kiện domain khi có sách bị xóa hoặc khôi phục
+        DomainEventPublisher.subscribe(BookStockChangedEvent.class, event -> {
+            SwingUtilities.invokeLater(this::loadTrashDataAsync);
+        });
     }
 
     private void initUI() {
@@ -111,7 +139,17 @@ public class TrashAndRestoreView extends JPanel {
         scroll.setBorder(null);
         scroll.getViewport().setBackground(UITheme.CARD_BG);
 
-        card.add(scroll, BorderLayout.CENTER);
+        centerCardPanel = new JPanel(cardLayout);
+        centerCardPanel.setOpaque(false);
+        centerCardPanel.add(scroll, "TABLE");
+        centerCardPanel.add(new EmptyStatePanel(
+            Illustrations.EMPTY_TRASH,
+            150,
+            "Thùng rác đang trống",
+            "Không có đầu sách nào bị xóa trong hệ thống."
+        ), "EMPTY");
+
+        card.add(centerCardPanel, BorderLayout.CENTER);
 
         JPanel main = new JPanel(new BorderLayout());
         main.setOpaque(false);
@@ -134,7 +172,13 @@ public class TrashAndRestoreView extends JPanel {
                     List<BookSummaryDto> list = get();
                     SwingUtilities.invokeLater(() -> {
                         tableModel.setBooks(list);
-                        lblStatus.setText("Tổng cộng có " + list.size() + " đầu sách trong thùng rác.");
+                        if (list == null || list.isEmpty()) {
+                            cardLayout.show(centerCardPanel, "EMPTY");
+                            lblStatus.setText("Thùng rác hiện đang trống.");
+                        } else {
+                            cardLayout.show(centerCardPanel, "TABLE");
+                            lblStatus.setText("Tổng cộng có " + list.size() + " đầu sách trong thùng rác.");
+                        }
                     });
                 } catch (Exception ex) {
                     UiModalHelper.showToastError(TrashAndRestoreView.this, "Lỗi tải thùng rác: " + ex.getMessage());

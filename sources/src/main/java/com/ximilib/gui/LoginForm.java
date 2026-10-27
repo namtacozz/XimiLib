@@ -26,18 +26,7 @@ public class LoginForm extends JFrame {
         setResizable(true);
         getContentPane().setBackground(UITheme.BG_LIGHT);
 
-        // Tạo icon cho cửa sổ và thanh Taskbar Windows
-        BufferedImage appIcon = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = appIcon.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(UITheme.PRIMARY);
-        g.fillRoundRect(0, 0, 32, 32, 8, 8);
-        g.setColor(Color.WHITE);
-        g.setStroke(new BasicStroke(2.0f));
-        g.drawRoundRect(7, 8, 8, 16, 2, 2);
-        g.drawRoundRect(17, 8, 8, 16, 2, 2);
-        g.dispose();
-        setIconImage(appIcon);
+        com.ximilib.presentation.util.AppLogo.applyWindowIcons(this);
 
         com.ximilib.presentation.util.UiModalHelper.initMainFrame(this);
 

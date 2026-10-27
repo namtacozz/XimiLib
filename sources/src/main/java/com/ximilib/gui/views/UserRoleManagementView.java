@@ -52,28 +52,16 @@ public class UserRoleManagementView extends JPanel {
     }
 
     private void initUI() {
-        JPanel mainContent = new JPanel();
-        mainContent.setLayout(new BoxLayout(mainContent, BoxLayout.Y_AXIS));
-        mainContent.setOpaque(false);
+        JPanel topContainer = new JPanel();
+        topContainer.setLayout(new BoxLayout(topContainer, BoxLayout.Y_AXIS));
+        topContainer.setOpaque(false);
+        topContainer.add(createHeaderSection());
+        topContainer.add(Box.createVerticalStrut(14));
+        topContainer.add(createKpiSection());
+        topContainer.add(Box.createVerticalStrut(14));
 
-        // 1. Header Section
-        mainContent.add(createHeaderSection());
-        mainContent.add(Box.createVerticalStrut(16));
-
-        // 2. KPI row
-        mainContent.add(createKpiSection());
-        mainContent.add(Box.createVerticalStrut(16));
-
-        // 3. Filter Bar & Table Card
-        mainContent.add(createTableCard());
-
-        JScrollPane scrollPane = new JScrollPane(mainContent);
-        scrollPane.setBorder(null);
-        scrollPane.setOpaque(false);
-        scrollPane.getViewport().setOpaque(false);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-
-        add(scrollPane, BorderLayout.CENTER);
+        add(topContainer, BorderLayout.NORTH);
+        add(createTableCard(), BorderLayout.CENTER);
     }
 
     private JPanel createHeaderSection() {
@@ -220,14 +208,15 @@ public class UserRoleManagementView extends JPanel {
         userTable.getTableHeader().setBackground(UITheme.TINT);
         userTable.getTableHeader().setForeground(UITheme.TEXT_MUTED);
 
-        userTable.getColumnModel().getColumn(0).setPreferredWidth(80);
-        userTable.getColumnModel().getColumn(1).setPreferredWidth(130);
-        userTable.getColumnModel().getColumn(2).setPreferredWidth(180);
-        userTable.getColumnModel().getColumn(3).setPreferredWidth(180);
-        userTable.getColumnModel().getColumn(4).setPreferredWidth(120);
-        userTable.getColumnModel().getColumn(5).setPreferredWidth(140);
-        userTable.getColumnModel().getColumn(6).setPreferredWidth(120);
-        userTable.getColumnModel().getColumn(7).setPreferredWidth(210);
+        userTable.getColumnModel().getColumn(0).setPreferredWidth(70);
+        userTable.getColumnModel().getColumn(1).setPreferredWidth(110);
+        userTable.getColumnModel().getColumn(2).setPreferredWidth(160);
+        userTable.getColumnModel().getColumn(3).setPreferredWidth(160);
+        userTable.getColumnModel().getColumn(4).setPreferredWidth(110);
+        userTable.getColumnModel().getColumn(5).setPreferredWidth(110);
+        userTable.getColumnModel().getColumn(6).setPreferredWidth(100);
+        userTable.getColumnModel().getColumn(7).setPreferredWidth(260);
+        userTable.getColumnModel().getColumn(7).setMinWidth(250);
 
         userTable.getColumnModel().getColumn(5).setCellRenderer(new RoleBadgeRenderer());
         userTable.getColumnModel().getColumn(6).setCellRenderer(new StatusBadgeRenderer());
@@ -535,18 +524,22 @@ public class UserRoleManagementView extends JPanel {
             panel.add(btnReset);
         }
 
+        private void updateButtonStates(UserAccountDto u) {
+            btnStatus.setText(u.isActive() ? "Khóa" : "Mở");
+            if (u.isActive()) {
+                btnStatus.setBackground(UITheme.DANGER_BG);
+                btnStatus.setForeground(UITheme.DANGER_TEXT);
+            } else {
+                btnStatus.setBackground(UITheme.SUCCESS_BG);
+                btnStatus.setForeground(UITheme.SUCCESS_TEXT);
+            }
+        }
+
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
             if (value instanceof UserAccountDto u) {
                 currentUser = u;
-                btnStatus.setText(u.isActive() ? "Khóa" : "Mở");
-                if (u.isActive()) {
-                    btnStatus.setBackground(UITheme.DANGER_BG);
-                    btnStatus.setForeground(UITheme.DANGER_TEXT);
-                } else {
-                    btnStatus.setBackground(UITheme.SUCCESS_BG);
-                    btnStatus.setForeground(UITheme.SUCCESS_TEXT);
-                }
+                updateButtonStates(u);
             }
             return panel;
         }
@@ -555,7 +548,7 @@ public class UserRoleManagementView extends JPanel {
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) {
             if (value instanceof UserAccountDto u) {
                 currentUser = u;
-                btnStatus.setText(u.isActive() ? "Khóa" : "Mở");
+                updateButtonStates(u);
             }
             return panel;
         }

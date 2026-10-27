@@ -117,7 +117,19 @@ public class NotificationPopupPanel extends GlassPaneChild {
         btnClose.addActionListener(e -> UiModalHelper.closePopup());
 
         container.add(topPanel, BorderLayout.NORTH);
-        container.add(scroll, BorderLayout.CENTER);
+        if (list.isEmpty()) {
+            EmptyStatePanel empty = new EmptyStatePanel(
+                com.ximilib.presentation.util.Illustrations.EMPTY_NOTIFICATION,
+                120,
+                "Không có thông báo mới",
+                "Bạn đã xem hết mọi thông báo và cập nhật từ thư viện.",
+                null,
+                null
+            );
+            container.add(empty, BorderLayout.CENTER);
+        } else {
+            container.add(scroll, BorderLayout.CENTER);
+        }
         container.add(btnClose, BorderLayout.SOUTH);
 
         add(container, BorderLayout.CENTER);

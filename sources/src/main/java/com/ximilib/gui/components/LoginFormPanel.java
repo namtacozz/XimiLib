@@ -71,24 +71,8 @@ public class LoginFormPanel extends JPanel {
         logoRow.setOpaque(false);
         logoRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel iconSquare = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(UITheme.PRIMARY);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
-                g2.setColor(Color.WHITE);
-                g2.setStroke(new BasicStroke(1.8f));
-                int cx = getWidth() / 2;
-                int cy = getHeight() / 2;
-                g2.drawRoundRect(cx - 7, cy - 6, 6, 12, 2, 2);
-                g2.drawRoundRect(cx + 1, cy - 6, 6, 12, 2, 2);
-                g2.dispose();
-            }
-        };
+        JLabel iconSquare = new JLabel(com.ximilib.presentation.util.AppLogo.getIcon(28));
         iconSquare.setPreferredSize(new Dimension(28, 28));
-        iconSquare.setOpaque(false);
 
         JLabel lblBrand = new JLabel("XimiLib");
         lblBrand.setFont(new Font("Segoe UI", Font.BOLD, 18));

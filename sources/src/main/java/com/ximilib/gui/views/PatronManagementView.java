@@ -112,6 +112,8 @@ public class PatronManagementView extends JPanel {
         patronTable.getColumnModel().getColumn(5).setPreferredWidth(130);
         patronTable.getColumnModel().getColumn(6).setPreferredWidth(180);
 
+        patronTable.getColumnModel().getColumn(5).setCellRenderer(new StatusBadgeRenderer());
+
         ActionCell cell = new ActionCell();
         patronTable.getColumnModel().getColumn(6).setCellRenderer(cell);
         patronTable.getColumnModel().getColumn(6).setCellEditor(cell);
@@ -151,7 +153,7 @@ public class PatronManagementView extends JPanel {
     }
 
     private void toggleLockCard(PatronDto patron) {
-        boolean isLocked = "KHOA".equalsIgnoreCase(patron.getCardStatus());
+        boolean isLocked = "KHOA".equalsIgnoreCase(patron.getCardStatus()) || "0".equals(patron.getCardStatus());
         String newStatus = isLocked ? "HOAT_DONG" : "KHOA";
         String prompt = isLocked ? ("Mở khóa thẻ " + patron.getCardNumber() + "?") : ("Khóa thẻ " + patron.getCardNumber() + "?");
 
@@ -194,7 +196,13 @@ public class PatronManagementView extends JPanel {
                 case 2 -> p.getEmail();
                 case 3 -> p.getCardNumber() != null ? p.getCardNumber() : "Chưa cấp";
                 case 4 -> p.getExpiryDate() != null ? p.getExpiryDate() : "-";
-                case 5 -> "HOAT_DONG".equalsIgnoreCase(p.getCardStatus()) ? (p.isExpired() ? "Hết hạn" : "Hoạt động") : "Bị khóa";
+                case 5 -> {
+                    if ("CHUA_CAP".equalsIgnoreCase(p.getCardStatus())) yield "Chưa cấp";
+                    if ("HOAT_DONG".equalsIgnoreCase(p.getCardStatus()) || "1".equals(p.getCardStatus())) {
+                        yield p.isExpired() ? "Hết hạn" : "Hoạt động";
+                    }
+                    yield "Bị khóa";
+                }
                 case 6 -> p;
                 default -> null;
             };
@@ -228,7 +236,7 @@ public class PatronManagementView extends JPanel {
         @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
             if (v instanceof PatronDto p) {
                 currentPatron = p;
-                boolean isLocked = "KHOA".equalsIgnoreCase(p.getCardStatus());
+                boolean isLocked = "KHOA".equalsIgnoreCase(p.getCardStatus()) || "0".equals(p.getCardStatus());
                 btnLock.setText(isLocked ? "Mở khóa" : "Khóa");
                 btnLock.setBackground(isLocked ? UITheme.SUCCESS_BG : UITheme.DANGER_BG);
                 btnLock.setForeground(isLocked ? UITheme.SUCCESS_TEXT : UITheme.DANGER_TEXT);
@@ -237,10 +245,34 @@ public class PatronManagementView extends JPanel {
         }
 
         @Override public Component getTableCellEditorComponent(JTable t, Object v, boolean s, int r, int c) {
-            if (v instanceof PatronDto p) currentPatron = p;
+            if (v instanceof PatronDto p) {
+                currentPatron = p;
+                boolean isLocked = "KHOA".equalsIgnoreCase(p.getCardStatus()) || "0".equals(p.getCardStatus());
+                btnLock.setText(isLocked ? "Mở khóa" : "Khóa");
+                btnLock.setBackground(isLocked ? UITheme.SUCCESS_BG : UITheme.DANGER_BG);
+                btnLock.setForeground(isLocked ? UITheme.SUCCESS_TEXT : UITheme.DANGER_TEXT);
+            }
             return panel;
         }
 
         @Override public Object getCellEditorValue() { return currentPatron; }
+    }
+
+    private static class StatusBadgeRenderer extends javax.swing.table.DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+            JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+            lbl.setHorizontalAlignment(SwingConstants.CENTER);
+            String val = (value != null) ? value.toString() : "";
+            if ("Hoạt động".equalsIgnoreCase(val)) {
+                lbl.setForeground(UITheme.SUCCESS_TEXT);
+            } else if ("Hết hạn".equalsIgnoreCase(val)) {
+                lbl.setForeground(UITheme.WARNING_TEXT);
+            } else {
+                lbl.setForeground(UITheme.DANGER_TEXT);
+            }
+            lbl.setFont(UITheme.FONT_BOLD);
+            return lbl;
+        }
     }
 }

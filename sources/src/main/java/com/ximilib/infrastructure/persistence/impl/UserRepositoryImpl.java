@@ -36,7 +36,7 @@ public class UserRepositoryImpl implements UserRepository {
                    t.Mathe, u.Trangthai
             FROM nguoidung u
             LEFT JOIN vaitro v ON u.Mavaitro = v.Mavaitro
-            LEFT JOIN thethuvien t ON u.ID = t.ID AND t.Trangthai = 1
+            LEFT JOIN thethuvien t ON u.ID = t.ID
             WHERE u.Trangthai = 1 AND (LOWER(u.Tendangnhap) = ? OR LOWER(u.Email) = ? OR u.Sdt = ?)
             LIMIT 1;
         """;
@@ -66,7 +66,7 @@ public class UserRepositoryImpl implements UserRepository {
                    t.Mathe, u.Trangthai
             FROM nguoidung u
             LEFT JOIN vaitro v ON u.Mavaitro = v.Mavaitro
-            LEFT JOIN thethuvien t ON u.ID = t.ID AND t.Trangthai = 1
+            LEFT JOIN thethuvien t ON u.ID = t.ID
             WHERE u.ID = ? AND u.Trangthai = 1
             LIMIT 1;
         """;
@@ -255,7 +255,7 @@ public class UserRepositoryImpl implements UserRepository {
             SELECT u.ID, u.Tendangnhap, u.Hoten, u.Email, u.Sdt,
                    t.Mathe, t.Ngaycap, t.Ngayhethan, t.Trangthai
             FROM nguoidung u
-            LEFT JOIN thethuvien t ON u.ID = t.ID AND t.Trangthai = 1
+            LEFT JOIN thethuvien t ON u.ID = t.ID
             WHERE u.Trangthai = 1 AND u.Mavaitro = 'READER'
         """);
         List<Object> params = new ArrayList<>();
@@ -285,7 +285,7 @@ public class UserRepositoryImpl implements UserRepository {
                         rs.getString("Mathe"),
                         issue != null ? issue.toLocalDate() : null,
                         expiry != null ? expiry.toLocalDate() : null,
-                        rs.getString("Trangthai") != null ? rs.getString("Trangthai") : "CHUA_CAP"
+                        rs.getString("Mathe") == null ? "CHUA_CAP" : (rs.getInt("Trangthai") == 1 ? "HOAT_DONG" : "KHOA")
                     ));
                 }
             }
@@ -300,7 +300,7 @@ public class UserRepositoryImpl implements UserRepository {
         String sql = "UPDATE thethuvien SET Trangthai = ? WHERE Mathe = ?";
         try (Connection conn = connectionManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, status);
+            ps.setInt(1, ("HOAT_DONG".equalsIgnoreCase(status) || "1".equals(status)) ? 1 : 0);
             ps.setString(2, cardNumber);
             ps.executeUpdate();
         } catch (SQLException e) {
