@@ -62,6 +62,18 @@ public class CirculationRepositoryImpl implements CirculationRepository {
     @Override
     public Optional<BookCopyInfo> findCopyByBarcode(String barcode) {
         if (barcode == null || barcode.trim().isEmpty()) return Optional.empty();
+        String term = barcode.trim();
+        String normalizedBookId = term;
+        // Chuẩn hóa mã sách nếu người dùng gõ thiếu số 0 (ví dụ: MS1 -> MS0001, MS07 -> MS0007, MS007 -> MS0007)
+        if (term.toUpperCase().matches("^MS\\d{1,3}$")) {
+            int num = Integer.parseInt(term.substring(2));
+            normalizedBookId = String.format("MS%04d", num);
+        } else if (term.toUpperCase().matches("^MS\\d{1,3}-C\\d{2}$")) {
+            String[] parts = term.split("-");
+            int num = Integer.parseInt(parts[0].substring(2));
+            normalizedBookId = String.format("MS%04d-%s", num, parts[1].toUpperCase());
+        }
+
         String sql = """
             SELECT c.Macuonsach, s.Masach, s.Tensach, s.Giabia, c.Trangthaisach,
                    CONCAT(COALESCE(kv.Tenkhuvuc, ''), ' - ', COALESCE(ke.Tenkesach, '')) as Vitri
@@ -69,17 +81,18 @@ public class CirculationRepositoryImpl implements CirculationRepository {
             JOIN sach s ON c.Masach = s.Masach
             LEFT JOIN kesach ke ON c.Makesach = ke.Makesach
             LEFT JOIN khuvuc kv ON ke.Makhuvuc = kv.Makhuvuc
-            WHERE (c.Macuonsach = ? OR c.Isbn = ? OR c.Masach = ? OR s.Isbn = ?) AND s.IsDeleted = FALSE
+            WHERE (c.Macuonsach = ? OR c.Macuonsach = ? OR c.Isbn = ? OR c.Masach = ? OR c.Masach = ? OR s.Isbn = ?) AND s.IsDeleted = FALSE
             ORDER BY CASE WHEN c.Trangthaisach = 'KHA_DUNG' THEN 0 ELSE 1 END, c.Macuonsach ASC
             LIMIT 1;
         """;
         try (Connection conn = connectionManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            String term = barcode.trim();
             ps.setString(1, term);
-            ps.setString(2, term);
+            ps.setString(2, normalizedBookId);
             ps.setString(3, term);
             ps.setString(4, term);
+            ps.setString(5, normalizedBookId);
+            ps.setString(6, term);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(new BookCopyInfo(
