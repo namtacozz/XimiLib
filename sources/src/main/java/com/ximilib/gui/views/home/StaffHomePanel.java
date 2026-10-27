@@ -50,12 +50,14 @@ public class StaffHomePanel extends JPanel {
     private KpiCard cardOverdue;
 
     // Khối Cần xử lý hôm nay
+    private SectionHeader todoHeader;
     private final TodoTableModel todoTableModel = new TodoTableModel();
     private JTable tblTodo;
     private JPanel pnlTodoContainer;
     private CardLayout todoCardLayout;
 
     // Khối Chờ nhận sách
+    private SectionHeader pendingHeader;
     private JPanel pnlPendingContainer;
     private CardLayout pendingCardLayout;
 
@@ -192,13 +194,13 @@ public class StaffHomePanel extends JPanel {
     }
 
     // =========================================================================
-    // 3. KHỐI TRUNG TÂM (Cần xử lý 2/3 + Thao tác nhanh & Chờ nhận 1/3)
+    // 3. KHỐI TRUNG TÂM (Cần xử lý 62% + Chờ nhận & Thao tác nhanh 38%)
     // =========================================================================
 
     private JPanel createMiddleSection() {
         JPanel section = new JPanel(new GridBagLayout());
         section.setOpaque(false);
-        section.setPreferredSize(new Dimension(800, 380));
+        section.setPreferredSize(new Dimension(800, 375));
         section.setMinimumSize(new Dimension(650, 340));
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -206,14 +208,14 @@ public class StaffHomePanel extends JPanel {
         gbc.weighty = 1.0;
         gbc.insets = new Insets(0, 0, 0, 16);
 
-        // Nửa trái 2/3
+        // Nửa trái 62%
         gbc.gridx = 0;
-        gbc.weightx = 0.65;
+        gbc.weightx = 0.62;
         section.add(createTodoCard(), gbc);
 
-        // Nửa phải 1/3
+        // Nửa phải 38%
         gbc.gridx = 1;
-        gbc.weightx = 0.35;
+        gbc.weightx = 0.38;
         gbc.insets = new Insets(0, 0, 0, 0);
         section.add(createRightControlPanel(), gbc);
 
@@ -223,13 +225,13 @@ public class StaffHomePanel extends JPanel {
     private JPanel createTodoCard() {
         JPanel card = createWhiteCard();
         card.setLayout(new BorderLayout(0, 10));
-        card.setBorder(new EmptyBorder(16, 18, 16, 18));
+        card.setBorder(new EmptyBorder(14, 18, 14, 18));
 
-        SectionHeader header = new SectionHeader(
+        todoHeader = new SectionHeader(
             "Cần xử lý hôm nay", null, "Xem tất cả >",
             () -> navigate("Xử lý trả & bồi hoàn")
         );
-        card.add(header, BorderLayout.NORTH);
+        card.add(todoHeader, BorderLayout.NORTH);
 
         todoCardLayout = new CardLayout();
         pnlTodoContainer = new JPanel(todoCardLayout);
@@ -239,19 +241,21 @@ public class StaffHomePanel extends JPanel {
         pnlTodoContainer.add(createStatePlaceholder("Đang tải danh sách cần xử lý…", null), "LOADING");
 
         // Trạng thái Rỗng
-        pnlTodoContainer.add(new EmptyStatePanel(
+        EmptyStatePanel emptyTodo = new EmptyStatePanel(
             Illustrations.ACTION_SUCCESS,
-            90,
+            80,
             "Hoàn tất xử lý hôm nay",
             "Không còn phiếu mượn hoặc sách quá hạn cần thủ thư xử lý."
-        ), "EMPTY");
+        );
+        emptyTodo.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        pnlTodoContainer.add(emptyTodo, "EMPTY");
 
         // Trạng thái Lỗi
         pnlTodoContainer.add(createStatePlaceholder("Không tải được danh sách.", this::loadTodoLoansAsync), "ERROR");
 
         // Trạng thái Bảng dữ liệu thật
         tblTodo = new JTable(todoTableModel);
-        tblTodo.setRowHeight(46);
+        tblTodo.setRowHeight(44);
         tblTodo.setFont(UITheme.FONT_REGULAR);
         tblTodo.setShowHorizontalLines(false);
         tblTodo.setShowVerticalLines(false);
@@ -263,7 +267,7 @@ public class StaffHomePanel extends JPanel {
         tblTodo.getTableHeader().setBackground(UITheme.TINT);
         tblTodo.getTableHeader().setForeground(UITheme.TEXT_MAIN);
         tblTodo.getTableHeader().setFont(UITheme.FONT_BOLD);
-        tblTodo.getTableHeader().setPreferredSize(new Dimension(0, 36));
+        tblTodo.getTableHeader().setPreferredSize(new Dimension(0, 34));
 
         // Render các cột với tỷ lệ co giãn linh hoạt
         tblTodo.getColumnModel().getColumn(0).setPreferredWidth(125);
@@ -302,35 +306,19 @@ public class StaffHomePanel extends JPanel {
         rightCol.setLayout(new BoxLayout(rightCol, BoxLayout.Y_AXIS));
         rightCol.setOpaque(false);
 
-        // Khối 1: Thao tác nhanh (4 nút)
-        JPanel pnlQuickActions = createWhiteCard();
-        pnlQuickActions.setLayout(new BoxLayout(pnlQuickActions, BoxLayout.Y_AXIS));
-        pnlQuickActions.setBorder(new EmptyBorder(14, 16, 14, 16));
-
-        JLabel lblQuickTitle = new JLabel("Thao tác nhanh");
-        lblQuickTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblQuickTitle.setForeground(UITheme.TEXT_MAIN);
-        lblQuickTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JPanel gridButtons = new JPanel(new GridLayout(2, 2, 8, 8));
-        gridButtons.setOpaque(false);
-        gridButtons.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        gridButtons.add(createQuickActionButton("Lập phiếu mượn", UITheme.PRIMARY, Color.WHITE, () -> navigate("Bàn lưu hành (Desk)")));
-        gridButtons.add(createQuickActionButton("Trả sách & Phạt", UITheme.TINT, UITheme.ON_TINT, () -> navigate("Xử lý trả & bồi hoàn")));
-        gridButtons.add(createQuickActionButton("Thêm độc giả", UITheme.TINT_LIGHT, UITheme.TEXT_MAIN, () -> navigate("Hồ sơ độc giả & Thẻ")));
-        gridButtons.add(createQuickActionButton("Quản lý kho", UITheme.TINT_LIGHT, UITheme.TEXT_MAIN, () -> navigate("Kho sách")));
-
-        pnlQuickActions.add(lblQuickTitle);
-        pnlQuickActions.add(Box.createVerticalStrut(10));
-        pnlQuickActions.add(gridButtons);
-
-        // Khối 2: Chờ nhận sách (Phiếu CHO_DUYET)
+        // Khối 1 (Top): Chờ nhận sách (Online) - Đồng hàng và cân đối với "Cần xử lý hôm nay"
         JPanel pnlPending = createWhiteCard();
         pnlPending.setLayout(new BorderLayout(0, 8));
         pnlPending.setBorder(new EmptyBorder(14, 16, 14, 16));
+        pnlPending.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlPending.setPreferredSize(new Dimension(300, 205));
+        pnlPending.setMinimumSize(new Dimension(240, 180));
+        pnlPending.setMaximumSize(new Dimension(Integer.MAX_VALUE, 215));
 
-        SectionHeader pendingHeader = new SectionHeader("Chờ nhận sách (Online)", null, null, null);
+        pendingHeader = new SectionHeader(
+            "Chờ nhận sách (Online)", null, "Xem tất cả >",
+            () -> navigate("Bàn lưu hành (Desk)")
+        );
         pnlPending.add(pendingHeader, BorderLayout.NORTH);
 
         pendingCardLayout = new CardLayout();
@@ -338,25 +326,53 @@ public class StaffHomePanel extends JPanel {
         pnlPendingContainer.setOpaque(false);
 
         pnlPendingContainer.add(createStatePlaceholder("Đang tải…", null), "LOADING");
-        pnlPendingContainer.add(new EmptyStatePanel(
+        EmptyStatePanel emptyPending = new EmptyStatePanel(
             Illustrations.STAFF_HOME,
-            75,
+            55,
             "Không có phiếu chờ nhận",
             "Hiện không có bạn đọc nào đặt trước đang chờ lấy sách."
-        ), "EMPTY");
+        );
+        emptyPending.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+        pnlPendingContainer.add(emptyPending, "EMPTY");
         pnlPendingContainer.add(createStatePlaceholder("Lỗi tải phiếu chờ.", this::loadPendingPickupsAsync), "ERROR");
 
         pnlPending.add(pnlPendingContainer, BorderLayout.CENTER);
 
-        rightCol.add(pnlQuickActions);
-        rightCol.add(Box.createVerticalStrut(12));
+        // Khối 2 (Bottom): Thao tác nhanh (4 nút)
+        JPanel pnlQuickActions = createWhiteCard();
+        pnlQuickActions.setLayout(new BorderLayout(0, 10));
+        pnlQuickActions.setBorder(new EmptyBorder(14, 16, 14, 16));
+        pnlQuickActions.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlQuickActions.setPreferredSize(new Dimension(300, 150));
+        pnlQuickActions.setMinimumSize(new Dimension(240, 130));
+        pnlQuickActions.setMaximumSize(new Dimension(Integer.MAX_VALUE, 160));
+
+        JLabel lblQuickTitle = new JLabel("Thao tác nhanh");
+        lblQuickTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblQuickTitle.setForeground(UITheme.TEXT_MAIN);
+        pnlQuickActions.add(lblQuickTitle, BorderLayout.NORTH);
+
+        JPanel gridButtons = new JPanel(new GridLayout(2, 2, 8, 8));
+        gridButtons.setOpaque(false);
+
+        gridButtons.add(createQuickActionButton("Lập phiếu mượn", UITheme.PRIMARY, Color.WHITE, () -> navigate("Bàn lưu hành (Desk)")));
+        gridButtons.add(createQuickActionButton("Trả sách & Phạt", UITheme.TINT, UITheme.ON_TINT, () -> navigate("Xử lý trả & bồi hoàn")));
+        gridButtons.add(createQuickActionButton("Thêm độc giả", UITheme.TINT_LIGHT, UITheme.TEXT_MAIN, () -> navigate("Hồ sơ độc giả & Thẻ")));
+        gridButtons.add(createQuickActionButton("Quản lý kho", UITheme.TINT_LIGHT, UITheme.TEXT_MAIN, () -> navigate("Kho sách")));
+
+        pnlQuickActions.add(gridButtons, BorderLayout.CENTER);
+
         rightCol.add(pnlPending);
+        rightCol.add(Box.createVerticalStrut(12));
+        rightCol.add(pnlQuickActions);
+
         return rightCol;
     }
 
     private JButton createQuickActionButton(String text, Color bg, Color fg, Runnable action) {
         JButton btn = UITheme.createPillButton(text, bg, fg);
-        btn.setFont(UITheme.FONT_SMALL);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setPreferredSize(new Dimension(0, 36));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.addActionListener(e -> {
             if (action != null) action.run();
@@ -454,8 +470,10 @@ public class StaffHomePanel extends JPanel {
                     List<StaffDashboardDto.TodoLoanItem> list = get();
                     SwingUtilities.invokeLater(() -> {
                         if (list == null || list.isEmpty()) {
+                            if (todoHeader != null) todoHeader.setBadge(null);
                             todoCardLayout.show(pnlTodoContainer, "EMPTY");
                         } else {
+                            if (todoHeader != null) todoHeader.setBadge(String.valueOf(list.size()));
                             todoTableModel.setItems(list);
                             todoCardLayout.show(pnlTodoContainer, "CONTENT");
                         }
@@ -482,8 +500,10 @@ public class StaffHomePanel extends JPanel {
                     List<StaffDashboardDto.PendingPickupItem> list = get();
                     SwingUtilities.invokeLater(() -> {
                         if (list == null || list.isEmpty()) {
+                            if (pendingHeader != null) pendingHeader.setBadge(null);
                             pendingCardLayout.show(pnlPendingContainer, "EMPTY");
                         } else {
+                            if (pendingHeader != null) pendingHeader.setBadge(String.valueOf(list.size()));
                             JPanel contentPanel = new JPanel();
                             contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
                             contentPanel.setOpaque(false);
@@ -619,9 +639,10 @@ public class StaffHomePanel extends JPanel {
     // =========================================================================
 
     private JPanel createWhiteCard() {
-        return new JPanel() {
+        JPanel card = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(UITheme.CARD_BG);
@@ -630,9 +651,10 @@ public class StaffHomePanel extends JPanel {
                 g2.setStroke(new BasicStroke(1.0f));
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
                 g2.dispose();
-                super.paintComponent(g);
             }
         };
+        card.setOpaque(false);
+        return card;
     }
 
     private JPanel createStatePlaceholder(String message, Runnable onRetry) {

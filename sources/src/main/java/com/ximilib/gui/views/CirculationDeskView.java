@@ -932,15 +932,15 @@ public class CirculationDeskView extends JPanel {
             return;
         }
 
-        if (cartBarcodes.contains(barcode)) {
-            UiModalHelper.showToastWarning(this, "Cuốn sách có mã '" + barcode + "' đã có trong danh sách mượn!");
-            txtBarcode.setText("");
-            return;
-        }
-
         BookCopyInfo copy = circulationService.getCopyInfo(barcode);
         if (copy == null) {
             UiModalHelper.showToastError(this, "Không tìm thấy cuốn sách với mã vạch: " + barcode);
+            return;
+        }
+
+        if (cartBarcodes.contains(copy.copyId())) {
+            UiModalHelper.showToastWarning(this, "Cuốn sách '" + copy.copyId() + "' (" + copy.bookTitle() + ") đã có trong danh sách mượn!");
+            txtBarcode.setText("");
             return;
         }
 
@@ -949,7 +949,7 @@ public class CirculationDeskView extends JPanel {
             return;
         }
 
-        cartBarcodes.add(barcode);
+        cartBarcodes.add(copy.copyId());
         int stt = cartBarcodes.size();
         cartTableModel.addRow(new Object[]{
             stt,

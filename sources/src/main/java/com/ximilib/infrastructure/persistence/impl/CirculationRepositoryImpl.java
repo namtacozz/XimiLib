@@ -69,13 +69,17 @@ public class CirculationRepositoryImpl implements CirculationRepository {
             JOIN sach s ON c.Masach = s.Masach
             LEFT JOIN kesach ke ON c.Makesach = ke.Makesach
             LEFT JOIN khuvuc kv ON ke.Makhuvuc = kv.Makhuvuc
-            WHERE (c.Macuonsach = ? OR c.Isbn = ?) AND c.IsDeleted = FALSE
+            WHERE (c.Macuonsach = ? OR c.Isbn = ? OR c.Masach = ? OR s.Isbn = ?) AND s.IsDeleted = FALSE
+            ORDER BY CASE WHEN c.Trangthaisach = 'KHA_DUNG' THEN 0 ELSE 1 END, c.Macuonsach ASC
             LIMIT 1;
         """;
         try (Connection conn = connectionManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, barcode.trim());
-            ps.setString(2, barcode.trim());
+            String term = barcode.trim();
+            ps.setString(1, term);
+            ps.setString(2, term);
+            ps.setString(3, term);
+            ps.setString(4, term);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(new BookCopyInfo(
@@ -104,7 +108,7 @@ public class CirculationRepositoryImpl implements CirculationRepository {
             JOIN sach s ON c.Masach = s.Masach
             LEFT JOIN kesach ke ON c.Makesach = ke.Makesach
             LEFT JOIN khuvuc kv ON ke.Makhuvuc = kv.Makhuvuc
-            WHERE c.Masach = ? AND c.Trangthaisach = 'KHA_DUNG' AND c.IsDeleted = FALSE
+            WHERE c.Masach = ? AND c.Trangthaisach = 'KHA_DUNG' AND s.IsDeleted = FALSE
             ORDER BY c.Macuonsach ASC;
         """;
         try (Connection conn = connectionManager.getConnection();
