@@ -34,7 +34,7 @@ public class UiModalHelper {
      * Goi 1 lan duy nhat khi khoi dong cua so (MainDashboard / LoginForm).
      */
     public static void initMainFrame(JFrame frame) {
-        if (frame != null && !GlassPanePopup.isInit()) {
+        if (frame != null && (!GlassPanePopup.isInit() || GlassPanePopup.getMainFrame() != frame)) {
             GlassPanePopup.install(frame);
             // Chan snapshot animation tranh loi NullPointerException: VolatileImage.createGraphics()
             GlassPanePopup.setDefaultOption(new DefaultOption() {
@@ -92,7 +92,7 @@ public class UiModalHelper {
                         if (onConfirm != null) {
                             onConfirm.run();
                         }
-                    } else {
+                    } else if (action == SimpleModalBorder.NO_OPTION || action == SimpleModalBorder.CANCEL_OPTION || action == SimpleModalBorder.CLOSE_OPTION) {
                         controller.close();
                     }
                 }
@@ -149,6 +149,10 @@ public class UiModalHelper {
 
     public static void showQuickPopup(Component content) {
         runOnEdt(() -> {
+            com.ximilib.gui.MainDashboardFrame mainFrame = com.ximilib.gui.MainDashboardFrame.getInstance();
+            if (mainFrame != null && (!GlassPanePopup.isInit() || GlassPanePopup.getMainFrame() != mainFrame)) {
+                initMainFrame(mainFrame);
+            }
             DefaultOption safeOption = new DefaultOption() {
                 @Override
                 public boolean useSnapshot() {
@@ -172,6 +176,10 @@ public class UiModalHelper {
 
     public static void showQuickPopup(Component content, String title) {
         runOnEdt(() -> {
+            com.ximilib.gui.MainDashboardFrame mainFrame = com.ximilib.gui.MainDashboardFrame.getInstance();
+            if (mainFrame != null && (!GlassPanePopup.isInit() || GlassPanePopup.getMainFrame() != mainFrame)) {
+                initMainFrame(mainFrame);
+            }
             SimplePopupBorder border = new SimplePopupBorder(content, title);
             DefaultOption safeOption = new DefaultOption() {
                 @Override

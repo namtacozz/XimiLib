@@ -14,27 +14,34 @@ import javax.swing.*;
 
 /**
  * BrandPanel: Panel nhận diện thương hiệu bên trái của màn hình Đăng Nhập.
- * - Nền gradient xanh lục ngọc bích LibRack, tối dần ở đáy.
+ * - Nền gradient hồng pastel LibRack, tối dần ở đáy.
  * - Họa tiết nghệ thuật vector sách & thư viện bằng Java2D.
  * - Hỗ trợ nạp ảnh 'login-hero' nếu có.
  * - Carousel 3 slide tự động chuyển mỗi 5 giây, có 3 chấm chỉ báo tương tác được.
+ * - Chuyển cảnh 60 FPS siêu mượt (Slide & Fade + Morphing Dots) với đường cong Cubic Ease-Out.
  * - Tự động dừng Timer khi đóng cửa sổ.
  */
 public class BrandPanel extends JPanel {
 
     public record SlideItem(String title, String description) {}
 
+    private static final int ANIM_DURATION_MS = 380; // Thời lượng chuyển cảnh chuẩn UI/UX
+    private static final int TIMER_FPS_DELAY = 16;  // ~60 FPS mượt mà
+
     private final List<SlideItem> slides = new ArrayList<>();
     private int currentSlideIndex = 0;
-    private float slideAlpha = 1.0f;
+    private int targetSlideIndex = 0;
+    private boolean isTransitioning = false;
+    private long animStartTime = 0;
+    private float animProgress = 0f;
+    private int animDirection = 1; // +1: trượt từ phải sang trái, -1: trượt từ trái sang phải
+
     private javax.swing.Timer carouselTimer;
-    private javax.swing.Timer fadeTimer;
+    private javax.swing.Timer animTimer;
     private BufferedImage heroImage = null;
 
-    private final JLabel lblSlideTitle;
-    private final JLabel lblSlideDesc;
-    private final JPanel dotsPanel;
-    private final List<JPanel> dotIndicators = new ArrayList<>();
+    private final SlideContentPanel slideContentPanel;
+    private final DotsIndicatorPanel dotsIndicatorPanel;
 
     public BrandPanel() {
         setOpaque(false);
@@ -44,65 +51,34 @@ public class BrandPanel extends JPanel {
         initSlides();
         loadHeroImageIfPresent();
 
-        // 1. Phần tiêu đề và mô tả ở đáy
+        // Cụm tiêu đề, mô tả và chấm chỉ báo ở đáy
         JPanel bottomContainer = new JPanel();
         bottomContainer.setOpaque(false);
         bottomContainer.setLayout(new BoxLayout(bottomContainer, BoxLayout.Y_AXIS));
 
-        lblSlideTitle = new JLabel(slides.get(0).title());
-        lblSlideTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        lblSlideTitle.setForeground(Color.WHITE);
-        lblSlideTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        slideContentPanel = new SlideContentPanel();
+        dotsIndicatorPanel = new DotsIndicatorPanel();
 
-        lblSlideDesc = new JLabel("<html>" + slides.get(0).description() + "</html>");
-        lblSlideDesc.setFont(UITheme.FONT_REGULAR);
-        lblSlideDesc.setForeground(UITheme.TINT); // Hồng pastel nhạt tương phản cao trên nền tối
-        lblSlideDesc.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        // 2. Cụm 3 chấm chỉ báo trang (Carousel dots)
-        dotsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        dotsPanel.setOpaque(false);
-        dotsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        for (int i = 0; i < slides.size(); i++) {
-            final int index = i;
-            JPanel dot = new JPanel() {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    boolean isActive = (index == currentSlideIndex);
-                    if (isActive) {
-                        g2.setColor(Color.WHITE);
-                        g2.fillRoundRect(0, 0, getWidth(), getHeight(), getHeight(), getHeight());
-                    } else {
-                        g2.setColor(new Color(255, 255, 255, 120));
-                        g2.fillOval(0, 0, getHeight(), getHeight());
-                    }
-                    g2.dispose();
-                }
-            };
-            dot.setOpaque(false);
-            dot.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            dot.setPreferredSize(new Dimension(index == 0 ? 24 : 8, 8));
-            dot.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    goToSlide(index);
-                    restartCarouselTimer();
-                }
-            });
-            dotIndicators.add(dot);
-            dotsPanel.add(dot);
-        }
-
-        bottomContainer.add(lblSlideTitle);
-        bottomContainer.add(Box.createVerticalStrut(10));
-        bottomContainer.add(lblSlideDesc);
-        bottomContainer.add(Box.createVerticalStrut(20));
-        bottomContainer.add(dotsPanel);
+        bottomContainer.add(slideContentPanel);
+        bottomContainer.add(Box.createVerticalStrut(18));
+        bottomContainer.add(dotsIndicatorPanel);
 
         add(bottomContainer, BorderLayout.SOUTH);
+
+        // Tạm dừng chuyển cảnh tự động khi người dùng di chuột vào để đọc nội dung
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (carouselTimer != null && carouselTimer.isRunning()) {
+                    carouselTimer.stop();
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                restartCarouselTimer();
+            }
+        });
 
         initTimers();
     }
@@ -153,7 +129,7 @@ public class BrandPanel extends JPanel {
         // Timer tự chuyển slide mỗi 5000ms
         carouselTimer = new javax.swing.Timer(5000, e -> {
             int nextIndex = (currentSlideIndex + 1) % slides.size();
-            startFadeTransition(nextIndex);
+            startSlideTransition(nextIndex, 1);
         });
         carouselTimer.start();
     }
@@ -164,76 +140,57 @@ public class BrandPanel extends JPanel {
         }
     }
 
-    private void goToSlide(int targetIndex) {
-        if (targetIndex != currentSlideIndex) {
-            startFadeTransition(targetIndex);
+    public void goToSlide(int targetIndex) {
+        if (targetIndex >= 0 && targetIndex < slides.size()) {
+            int dir = (targetIndex >= currentSlideIndex) ? 1 : -1;
+            startSlideTransition(targetIndex, dir);
         }
     }
 
-    private void startFadeTransition(int targetIndex) {
-        if (fadeTimer != null && fadeTimer.isRunning()) {
-            fadeTimer.stop();
+    private void startSlideTransition(int targetIndex, int direction) {
+        if (targetIndex == currentSlideIndex && !isTransitioning) {
+            return;
         }
 
-        // Hiệu ứng mờ dần nhẹ
-        fadeTimer = new javax.swing.Timer(25, null);
-        fadeTimer.addActionListener(e -> {
-            slideAlpha -= 0.15f;
-            if (slideAlpha <= 0.05f) {
-                slideAlpha = 0.05f;
-                currentSlideIndex = targetIndex;
-                lblSlideTitle.setText(slides.get(currentSlideIndex).title());
-                lblSlideDesc.setText("<html>" + slides.get(currentSlideIndex).description() + "</html>");
-                updateDotSizes();
+        if (isTransitioning) {
+            currentSlideIndex = targetSlideIndex;
+        }
 
-                // Đảo chiều fade in
-                fadeTimer.stop();
-                javax.swing.Timer fadeInTimer = new javax.swing.Timer(25, null);
-                fadeInTimer.addActionListener(inEvt -> {
-                    slideAlpha += 0.15f;
-                    if (slideAlpha >= 1.0f) {
-                        slideAlpha = 1.0f;
-                        fadeInTimer.stop();
-                    }
-                    lblSlideTitle.setForeground(new Color(1f, 1f, 1f, slideAlpha));
-                    lblSlideDesc.setForeground(new Color(
-                        UITheme.TINT.getRed() / 255f,
-                        UITheme.TINT.getGreen() / 255f,
-                        UITheme.TINT.getBlue() / 255f,
-                        slideAlpha
-                    ));
-                    repaint();
-                });
-                fadeInTimer.start();
+        targetSlideIndex = targetIndex;
+        animDirection = direction;
+        animStartTime = System.currentTimeMillis();
+        animProgress = 0.0f;
+        isTransitioning = true;
+
+        if (animTimer != null && animTimer.isRunning()) {
+            animTimer.stop();
+        }
+
+        // Chạy animation 60 FPS
+        animTimer = new javax.swing.Timer(TIMER_FPS_DELAY, e -> {
+            long elapsed = System.currentTimeMillis() - animStartTime;
+            animProgress = Math.min(1.0f, (float) elapsed / ANIM_DURATION_MS);
+
+            slideContentPanel.repaint();
+            dotsIndicatorPanel.repaint();
+
+            if (animProgress >= 1.0f) {
+                currentSlideIndex = targetSlideIndex;
+                isTransitioning = false;
+                animTimer.stop();
+                slideContentPanel.repaint();
+                dotsIndicatorPanel.repaint();
             }
-            lblSlideTitle.setForeground(new Color(1f, 1f, 1f, Math.max(0.05f, slideAlpha)));
-            lblSlideDesc.setForeground(new Color(
-                UITheme.TINT.getRed() / 255f,
-                UITheme.TINT.getGreen() / 255f,
-                UITheme.TINT.getBlue() / 255f,
-                Math.max(0.05f, slideAlpha)
-            ));
-            repaint();
         });
-        fadeTimer.start();
-    }
-
-    private void updateDotSizes() {
-        for (int i = 0; i < dotIndicators.size(); i++) {
-            JPanel dot = dotIndicators.get(i);
-            boolean isActive = (i == currentSlideIndex);
-            dot.setPreferredSize(new Dimension(isActive ? 24 : 8, 8));
-            dot.revalidate();
-            dot.repaint();
-        }
+        animTimer.start();
     }
 
     public void stopTimer() {
         if (carouselTimer != null && carouselTimer.isRunning()) {
             carouselTimer.stop();
         }
-        if (fadeTimer != null && fadeTimer.isRunning()) {
-            fadeTimer.stop();
+        if (animTimer != null && animTimer.isRunning()) {
+            animTimer.stop();
         }
     }
 
@@ -241,6 +198,189 @@ public class BrandPanel extends JPanel {
     public void removeNotify() {
         stopTimer();
         super.removeNotify();
+    }
+
+    /**
+     * Component hiển thị tiêu đề và mô tả với hiệu ứng Slide & Fade mượt mà 60 FPS
+     */
+    private class SlideContentPanel extends JPanel {
+        public SlideContentPanel() {
+            setOpaque(false);
+            setPreferredSize(new Dimension(340, 92));
+            setMinimumSize(new Dimension(240, 92));
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, 92));
+            setAlignmentX(Component.LEFT_ALIGNMENT);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+
+            int w = getWidth();
+            if (!isTransitioning) {
+                drawSlide(g2, slides.get(currentSlideIndex), 1.0f, 0, w);
+            } else {
+                // Đường cong Cubic Ease-Out: f(t) = 1 - (1 - t)^3
+                float ease = 1.0f - (float) Math.pow(1.0f - animProgress, 3);
+
+                // Slide cũ trượt sang bên và mờ dần
+                float exitAlpha = Math.max(0.0f, 1.0f - ease);
+                float exitOffset = -animDirection * (ease * 32.0f);
+                drawSlide(g2, slides.get(currentSlideIndex), exitAlpha, exitOffset, w);
+
+                // Slide mới trượt vào vị trí và sáng dần
+                float enterAlpha = Math.min(1.0f, ease);
+                float enterOffset = animDirection * ((1.0f - ease) * 32.0f);
+                drawSlide(g2, slides.get(targetSlideIndex), enterAlpha, enterOffset, w);
+            }
+            g2.dispose();
+        }
+
+        private void drawSlide(Graphics2D g2, SlideItem slide, float alpha, float offsetX, int maxWidth) {
+            if (alpha <= 0.01f) return;
+
+            Graphics2D gSlide = (Graphics2D) g2.create();
+            gSlide.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+            gSlide.translate(offsetX, 0);
+
+            // Tiêu đề lớn
+            Font titleFont = new Font("Segoe UI", Font.BOLD, 22);
+            gSlide.setFont(titleFont);
+            gSlide.setColor(Color.WHITE);
+            FontMetrics fmTitle = gSlide.getFontMetrics();
+            int titleY = fmTitle.getAscent();
+            gSlide.drawString(slide.title(), 0, titleY);
+
+            // Đoạn mô tả với màu tint tương phản cao
+            Font descFont = UITheme.FONT_REGULAR != null ? UITheme.FONT_REGULAR : new Font("Segoe UI", Font.PLAIN, 14);
+            gSlide.setFont(descFont);
+            gSlide.setColor(UITheme.TINT != null ? UITheme.TINT : new Color(254, 205, 211));
+            FontMetrics fmDesc = gSlide.getFontMetrics();
+
+            List<String> lines = wrapText(slide.description(), fmDesc, maxWidth > 50 ? maxWidth : 320);
+            int descY = titleY + 12 + fmDesc.getAscent();
+            for (String line : lines) {
+                gSlide.drawString(line, 0, descY);
+                descY += fmDesc.getHeight() + 2;
+            }
+
+            gSlide.dispose();
+        }
+
+        private List<String> wrapText(String text, FontMetrics fm, int maxWidth) {
+            List<String> lines = new ArrayList<>();
+            String[] words = text.split(" ");
+            StringBuilder sb = new StringBuilder();
+            for (String w : words) {
+                String test = (sb.length() == 0) ? w : sb + " " + w;
+                if (fm.stringWidth(test) <= maxWidth) {
+                    sb = new StringBuilder(test);
+                } else {
+                    if (sb.length() > 0) lines.add(sb.toString());
+                    sb = new StringBuilder(w);
+                }
+            }
+            if (sb.length() > 0) lines.add(sb.toString());
+            return lines;
+        }
+    }
+
+    /**
+     * Component hiển thị các chấm chỉ báo (Dots) với hiệu ứng Morphing co giãn mượt mà
+     */
+    private class DotsIndicatorPanel extends JPanel {
+        public DotsIndicatorPanel() {
+            setOpaque(false);
+            setPreferredSize(new Dimension(140, 16));
+            setMinimumSize(new Dimension(100, 16));
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, 16));
+            setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    int clicked = getDotIndexAt(e.getX());
+                    if (clicked >= 0 && clicked != currentSlideIndex) {
+                        int dir = (clicked > currentSlideIndex) ? 1 : -1;
+                        startSlideTransition(clicked, dir);
+                        restartCarouselTimer();
+                    }
+                }
+            });
+
+            addMouseMotionListener(new MouseAdapter() {
+                @Override
+                public void mouseMoved(MouseEvent e) {
+                    int hovered = getDotIndexAt(e.getX());
+                    setCursor(hovered >= 0 ? new Cursor(Cursor.HAND_CURSOR) : new Cursor(Cursor.DEFAULT_CURSOR));
+                }
+            });
+        }
+
+        private float getDotWidth(int index, float ease) {
+            if (!isTransitioning) {
+                return (index == currentSlideIndex) ? 24.0f : 8.0f;
+            }
+            if (index == currentSlideIndex) {
+                // Đang thu nhỏ: 24 -> 8
+                return 24.0f - 16.0f * ease;
+            } else if (index == targetSlideIndex) {
+                // Đang mở rộng: 8 -> 24
+                return 8.0f + 16.0f * ease;
+            } else {
+                return 8.0f;
+            }
+        }
+
+        private int getDotAlpha(int index, float ease) {
+            if (!isTransitioning) {
+                return (index == currentSlideIndex) ? 255 : 120;
+            }
+            if (index == currentSlideIndex) {
+                return Math.max(120, (int) (255 - 135 * ease));
+            } else if (index == targetSlideIndex) {
+                return Math.min(255, (int) (120 + 135 * ease));
+            } else {
+                return 120;
+            }
+        }
+
+        private int getDotIndexAt(int mouseX) {
+            float ease = isTransitioning ? (1.0f - (float) Math.pow(1.0f - animProgress, 3)) : 0f;
+            float currentX = 0f;
+            for (int i = 0; i < slides.size(); i++) {
+                float w = getDotWidth(i, ease);
+                if (mouseX >= currentX - 2 && mouseX <= currentX + w + 2) {
+                    return i;
+                }
+                currentX += w + 8f;
+            }
+            return -1;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            float ease = isTransitioning ? (1.0f - (float) Math.pow(1.0f - animProgress, 3)) : 0f;
+            float currentX = 0f;
+
+            for (int i = 0; i < slides.size(); i++) {
+                float dotW = getDotWidth(i, ease);
+                int alpha = getDotAlpha(i, ease);
+
+                g2.setColor(new Color(255, 255, 255, alpha));
+                g2.fillRoundRect((int) Math.round(currentX), 4, (int) Math.round(dotW), 8, 8, 8);
+
+                currentX += dotW + 8f;
+            }
+            g2.dispose();
+        }
     }
 
     @Override

@@ -131,12 +131,12 @@ public class MainDashboardFrame extends JFrame {
     private void initUI() {
         setLayout(new BorderLayout());
 
-        // 1. THANH ĐIỀU HƯỚNG BÊN TRÁI
+        // 1. CỘT ĐIỀU HƯỚNG BÊN TRÁI (Header logo + Menu)
         sidebarPanel = new SidebarPanel(currentUser.getRole());
-        add(sidebarPanel, BorderLayout.WEST);
 
-        // 2. THANH TOP BAR
-        add(createTopBar(), BorderLayout.NORTH);
+        // 2. PHẦN BÊN PHẢI: Gồm TopBar ở trên và Nội dung chính ở dưới
+        JPanel rightPanel = new JPanel(new BorderLayout());
+        rightPanel.add(createTopBar(), BorderLayout.NORTH);
 
         // 3. NỘI DUNG CHÍNH (CardLayout)
         cardLayout = new CardLayout();
@@ -195,7 +195,9 @@ public class MainDashboardFrame extends JFrame {
         centerContainer.add(new FeedbackManagementView(AppContainer.getInstance().getConnectionManager(),
             currentUser.isReader()), "GOP_Y");
 
-        add(centerContainer, BorderLayout.CENTER);
+        rightPanel.add(centerContainer, BorderLayout.CENTER);
+        add(sidebarPanel, BorderLayout.WEST);
+        add(rightPanel, BorderLayout.CENTER);
 
         // Đăng ký bộ điều hướng từ Sidebar
         sidebarPanel.setNavigationListener(this::navigateTo);
@@ -288,10 +290,10 @@ public class MainDashboardFrame extends JFrame {
         topBar.setPreferredSize(new Dimension(1100, 68));
         topBar.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 0, 1, 0, UITheme.BORDER),
-            BorderFactory.createEmptyBorder(12, 28, 12, 28)
+            BorderFactory.createEmptyBorder(12, 40, 12, 28)
         ));
 
-        // Bên trái: Avatar + Lời chào (Nhấp để mở Thông Tin Tài Khoản)
+        // Bên trái: Avatar + Lời chào
         JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         userPanel.setOpaque(false);
         userPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -405,7 +407,7 @@ public class MainDashboardFrame extends JFrame {
         bellPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
         bellPanel.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mousePressed(MouseEvent e) {
                 UiModalHelper.showQuickPopup(new NotificationPopupPanel());
             }
         });
@@ -414,7 +416,7 @@ public class MainDashboardFrame extends JFrame {
         if (!isReader) {
             actionsPanel.add(btnAddBook);
         } else {
-            JButton btnDigitalCard = UITheme.createPillButton("💳 Thẻ Số", UITheme.TINT, UITheme.ON_TINT);
+            JButton btnDigitalCard = UITheme.createPillButton("Thẻ Số", UITheme.TINT, UITheme.ON_TINT);
             btnDigitalCard.setFont(UITheme.FONT_SMALL);
             btnDigitalCard.addActionListener(e -> {
                 DigitalCardDialog.show(this, currentUser.getId(), currentUser.getFullName());

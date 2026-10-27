@@ -39,6 +39,9 @@ public class LoginFormPanel extends JPanel {
     private JButton btnLogin;
     private JPanel errorPanel;
     private JLabel lblErrorMessage;
+    private JLabel lblForgot;
+    private JLabel lblRegisterNow;
+    private JLabel lblGuest;
 
     public LoginFormPanel(Window parentWindow) {
         this(parentWindow, AppContainer.getInstance().getAuthenticationService());
@@ -139,6 +142,7 @@ public class LoginFormPanel extends JPanel {
         txtIdentifier.putClientProperty(FlatClientProperties.STYLE, "arc: 12;");
         txtIdentifier.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON,
             IconFactory.createUsersIcon(UITheme.TEXT_MUTED, 16));
+        txtIdentifier.putClientProperty(FlatClientProperties.SELECT_ALL_ON_FOCUS_POLICY, "never");
 
         // 4. Nhãn & Ô nhập: Mật khẩu (Có nút Hiện/Ẩn mắt)
         JLabel lblPassTag = new JLabel("Mật khẩu");
@@ -153,6 +157,7 @@ public class LoginFormPanel extends JPanel {
         txtPassword.setAlignmentX(Component.LEFT_ALIGNMENT);
         txtPassword.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Nhập mật khẩu");
         txtPassword.putClientProperty(FlatClientProperties.STYLE, "showRevealButton: true; arc: 12;");
+        txtPassword.putClientProperty(FlatClientProperties.SELECT_ALL_ON_FOCUS_POLICY, "never");
 
         // 5. Hàng tùy chọn: Ghi nhớ đăng nhập (trái) & Quên mật khẩu (phải)
         JPanel optionRow = new JPanel(new BorderLayout());
@@ -167,13 +172,14 @@ public class LoginFormPanel extends JPanel {
         chkRemember.setFocusPainted(false);
         chkRemember.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        JLabel lblForgot = new JLabel("Quên mật khẩu?");
+        lblForgot = new JLabel("Quên mật khẩu?");
         lblForgot.setFont(UITheme.FONT_SMALL);
         lblForgot.setForeground(UITheme.PRIMARY);
         lblForgot.setCursor(new Cursor(Cursor.HAND_CURSOR));
         lblForgot.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                if (!lblForgot.isEnabled()) return;
                 UiModalHelper.showToastInfo(parentWindow, "Vui lòng liên hệ Thủ thư hoặc Quản trị viên thư viện để được cấp lại mật khẩu truy cập.");
             }
         });
@@ -239,13 +245,14 @@ public class LoginFormPanel extends JPanel {
         lblNoAcc.setFont(UITheme.FONT_SMALL);
         lblNoAcc.setForeground(UITheme.TEXT_MUTED);
 
-        JLabel lblRegisterNow = new JLabel("Đăng ký ngay");
+        lblRegisterNow = new JLabel("Đăng ký ngay");
         lblRegisterNow.setFont(UITheme.FONT_BOLD);
         lblRegisterNow.setForeground(UITheme.PRIMARY);
         lblRegisterNow.setCursor(new Cursor(Cursor.HAND_CURSOR));
         lblRegisterNow.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                if (!lblRegisterNow.isEnabled()) return;
                 new RegisterForm().setVisible(true);
                 if (parentWindow != null) {
                     parentWindow.dispose();
@@ -296,13 +303,14 @@ public class LoginFormPanel extends JPanel {
         guestRow.setAlignmentX(Component.LEFT_ALIGNMENT);
         guestRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
 
-        JLabel lblGuest = new JLabel("Hoặc tra cứu sách không cần đăng nhập");
+        lblGuest = new JLabel("Hoặc tra cứu sách không cần đăng nhập");
         lblGuest.setFont(UITheme.FONT_SMALL);
         lblGuest.setForeground(UITheme.PRIMARY);
         lblGuest.setCursor(new Cursor(Cursor.HAND_CURSOR));
         lblGuest.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                if (!lblGuest.isEnabled()) return;
                 User guest = new User("GUEST", "guest", "", "Khách Viếng Thăm", "", "", "Khách");
                 MainDashboardFrame dashboard = new MainDashboardFrame(guest);
                 dashboard.setVisible(true);
@@ -387,17 +395,36 @@ public class LoginFormPanel extends JPanel {
         if (!savedUser.isEmpty()) {
             txtIdentifier.setText(savedUser);
             chkRemember.setSelected(true);
-            SwingUtilities.invokeLater(() -> txtPassword.requestFocusInWindow());
+            SwingUtilities.invokeLater(() -> {
+                txtIdentifier.select(0, 0);
+                txtPassword.requestFocusInWindow();
+            });
         } else {
             // Mặc định nạp tài khoản kien.phan để pair programming thuận tiện
             txtIdentifier.setText("kien.phan");
             txtPassword.setText("123456");
-            SwingUtilities.invokeLater(() -> txtIdentifier.requestFocusInWindow());
+            SwingUtilities.invokeLater(() -> {
+                txtIdentifier.select(0, 0);
+                txtIdentifier.setCaretPosition(txtIdentifier.getText().length());
+            });
         }
+    }
+
+    private void setFormInteractive(boolean enabled) {
+        txtIdentifier.setEnabled(enabled);
+        txtPassword.setEnabled(enabled);
+        chkRemember.setEnabled(enabled);
+        btnLogin.setEnabled(enabled);
+        if (lblForgot != null) lblForgot.setEnabled(enabled);
+        if (lblRegisterNow != null) lblRegisterNow.setEnabled(enabled);
+        if (lblGuest != null) lblGuest.setEnabled(enabled);
     }
 
     private void executeLogin() {
         hideInlineError();
+        txtIdentifier.select(0, 0);
+        txtPassword.select(0, 0);
+
         String identifier = txtIdentifier.getText().trim();
         char[] passChars = txtPassword.getPassword();
         String password = new String(passChars).trim();
@@ -407,9 +434,12 @@ public class LoginFormPanel extends JPanel {
             return;
         }
 
-        // Khóa nút và hiển thị trạng thái "Đang đăng nhập..."
-        btnLogin.setEnabled(false);
+        // Khóa toàn bộ form: không thể click hay gõ vào ô tài khoản, mật khẩu, hay các nút
+        setFormInteractive(false);
         btnLogin.setText("Đang đăng nhập...");
+
+        // Chuyển focus khỏi các ô nhập văn bản để không hiện con trỏ nhấp nháy
+        requestFocusInWindow();
 
         // Xử lý xác thực ngoài EDT (R-06)
         SwingWorker<LoginResult, Void> worker = new SwingWorker<>() {
@@ -429,7 +459,7 @@ public class LoginFormPanel extends JPanel {
                     SwingUtilities.invokeLater(() -> handleLoginResult(result, identifier));
                 } catch (Exception ex) {
                     SwingUtilities.invokeLater(() -> {
-                        btnLogin.setEnabled(true);
+                        setFormInteractive(true);
                         btnLogin.setText("ĐĂNG NHẬP");
                         showInlineError("Lỗi kết nối máy chủ xác thực: " + ex.getMessage());
                     });
@@ -440,7 +470,7 @@ public class LoginFormPanel extends JPanel {
     }
 
     private void handleLoginResult(LoginResult result, String identifier) {
-        btnLogin.setEnabled(true);
+        setFormInteractive(true);
         btnLogin.setText("ĐĂNG NHẬP");
 
         if (result.isSuccess()) {

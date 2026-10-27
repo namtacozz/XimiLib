@@ -48,7 +48,7 @@ public class BookFormModalPanel extends JPanel {
                         UiModalHelper.showToastSuccess(parent, "Đã lưu thông tin đầu sách thành công!");
                         if (onSaveSuccess != null) onSaveSuccess.run();
                     }
-                } else {
+                } else if (action == SimpleModalBorder.CANCEL_OPTION || action == SimpleModalBorder.CLOSE_OPTION) {
                     controller.close();
                 }
             }

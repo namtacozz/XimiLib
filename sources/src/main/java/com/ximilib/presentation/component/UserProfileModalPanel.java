@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import raven.popup.component.GlassPaneChild;
 
 /**
@@ -66,9 +67,9 @@ public class UserProfileModalPanel extends GlassPaneChild {
         container.setOpaque(false);
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
         container.setBorder(BorderFactory.createEmptyBorder(16, 22, 16, 22));
-        container.setPreferredSize(new Dimension(380, 560));
+        container.setPreferredSize(new Dimension(450, 520));
 
-        // 0. Top Bar của Popup: Tiêu đề + Nút Đóng '✕'
+        // 0. Top Bar của Popup: Tiêu đề + Nút Đóng vector 'X'
         JPanel topHeader = new JPanel(new BorderLayout());
         topHeader.setOpaque(false);
         topHeader.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
@@ -77,14 +78,7 @@ public class UserProfileModalPanel extends GlassPaneChild {
         lblHeaderTitle.setFont(UITheme.FONT_BOLD);
         lblHeaderTitle.setForeground(UITheme.TEXT_MAIN);
 
-        JButton btnCloseX = new JButton("✕");
-        btnCloseX.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnCloseX.setForeground(UITheme.TEXT_MUTED);
-        btnCloseX.setContentAreaFilled(false);
-        btnCloseX.setBorderPainted(false);
-        btnCloseX.setFocusPainted(false);
-        btnCloseX.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnCloseX.addActionListener(e -> UiModalHelper.closePopup());
+        JButton btnCloseX = createCloseVectorButton();
 
         topHeader.add(lblHeaderTitle, BorderLayout.WEST);
         topHeader.add(btnCloseX, BorderLayout.EAST);
@@ -143,7 +137,7 @@ public class UserProfileModalPanel extends GlassPaneChild {
         boolean isReader = (currentUser != null && currentUser.isReader());
         JButton btnViewCard = null;
         if (isReader) {
-            btnViewCard = UITheme.createPillButton("💳 Xem Thẻ Điện Tử & Mã QR", UITheme.PRIMARY, Color.WHITE);
+            btnViewCard = UITheme.createPillButton("Xem Thẻ Điện Tử & Mã QR", UITheme.PRIMARY, Color.WHITE);
             btnViewCard.setFont(UITheme.FONT_SMALL);
             btnViewCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
             btnViewCard.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -154,36 +148,87 @@ public class UserProfileModalPanel extends GlassPaneChild {
             });
         }
 
-        // 3. Form Đổi Mật Khẩu
-        JPanel passCard = new JPanel();
+        // 3. Form Đổi Mật Khẩu (Các nhãn và ô nhập nằm trên cùng 1 hàng, tiêu đề căn giữa)
+        JPanel passCard = new JPanel(new GridBagLayout());
         passCard.setOpaque(false);
-        passCard.setLayout(new BoxLayout(passCard, BoxLayout.Y_AXIS));
-        passCard.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(UITheme.BORDER, 1),
-            "Đổi Mật Khẩu Tài Khoản",
-            0, 0, UITheme.FONT_BOLD, UITheme.TEXT_MAIN
+        passCard.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(UITheme.BORDER, 1),
+                " Đổi Mật Khẩu Tài Khoản ",
+                TitledBorder.CENTER,
+                TitledBorder.TOP,
+                UITheme.FONT_BOLD,
+                UITheme.TEXT_MAIN
+            ),
+            BorderFactory.createEmptyBorder(12, 16, 12, 16)
         ));
 
         txtCurrentPass = createPasswordField();
         txtNewPass = createPasswordField();
         txtConfirmPass = createPasswordField();
 
-        passCard.add(createFieldLabel("Mật khẩu hiện tại:"));
-        passCard.add(txtCurrentPass);
-        passCard.add(Box.createVerticalStrut(4));
-        passCard.add(createFieldLabel("Mật khẩu mới (tối thiểu 6 ký tự):"));
-        passCard.add(txtNewPass);
-        passCard.add(Box.createVerticalStrut(4));
-        passCard.add(createFieldLabel("Xác nhận mật khẩu mới:"));
-        passCard.add(txtConfirmPass);
-        passCard.add(Box.createVerticalStrut(8));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 4, 5, 4);
 
+        // Hàng 1: Mật khẩu hiện tại
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        JLabel lblCurr = new JLabel("Mật khẩu hiện tại:");
+        lblCurr.setFont(UITheme.FONT_SMALL);
+        lblCurr.setForeground(UITheme.TEXT_MUTED);
+        lblCurr.setPreferredSize(new Dimension(135, 30));
+        passCard.add(lblCurr, gbc);
+
+        gbc.gridx = 1; gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        passCard.add(txtCurrentPass, gbc);
+
+        // Hàng 2: Mật khẩu mới
+        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        JLabel lblNew = new JLabel("Mật khẩu mới:");
+        lblNew.setFont(UITheme.FONT_SMALL);
+        lblNew.setForeground(UITheme.TEXT_MUTED);
+        lblNew.setPreferredSize(new Dimension(135, 30));
+        passCard.add(lblNew, gbc);
+
+        gbc.gridx = 1; gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        txtNewPass.setToolTipText("Mật khẩu mới có tối thiểu 6 ký tự");
+        passCard.add(txtNewPass, gbc);
+
+        // Hàng 3: Xác nhận mật khẩu mới
+        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        JLabel lblConfirm = new JLabel("Xác nhận mật khẩu:");
+        lblConfirm.setFont(UITheme.FONT_SMALL);
+        lblConfirm.setForeground(UITheme.TEXT_MUTED);
+        lblConfirm.setPreferredSize(new Dimension(135, 30));
+        passCard.add(lblConfirm, gbc);
+
+        gbc.gridx = 1; gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        passCard.add(txtConfirmPass, gbc);
+
+        // Hàng 4: Nút Cập nhật mật khẩu (bo viền ôm sát chữ, căn giữa)
+        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(12, 4, 4, 4);
         JButton btnChangePass = UITheme.createPillButton("Cập Nhật Mật Khẩu", UITheme.TINT, UITheme.ON_TINT);
         btnChangePass.setFont(UITheme.FONT_SMALL);
-        btnChangePass.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        btnChangePass.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnChangePass.setBorder(BorderFactory.createEmptyBorder(6, 22, 6, 22));
+        btnChangePass.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnChangePass.addActionListener(e -> handleChangePassword());
-        passCard.add(btnChangePass);
+        passCard.add(btnChangePass, gbc);
 
         // 4. Hàng nút Thao tác dưới cùng: Đăng xuất & Đóng
         JPanel bottomRow = new JPanel(new GridLayout(1, 2, 10, 0));
@@ -217,19 +262,67 @@ public class UserProfileModalPanel extends GlassPaneChild {
         add(container, BorderLayout.CENTER);
     }
 
-    private JLabel createFieldLabel(String text) {
-        JLabel lbl = new JLabel(text);
-        lbl.setFont(UITheme.FONT_SMALL);
-        lbl.setForeground(UITheme.TEXT_MUTED);
-        lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
-        return lbl;
+    private JButton createCloseVectorButton() {
+        JButton btn = new JButton() {
+            private boolean isHover = false;
+            {
+                addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        isHover = true;
+                        repaint();
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        isHover = false;
+                        repaint();
+                    }
+                });
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+
+                int w = getWidth();
+                int h = getHeight();
+
+                if (isHover) {
+                    g2.setColor(new Color(0, 0, 0, 18));
+                    g2.fillOval(1, 1, w - 2, h - 2);
+                }
+
+                g2.setColor(isHover ? UITheme.TEXT_MAIN : UITheme.TEXT_MUTED);
+                g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+
+                int pad = 7;
+                g2.drawLine(pad, pad, w - pad, h - pad);
+                g2.drawLine(w - pad, pad, pad, h - pad);
+
+                g2.dispose();
+            }
+        };
+        btn.setPreferredSize(new Dimension(26, 26));
+        btn.setMaximumSize(new Dimension(26, 26));
+        btn.setMinimumSize(new Dimension(26, 26));
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setToolTipText("Đóng");
+        btn.addActionListener(e -> UiModalHelper.closePopup());
+        return btn;
     }
 
     private JPasswordField createPasswordField() {
         JPasswordField pf = new JPasswordField();
         pf.setFont(UITheme.FONT_REGULAR);
         pf.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
-        pf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        pf.setPreferredSize(new Dimension(180, 32));
+        pf.setMinimumSize(new Dimension(100, 32));
         return pf;
     }
 

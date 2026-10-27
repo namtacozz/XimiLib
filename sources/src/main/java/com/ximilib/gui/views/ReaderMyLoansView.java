@@ -177,7 +177,7 @@ public class ReaderMyLoansView extends JPanel {
                     } catch (Exception ex) {
                         UiModalHelper.showToastWarning(this, ex.getMessage());
                     }
-                } else {
+                } else if (action == raven.modal.component.SimpleModalBorder.CANCEL_OPTION || action == raven.modal.component.SimpleModalBorder.CLOSE_OPTION) {
                     controller.close();
                 }
             }
@@ -237,18 +237,20 @@ public class ReaderMyLoansView extends JPanel {
                         resultPanel,
                         raven.modal.component.SimpleModalBorder.OK_OPTION,
                         (controller, action) -> {
-                            controller.close();
-                            // Mở tiếp mã VietQR để độc giả thanh toán trực tuyến
-                            VietQrModalPanel.show(
-                                this,
-                                res.getFineTicketId(),
-                                res.getTotalAmount(),
-                                () -> {
-                                    circulationService.payFine(res.getFineTicketId(), "VIETQR");
-                                    UiModalHelper.showToastSuccess(this, "Thanh toán bồi hoàn thành công qua VietQR! Phiếu mượn đã được hoàn tất.");
-                                    loadDataAsync();
-                                }
-                            );
+                            if (action == raven.modal.component.SimpleModalBorder.OK_OPTION) {
+                                controller.close();
+                                // Mở tiếp mã VietQR để độc giả thanh toán trực tuyến
+                                VietQrModalPanel.show(
+                                    this,
+                                    res.getFineTicketId(),
+                                    res.getTotalAmount(),
+                                    () -> {
+                                        circulationService.payFine(res.getFineTicketId(), "VIETQR");
+                                        UiModalHelper.showToastSuccess(this, "Thanh toán bồi hoàn thành công qua VietQR! Phiếu mượn đã được hoàn tất.");
+                                        loadDataAsync();
+                                    }
+                                );
+                            }
                         }
                     );
                     loadDataAsync();

@@ -21,6 +21,15 @@
         <junit.version>5.10.2</junit.version>
     </properties>
 
+    <repositories>
+        <!-- In-project repository for offline/embedded libraries -->
+        <repository>
+            <id>in-project-repository</id>
+            <name>In-Project Repository</name>
+            <url>file://${project.basedir}/libs</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <!-- FlatLaf - Modern Look and Feel for Java Swing -->
         <dependency>

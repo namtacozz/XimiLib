@@ -250,13 +250,13 @@ public class BookRepositoryImpl implements BookRepository {
                    COALESCE(GROUP_CONCAT(tg.Tentacgia SEPARATOR ', '), 'Nhiều tác giả') as Tentacgia,
                    s.Hinhanh, s.Matheloai,
                    COUNT(c.Macuonsach) as TongSoCuon,
-                   SUM(CASE WHEN c.Trangthai = 'KHA_DUNG' AND c.IsDeleted = FALSE THEN 1 ELSE 0 END) as SoCuonKhaDung
+                   SUM(CASE WHEN c.Trangthaisach = 'KHA_DUNG' THEN 1 ELSE 0 END) as SoCuonKhaDung
             FROM sach s
             LEFT JOIN theloai t ON s.Matheloai = t.Matheloai
             LEFT JOIN nhaxuatban nxb ON s.Manxb = nxb.manxb
             LEFT JOIN sach_tacgia st ON s.Masach = st.Masach
             LEFT JOIN tacgia tg ON st.Matacgia = tg.Matacgia
-            LEFT JOIN cuonsach c ON s.Masach = c.Masach AND c.IsDeleted = FALSE
+            LEFT JOIN cuonsach c ON s.Masach = c.Masach
             WHERE s.IsDeleted = TRUE
             GROUP BY s.Masach, s.Tensach, s.Hinhanh, s.Matheloai
             ORDER BY s.Tensach ASC

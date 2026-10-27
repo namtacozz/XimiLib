@@ -339,7 +339,7 @@ public class UserRoleManagementView extends JPanel {
                     } catch (Exception ex) {
                         UiModalHelper.showToastError(this, ex.getMessage());
                     }
-                } else {
+                } else if (action == SimpleModalBorder.CANCEL_OPTION || action == SimpleModalBorder.CLOSE_OPTION) {
                     controller.close();
                 }
             }
@@ -376,7 +376,7 @@ public class UserRoleManagementView extends JPanel {
                     } catch (Exception ex) {
                         UiModalHelper.showToastError(this, ex.getMessage());
                     }
-                } else {
+                } else if (action == SimpleModalBorder.CANCEL_OPTION || action == SimpleModalBorder.CLOSE_OPTION) {
                     controller.close();
                 }
             }
@@ -429,7 +429,7 @@ public class UserRoleManagementView extends JPanel {
                     } catch (Exception ex) {
                         UiModalHelper.showToastError(this, ex.getMessage());
                     }
-                } else {
+                } else if (action == SimpleModalBorder.CANCEL_OPTION || action == SimpleModalBorder.CLOSE_OPTION) {
                     controller.close();
                 }
             }

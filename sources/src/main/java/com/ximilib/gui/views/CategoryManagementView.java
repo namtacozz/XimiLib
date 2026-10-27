@@ -170,7 +170,7 @@ public class CategoryManagementView extends JPanel {
                         loadCategoriesAsync();
                         UiModalHelper.showToastSuccess(this, "Đã thêm thể loại: " + name);
                     }
-                } else {
+                } else if (action == raven.modal.component.SimpleModalBorder.CANCEL_OPTION || action == raven.modal.component.SimpleModalBorder.CLOSE_OPTION) {
                     controller.close();
                 }
             }
@@ -202,7 +202,7 @@ public class CategoryManagementView extends JPanel {
                         loadCategoriesAsync();
                         UiModalHelper.showToastSuccess(this, "Đã cập nhật thể loại.");
                     }
-                } else {
+                } else if (action == raven.modal.component.SimpleModalBorder.CANCEL_OPTION || action == raven.modal.component.SimpleModalBorder.CLOSE_OPTION) {
                     controller.close();
                 }
             }

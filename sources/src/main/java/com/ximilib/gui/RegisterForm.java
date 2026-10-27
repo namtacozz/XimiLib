@@ -1,5 +1,6 @@
 package com.ximilib.gui;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import com.ximilib.application.dto.RegisterRequestDto;
 import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.gui.util.UITheme;
@@ -44,7 +45,7 @@ public class RegisterForm extends JFrame {
 
         setTitle("XimiLib - Đăng Ký Tài Khoản Bạn Đọc Thư Viện");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(520, 780);
+        setSize(650, 700);
         setLocationRelativeTo(null);
         setResizable(false);
         getContentPane().setBackground(UITheme.BG_LIGHT);
@@ -56,7 +57,7 @@ public class RegisterForm extends JFrame {
     private void initUI() {
         JPanel root = new JPanel(new GridBagLayout());
         root.setBackground(UITheme.BG_LIGHT);
-        root.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        root.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
         JPanel card = new JPanel() {
             @Override
@@ -74,8 +75,8 @@ public class RegisterForm extends JFrame {
         };
         card.setOpaque(false);
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createEmptyBorder(20, 26, 18, 26));
-        card.setPreferredSize(new Dimension(460, 720));
+        card.setBorder(BorderFactory.createEmptyBorder(18, 28, 16, 28));
+        card.setPreferredSize(new Dimension(600, 630));
 
         JLabel lblHeading = new JLabel("Đăng Ký Tài Khoản");
         lblHeading.setFont(UITheme.FONT_TITLE_LARGE);
@@ -87,27 +88,22 @@ public class RegisterForm extends JFrame {
         lblSub.setForeground(UITheme.TEXT_MUTED);
         lblSub.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        txtFullName = createTextField();
+        txtFullName = createTextField("Nhập họ và tên đầy đủ");
         txtBirthDate = new JFormattedTextField();
         txtBirthDate.setFont(UITheme.FONT_REGULAR);
-        txtBirthDate.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-        txtBirthDate.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
+        txtBirthDate.setPreferredSize(new Dimension(360, 36));
+        txtBirthDate.putClientProperty(FlatClientProperties.STYLE, "arc: 10;");
         birthDatePicker = UiModalHelper.createDatePicker(txtBirthDate, false);
         birthDatePicker.setSelectedDate(LocalDate.of(2004, 1, 1));
 
-        txtCccd = createTextField();
-        txtAddress = createTextField();
-        txtEmail = createTextField();
-        txtPhone = createTextField();
-        txtUsername = createTextField();
+        txtCccd = createTextField("9 đến 12 chữ số");
+        txtAddress = createTextField("Địa chỉ cư trú hiện tại");
+        txtEmail = createTextField("example@domain.com");
+        txtPhone = createTextField("Số điện thoại liên hệ");
+        txtUsername = createTextField("Tên đăng nhập viết liền");
 
-        txtPassword = new JPasswordField();
-        txtPassword.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
-        txtPassword.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-
-        txtConfirmPassword = new JPasswordField();
-        txtConfirmPassword.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
-        txtConfirmPassword.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        txtPassword = createPasswordField("Mật khẩu tối thiểu 8 ký tự");
+        txtConfirmPassword = createPasswordField("Nhập lại mật khẩu");
 
         lblError = new JLabel(" ");
         lblError.setFont(UITheme.FONT_SMALL);
@@ -115,7 +111,9 @@ public class RegisterForm extends JFrame {
         lblError.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         btnRegister = UITheme.createPillButton("TẠO TÀI KHOẢN", UITheme.PRIMARY, Color.WHITE);
-        btnRegister.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
+        btnRegister.setFont(UITheme.FONT_BOLD);
+        btnRegister.setPreferredSize(new Dimension(360, 42));
+        btnRegister.setMaximumSize(new Dimension(400, 42));
         btnRegister.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnRegister.addActionListener(e -> handleRegister());
 
@@ -142,20 +140,27 @@ public class RegisterForm extends JFrame {
         card.add(lblHeading);
         card.add(Box.createVerticalStrut(2));
         card.add(lblSub);
-        card.add(Box.createVerticalStrut(10));
+        card.add(Box.createVerticalStrut(14));
 
-        addFormField(card, "Họ và tên:", txtFullName);
-        addFormField(card, "Ngày sinh (dd/MM/yyyy):", txtBirthDate);
-        addFormField(card, "Số CCCD/CMND (9-12 số):", txtCccd);
-        addFormField(card, "Địa chỉ liên lạc:", txtAddress);
-        addFormField(card, "Email:", txtEmail);
-        addFormField(card, "Số điện thoại:", txtPhone);
-        addFormField(card, "Tên đăng nhập:", txtUsername);
-        addFormField(card, "Mật khẩu (≥8 ký tự, có số, chữ hoa & ký tự đặc biệt):", txtPassword);
-        addFormField(card, "Nhập lại mật khẩu:", txtConfirmPassword);
+        // Form Fields dạng bảng 2 cột: Label bên trái, ô nhập bên phải
+        JPanel formGrid = new JPanel(new GridBagLayout());
+        formGrid.setOpaque(false);
+        formGrid.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        card.add(lblError);
+        addFormFieldRow(formGrid, 0, "Họ và tên:", txtFullName);
+        addFormFieldRow(formGrid, 1, "Ngày sinh:", txtBirthDate);
+        addFormFieldRow(formGrid, 2, "Số CCCD/CMND:", txtCccd);
+        addFormFieldRow(formGrid, 3, "Địa chỉ liên lạc:", txtAddress);
+        addFormFieldRow(formGrid, 4, "Email:", txtEmail);
+        addFormFieldRow(formGrid, 5, "Số điện thoại:", txtPhone);
+        addFormFieldRow(formGrid, 6, "Tên đăng nhập:", txtUsername);
+        addFormFieldRow(formGrid, 7, "Mật khẩu:", txtPassword);
+        addFormFieldRow(formGrid, 8, "Xác nhận mật khẩu:", txtConfirmPassword);
+
+        card.add(formGrid);
         card.add(Box.createVerticalStrut(6));
+        card.add(lblError);
+        card.add(Box.createVerticalStrut(4));
         card.add(btnRegister);
         card.add(Box.createVerticalStrut(8));
         card.add(loginLinkRow);
@@ -164,22 +169,49 @@ public class RegisterForm extends JFrame {
         add(root);
     }
 
-    private void addFormField(JPanel card, String label, JComponent field) {
-        JLabel lbl = new JLabel(label);
+    private void addFormFieldRow(JPanel container, int row, String labelText, JComponent field) {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(3, 6, 3, 6);
+
+        // Cột 0: Label
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+
+        JLabel lbl = new JLabel(labelText);
         lbl.setFont(UITheme.FONT_SMALL);
         lbl.setForeground(UITheme.TEXT_MAIN);
-        lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.add(lbl);
-        card.add(field);
-        card.add(Box.createVerticalStrut(4));
+        lbl.setPreferredSize(new Dimension(135, 34));
+        lbl.setHorizontalAlignment(SwingConstants.RIGHT);
+        container.add(lbl, gbc);
+
+        // Cột 1: Ô nhập (cùng 1 hàng với chữ)
+        gbc.gridx = 1;
+        gbc.gridy = row;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        container.add(field, gbc);
     }
 
-    private JTextField createTextField() {
+    private JTextField createTextField(String placeholder) {
         JTextField tf = new JTextField();
         tf.setFont(UITheme.FONT_REGULAR);
-        tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-        tf.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
+        tf.setPreferredSize(new Dimension(360, 34));
+        tf.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, placeholder);
+        tf.putClientProperty(FlatClientProperties.STYLE, "arc: 10;");
         return tf;
+    }
+
+    private JPasswordField createPasswordField(String placeholder) {
+        JPasswordField pf = new JPasswordField();
+        pf.setFont(UITheme.FONT_REGULAR);
+        pf.setPreferredSize(new Dimension(360, 34));
+        pf.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, placeholder);
+        pf.putClientProperty(FlatClientProperties.STYLE, "showRevealButton: true; arc: 10;");
+        return pf;
     }
 
     private void handleRegister() {
