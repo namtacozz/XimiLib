@@ -301,22 +301,40 @@ public class CirculationRepositoryImpl implements CirculationRepository {
 
     @Override
     public Optional<BorrowDetailInfo> findActiveLoanByCopy(String copyBarcode) {
+        if (copyBarcode == null || copyBarcode.trim().isEmpty()) return Optional.empty();
+        String term = copyBarcode.trim();
+        String normalizedId = term;
+        if (term.toUpperCase().matches("^MS\\d{1,3}$")) {
+            int num = Integer.parseInt(term.substring(2));
+            normalizedId = String.format("MS%04d", num);
+        } else if (term.toUpperCase().matches("^MS\\d{1,3}-C\\d{2}$")) {
+            String[] parts = term.split("-");
+            int num = Integer.parseInt(parts[0].substring(2));
+            normalizedId = String.format("MS%04d-%s", num, parts[1].toUpperCase());
+        }
+
         String sql = """
-            SELECT ct.Machitiet, p.Maphieumuon, ct.Macuonsach, s.Tensach, p.ID, p.Hantranhan, s.Giabia
+            SELECT ct.Machitiet, p.Maphieumuon, ct.Macuonsach, s.Tensach, p.ID,
+                   COALESCE(p.Hantranhan, p.Ngaytra) as DueDateVal, s.Giabia
             FROM chitietphieumuon ct
             JOIN phieumuon p ON ct.Maphieumuon = p.Maphieumuon
             JOIN cuonsach c ON ct.Macuonsach = c.Macuonsach
             JOIN sach s ON c.Masach = s.Masach
-            WHERE (ct.Macuonsach = ? OR c.Isbn = ?) AND ct.Ngaytra IS NULL AND p.Trangthai IN (1, 3, 4)
+            WHERE (ct.Macuonsach = ? OR ct.Macuonsach = ? OR c.Isbn = ? OR c.Masach = ? OR c.Masach = ? OR s.Isbn = ?)
+              AND ct.Ngaytra IS NULL AND p.Trangthai IN (1, 3, 4)
             LIMIT 1
         """;
         try (Connection conn = connectionManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, copyBarcode.trim());
-            ps.setString(2, copyBarcode.trim());
+            ps.setString(1, term);
+            ps.setString(2, normalizedId);
+            ps.setString(3, term);
+            ps.setString(4, term);
+            ps.setString(5, normalizedId);
+            ps.setString(6, term);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    Timestamp dueTs = rs.getTimestamp("Hantranhan");
+                    Timestamp dueTs = rs.getTimestamp("DueDateVal");
                     LocalDateTime dueDate = dueTs != null ? dueTs.toLocalDateTime() : null;
                     return Optional.of(new BorrowDetailInfo(
                         rs.getString("Machitiet"),

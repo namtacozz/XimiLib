@@ -43,6 +43,7 @@ public class ReportsDashboardView extends JPanel {
     private JComboBox<String> cmbReportType;
     private JTable reportTable;
     private DefaultTableModel tableModel;
+    private JButton btnUpdateStatus;
 
     // KPI Labels
     private JLabel lblTotalBooksVal;
@@ -135,11 +136,17 @@ public class ReportsDashboardView extends JPanel {
         leftFilter.add(cmbReportType);
         leftFilter.add(btnRefresh);
 
-        // Nút xuất báo cáo Excel & In
+        // Nút xuất báo cáo Excel & In & Cập nhật trạng thái
         JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         rightActions.setOpaque(false);
 
-        JButton btnExport = UITheme.createPillButton("Xuất Excel (.csv)", UITheme.PRIMARY, Color.WHITE);
+        btnUpdateStatus = UITheme.createPillButton("Cập nhật trạng thái", UITheme.PRIMARY, Color.WHITE);
+        btnUpdateStatus.setPreferredSize(new Dimension(150, 36));
+        btnUpdateStatus.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnUpdateStatus.setEnabled(false);
+        btnUpdateStatus.addActionListener(e -> showUpdateStatusDialog());
+
+        JButton btnExport = UITheme.createPillButton("Xuất Excel (.csv)", UITheme.TINT, UITheme.ON_TINT);
         btnExport.setPreferredSize(new Dimension(140, 36));
         btnExport.addActionListener(e -> exportToCsv());
 
@@ -147,6 +154,7 @@ public class ReportsDashboardView extends JPanel {
         btnPrint.setPreferredSize(new Dimension(110, 36));
         btnPrint.addActionListener(e -> printReport());
 
+        rightActions.add(btnUpdateStatus);
         rightActions.add(btnExport);
         rightActions.add(btnPrint);
 
@@ -166,6 +174,12 @@ public class ReportsDashboardView extends JPanel {
         reportTable.getTableHeader().setBackground(UITheme.BG_LIGHT);
         reportTable.setSelectionBackground(UITheme.PASTEL);
         reportTable.setSelectionForeground(UITheme.ON_PASTEL);
+
+        reportTable.getSelectionModel().addListSelectionListener(e -> {
+            boolean isLoanReport = (cmbReportType.getSelectedIndex() == 0);
+            boolean hasSelection = (reportTable.getSelectedRow() >= 0);
+            btnUpdateStatus.setEnabled(isLoanReport && hasSelection);
+        });
 
         JScrollPane scrollPane = new JScrollPane(reportTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(UITheme.CARD_BORDER, 1, true));
@@ -241,6 +255,8 @@ public class ReportsDashboardView extends JPanel {
 
     private void loadReportDataAsync() {
         int selectedIndex = cmbReportType.getSelectedIndex();
+        btnUpdateStatus.setVisible(selectedIndex == 0);
+        btnUpdateStatus.setEnabled(false);
 
         new SwingWorker<DefaultTableModel, Void>() {
             @Override
@@ -412,6 +428,149 @@ public class ReportsDashboardView extends JPanel {
                 UiModalHelper.showToastError(this, "Lỗi khi xuất file: " + e.getMessage());
             }
         }
+    }
+
+    private void showUpdateStatusDialog() {
+        int row = reportTable.getSelectedRow();
+        if (row < 0) {
+            UiModalHelper.showToastWarning(this, "Vui lòng chọn một phiếu mượn từ danh sách!");
+            return;
+        }
+
+        String ticketId = String.valueOf(reportTable.getValueAt(row, 0));
+        String readerName = String.valueOf(reportTable.getValueAt(row, 1));
+        String currentStatus = String.valueOf(reportTable.getValueAt(row, 6));
+
+        String[] statuses = {
+            "0 - Chờ duyệt / Chờ nhận sách",
+            "1 - Đang mượn",
+            "2 - Đã trả (Hoàn tất)",
+            "3 - Quá hạn",
+            "4 - Chờ xử lý bồi thường",
+            "5 - Đã mất / Đã đền bù",
+            "6 - Đã hủy phiếu"
+        };
+
+        JComboBox<String> cmbStatus = new JComboBox<>(statuses);
+        cmbStatus.setFont(UITheme.FONT_REGULAR);
+        cmbStatus.setPreferredSize(new Dimension(300, 36));
+
+        // Chọn index mặc định dựa theo trạng thái hiện tại
+        for (int i = 0; i < statuses.length; i++) {
+            if (statuses[i].contains(currentStatus)) {
+                cmbStatus.setSelectedIndex(i);
+                break;
+            }
+        }
+
+        JPanel panel = new JPanel(new GridLayout(3, 1, 0, 8));
+        panel.setOpaque(false);
+        panel.setPreferredSize(new Dimension(340, 110));
+
+        JLabel lblInfo = new JLabel("<html>Phiếu mượn: <b>" + ticketId + "</b> - Bạn đọc: <b>" + readerName + "</b></html>");
+        lblInfo.setFont(UITheme.FONT_SMALL);
+
+        JLabel lblPrompt = new JLabel("Chọn trạng thái mới cần cập nhật:");
+        lblPrompt.setFont(UITheme.FONT_BOLD);
+
+        panel.add(lblInfo);
+        panel.add(lblPrompt);
+        panel.add(cmbStatus);
+
+        UiModalHelper.showCustomModal(
+            this,
+            "UPDATE_STATUS_MODAL",
+            "Cập Nhật Trạng Thái Phiếu Mượn",
+            panel,
+            raven.modal.component.SimpleModalBorder.OK_CANCEL_OPTION,
+            (controller, action) -> {
+                if (action == raven.modal.component.SimpleModalBorder.OK_OPTION) {
+                    controller.close();
+                    int selectedStatusCode = cmbStatus.getSelectedIndex();
+                    updateLoanStatusAsync(ticketId, selectedStatusCode);
+                } else if (action == raven.modal.component.SimpleModalBorder.CANCEL_OPTION || action == raven.modal.component.SimpleModalBorder.CLOSE_OPTION) {
+                    controller.close();
+                }
+            }
+        );
+    }
+
+    private void updateLoanStatusAsync(String ticketId, int newStatusCode) {
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                try (Connection conn = connectionManager.getConnection()) {
+                    conn.setAutoCommit(false);
+                    try {
+                        String sql = "UPDATE phieumuon SET Trangthai = ? WHERE Maphieumuon = ?";
+                        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                            ps.setInt(1, newStatusCode);
+                            ps.setString(2, ticketId);
+                            ps.executeUpdate();
+                        }
+
+                        // Nếu cập nhật sang Đã trả (2) hoặc Đã hủy (6), tự động giải phóng sách về KHA_DUNG
+                        if (newStatusCode == 2 || newStatusCode == 6) {
+                            String sqlFreeCopies = """
+                                UPDATE cuonsach c
+                                JOIN chitietphieumuon ct ON c.Macuonsach = ct.Macuonsach
+                                SET c.Trangthaisach = 'KHA_DUNG'
+                                WHERE ct.Maphieumuon = ?
+                            """;
+                            try (PreparedStatement psFree = conn.prepareStatement(sqlFreeCopies)) {
+                                psFree.setString(1, ticketId);
+                                psFree.executeUpdate();
+                            }
+                        } else if (newStatusCode == 1 || newStatusCode == 3) {
+                            // Đang mượn hoặc Quá hạn -> Sách ở trạng thái DANG_MUON
+                            String sqlBusyCopies = """
+                                UPDATE cuonsach c
+                                JOIN chitietphieumuon ct ON c.Macuonsach = ct.Macuonsach
+                                SET c.Trangthaisach = 'DANG_MUON'
+                                WHERE ct.Maphieumuon = ?
+                            """;
+                            try (PreparedStatement psBusy = conn.prepareStatement(sqlBusyCopies)) {
+                                psBusy.setString(1, ticketId);
+                                psBusy.executeUpdate();
+                            }
+                        } else if (newStatusCode == 4 || newStatusCode == 5) {
+                            // Chờ bồi thường hoặc Đã mất -> HONG_MAT
+                            String sqlLostCopies = """
+                                UPDATE cuonsach c
+                                JOIN chitietphieumuon ct ON c.Macuonsach = ct.Macuonsach
+                                SET c.Trangthaisach = 'HONG_MAT'
+                                WHERE ct.Maphieumuon = ?
+                            """;
+                            try (PreparedStatement psLost = conn.prepareStatement(sqlLostCopies)) {
+                                psLost.setString(1, ticketId);
+                                psLost.executeUpdate();
+                            }
+                        }
+
+                        conn.commit();
+                        String currentUserId = UserSession.getCurrentUser() != null ? UserSession.getCurrentUser().getId() : "ADMIN";
+                        AuditLogger.log(currentUserId, "UPDATE_LOAN_STATUS", "Cập nhật phiếu " + ticketId + " sang trạng thái: " + newStatusCode);
+                    } catch (Exception ex) {
+                        conn.rollback();
+                        throw ex;
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                    UiModalHelper.showToastSuccess(ReportsDashboardView.this, "Cập nhật trạng thái phiếu mượn #" + ticketId + " thành công!");
+                    loadKpisAsync();
+                    loadReportDataAsync();
+                } catch (Exception ex) {
+                    Throwable cause = (ex.getCause() != null) ? ex.getCause() : ex;
+                    UiModalHelper.showToastError(ReportsDashboardView.this, "Lỗi cập nhật: " + cause.getMessage());
+                }
+            }
+        }.execute();
     }
 
     private void printReport() {

@@ -111,7 +111,7 @@ public class CirculationDeskView extends JPanel {
     // =========================================================================
     private JPanel createLeftFormCard() {
         JPanel card = createBaseCard();
-        card.setPreferredSize(new Dimension(430, 0));
+        card.setPreferredSize(new Dimension(380, 0));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
         // Tiêu đề khối
@@ -414,10 +414,10 @@ public class CirculationDeskView extends JPanel {
         card.setLayout(new BorderLayout(0, 14));
 
         // Header của Bảng (Căn chỉnh cân đối, không bao giờ bị đè chữ)
-        JPanel topHeader = new JPanel(new BorderLayout(10, 0));
+        JPanel topHeader = new JPanel(new BorderLayout(8, 0));
         topHeader.setOpaque(false);
 
-        JPanel titleWithBadge = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        JPanel titleWithBadge = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         titleWithBadge.setOpaque(false);
 
         JLabel lblCartTitle = new JLabel("Sách Chuẩn Bị Mượn");
@@ -434,10 +434,10 @@ public class CirculationDeskView extends JPanel {
         titleWithBadge.add(lblCartTitle);
         titleWithBadge.add(lblCartCountBadge);
 
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         actions.setOpaque(false);
 
-        btnRemoveSelected = UITheme.createPillButton(" Xóa cuốn đã chọn", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
+        btnRemoveSelected = UITheme.createPillButton("Xóa cuốn đã chọn", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
         btnRemoveSelected.setIcon(createTrashIcon(14, UITheme.DANGER_TEXT));
         btnRemoveSelected.setFont(UITheme.FONT_SMALL);
         btnRemoveSelected.setVisible(false);
@@ -445,7 +445,7 @@ public class CirculationDeskView extends JPanel {
         btnRemoveSelected.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnRemoveSelected.addActionListener(e -> removeSelectedBook());
 
-        btnClearAll = UITheme.createPillButton(" Xóa tất cả", UITheme.TINT_LIGHT, UITheme.TEXT_MAIN);
+        btnClearAll = UITheme.createPillButton("Xóa tất cả", UITheme.TINT_LIGHT, UITheme.TEXT_MAIN);
         btnClearAll.setIcon(createRefreshIcon(14, UITheme.TEXT_MAIN));
         btnClearAll.setFont(UITheme.FONT_SMALL);
         btnClearAll.setVisible(false);
