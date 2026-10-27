@@ -72,3 +72,30 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 - **Kiểm thử & Đóng gói**:
   * Nâng tổng số test tự động lên **45 bài test (100% PASS)**.
   * Đóng gói lại `dist/XimiLib.jar` (16.0 MB).
+
+
+### [Sprint 14 — Tinh chỉnh Layout, Hiệu ứng Chuyển cảnh 60 FPS, Khóa Tương tác & Nâng cấp Bàn Desk] - 2026-10-27
+#### Added & Refined
+- **Tinh chỉnh Bố cục Form Đăng ký (`RegisterForm`)**:
+  * Chuyển layout từ đơn cột dọc sang `GridBagLayout` dạng bảng 2 cột cân đối, kích thước chuẩn 650x700px. Nhãn (Label) và ô nhập nằm trên cùng 1 hàng.
+  * Bổ sung placeholder gợi ý định dạng (CCCD 9-12 số, email, số điện thoại, mật khẩu).
+  * Nút "TẠO TÀI KHOẢN" bo góc ôm trọn chiều ngang form, căn giữa chỉn chu.
+- **Nâng cấp Animation 60 FPS Panel Nhận Diện (`BrandPanel`)**:
+  * Tích hợp cơ chế chuyển cảnh Carousel mượt mà với đường cong nội suy Cubic Ease-Out (`TIMER_FPS_DELAY = 16ms ~ 60 FPS`).
+  * Hiệu ứng chuyển động kép: văn bản Slide & Fade kết hợp các chấm chỉ báo Morphing Dots co giãn linh hoạt khi chuyển slide hoặc click chuyển trang.
+  * Tự động tạm dừng chuyển động khi người dùng rê chuột vào panel để đọc nội dung.
+- **Khóa Tương tác Chống Spam Khi Đăng Nhập (`LoginFormPanel`)**:
+  * Bổ sung hàm `setFormInteractive(false)` tự động vô hiệu hóa toàn bộ ô nhập văn bản, nút bấm và liên kết khi hệ thống đang xử lý xác thực tài khoản.
+  * Ẩn con trỏ soạn thảo nhấp nháy (`requestFocusInWindow()`) để tạo trải nghiệm người dùng chuyên nghiệp và mượt mà.
+- **Thiết kế Nút Đóng Vector 'X' Chống Lỗi Font (`UserProfileModalPanel` & `NotificationPopupPanel`)**:
+  * Loại bỏ hoàn toàn ký tự Unicode `✕` (vốn dễ bị lỗi ô vuông font trên một số phiên bản Windows), thay thế bằng nút đóng vector thuần vẽ bằng `Graphics2D` với viền tròn mờ hover tinh tế.
+  * Form đổi mật khẩu trong `UserProfileModalPanel` được căn chỉnh theo `GridBagLayout` nhãn và ô nhập cùng hàng, tiêu đề căn giữa.
+  * Triệt tiêu hoàn toàn thanh cuộn ngang không mong muốn trong `NotificationPopupPanel` bằng `ScrollableListPanel` ép cố định theo chiều ngang viewport.
+- **Bàn Lưu Hành Quầy Đầy Đủ Tính Năng (`CirculationDeskView`)**:
+  * Bố cục 2 cột chuyên nghiệp: bên trái là thẻ thông tin bạn đọc trực quan (hiển thị trạng thái thẻ HOẠT ĐỘNG / KHÓA / HẾT HẠN) kèm ô quét mã vạch và tóm tắt hạn trả; bên phải là danh sách giỏ sách mượn.
+  * Bổ sung nút xóa cuốn sách đang chọn, nút xóa toàn bộ giỏ mượn, cùng nhãn đếm số lượng "X / 3 cuốn" tuân thủ nghiêm ngặt quy tắc BR-02.
+  * Tích hợp kiểm tra thẻ bị khóa hoặc hết hạn trước khi xuất mượn theo BR-07.
+- **Chuẩn hóa Cột Trạng Thái Sách Thùng Rác (`BookRepositoryImpl`)**:
+  * Đồng bộ câu truy vấn thùng rác với schema CSDL thực tế: đổi `c.Trangthai` sang `c.Trangthaisach` trên bảng `cuonsach`.
+- **Kiểm thử**:
+  * Toàn bộ 45 bài test tự động chạy qua 100% (`BUILD SUCCESS`).
