@@ -341,8 +341,7 @@ public class UserProfileModalPanel extends GlassPaneChild {
             return;
         }
 
-        boolean isCurrentMatch = SecurityUtil.checkPassword(currentPass, currentUser.getPassword())
-                || currentPass.equals(currentUser.getPassword());
+        boolean isCurrentMatch = SecurityUtil.checkPassword(currentPass, currentUser.getPassword());
         if (!isCurrentMatch) {
             UiModalHelper.showToastError(this, "Mật khẩu hiện tại không chính xác! Vui lòng thử lại.");
             return;

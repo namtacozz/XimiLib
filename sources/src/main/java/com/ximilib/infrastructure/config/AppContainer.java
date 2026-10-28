@@ -1,5 +1,6 @@
 package com.ximilib.infrastructure.config;
 
+import com.ximilib.application.port.PasswordHasher;
 import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.application.service.BookCatalogService;
 import com.ximilib.application.service.CirculationService;
@@ -17,6 +18,7 @@ import com.ximilib.infrastructure.persistence.impl.BookRepositoryImpl;
 import com.ximilib.infrastructure.persistence.impl.CirculationRepositoryImpl;
 import com.ximilib.infrastructure.persistence.impl.DashboardRepositoryImpl;
 import com.ximilib.infrastructure.persistence.impl.UserRepositoryImpl;
+import com.ximilib.infrastructure.security.SecurityUtil;
 
 /**
  * AppContainer: Pure DI Container (Composition Root) khởi tạo và liên kết các thành phần hệ thống.
@@ -27,6 +29,7 @@ public class AppContainer {
     private static AppContainer instance;
 
     private final DatabaseConnectionManager connectionManager;
+    private final PasswordHasher passwordHasher;
     private final BookRepository bookRepository;
     private final BookCatalogService bookCatalogService;
     private final UserRepository userRepository;
@@ -38,10 +41,11 @@ public class AppContainer {
 
     private AppContainer() {
         this.connectionManager = new DatabaseConnectionManager();
+        this.passwordHasher = new SecurityUtil();
         this.bookRepository = new BookRepositoryImpl(connectionManager);
         this.bookCatalogService = new BookCatalogServiceImpl(bookRepository);
         this.userRepository = new UserRepositoryImpl(connectionManager);
-        this.authenticationService = new AuthenticationServiceImpl(userRepository);
+        this.authenticationService = new AuthenticationServiceImpl(userRepository, passwordHasher);
         this.circulationRepository = new CirculationRepositoryImpl(connectionManager);
         this.circulationService = new CirculationServiceImpl(circulationRepository);
         this.dashboardRepository = new DashboardRepositoryImpl(connectionManager);
@@ -69,6 +73,10 @@ public class AppContainer {
 
     public UserRepository getUserRepository() {
         return userRepository;
+    }
+
+    public PasswordHasher getPasswordHasher() {
+        return passwordHasher;
     }
 
     public AuthenticationService getAuthenticationService() {

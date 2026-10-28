@@ -314,9 +314,9 @@ INSERT INTO `vaitro` (`Mavaitro`, `Tenvaitro`, `Mota`) VALUES
 ('READER', 'Độc giả', 'Tra cứu sách, đặt trước và xem lịch sử cá nhân')
 ON DUPLICATE KEY UPDATE `Tenvaitro` = VALUES(`Tenvaitro`);
 
--- Khởi tạo Tài khoản Quản trị viên mặc định (Mật khẩu mặc định: admin123)
+-- Khởi tạo Tài khoản Quản trị viên mặc định (Mật khẩu mặc định: admin123, đã băm BCrypt)
 INSERT INTO `nguoidung` (`ID`, `Tendangnhap`, `Matkhau`, `Hoten`, `Email`, `Gioitinh`, `Sdt`, `Mavaitro`, `Trangthai`) VALUES
-('USR-ADMIN-01', 'admin', '$2a$10$abcdefghijklmnopqrstuvwxyz1234567890', 'Quản trị viên Hệ thống', 'admin@ximilib.edu.vn', 1, '0905123456', 'ADMIN', 1)
+('USR-ADMIN-01', 'admin', '$2a$10$GQBiVxZMhZXp.now2MCu3.OW8KqSUGVH5//qTuN1/Lb.zps5QMo02', 'Quản trị viên Hệ thống', 'admin@ximilib.edu.vn', 1, '0905123456', 'ADMIN', 1)
 ON DUPLICATE KEY UPDATE `Hoten` = VALUES(`Hoten`);
 
 -- Khởi tạo một số Thể loại mẫu

@@ -2,12 +2,12 @@ package com.ximilib.application.service.impl;
 
 import com.ximilib.application.dto.LoginResult;
 import com.ximilib.application.dto.RegisterRequestDto;
+import com.ximilib.application.port.PasswordHasher;
 import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.domain.model.LibraryPolicy;
 import com.ximilib.domain.repository.UserRepository;
 import com.ximilib.gui.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
-import com.ximilib.infrastructure.security.SecurityUtil;
 import com.ximilib.models.User;
 
 import java.time.Duration;
@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * AuthenticationServiceImpl: Triển khai nghiệp vụ xác thực và đăng ký bạn đọc.
@@ -22,18 +23,31 @@ import java.util.Optional;
  */
 public class AuthenticationServiceImpl implements AuthenticationService {
 
+    private static final Pattern PWD_PATTERN = Pattern.compile("^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,}$");
+    private static final Pattern CCCD_PATTERN = Pattern.compile("^(\\d{9}|\\d{12})$");
+
     private final UserRepository userRepository;
+    private final PasswordHasher passwordHasher;
 
     public AuthenticationServiceImpl() {
-        this(null);
+        this(null, null);
     }
 
     public AuthenticationServiceImpl(UserRepository userRepository) {
+        this(userRepository, null);
+    }
+
+    public AuthenticationServiceImpl(UserRepository userRepository, PasswordHasher passwordHasher) {
         this.userRepository = userRepository;
+        this.passwordHasher = passwordHasher;
     }
 
     private UserRepository getRepo() {
         return (userRepository != null) ? userRepository : AppContainer.getInstance().getUserRepository();
+    }
+
+    private PasswordHasher getHasher() {
+        return (passwordHasher != null) ? passwordHasher : AppContainer.getInstance().getPasswordHasher();
     }
 
     @Override
@@ -65,14 +79,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
         }
 
-        // 2. Kiểm tra mật khẩu (hỗ trợ cả băm BCrypt và chuỗi trần cho môi trường mock/test)
+        // 2. Kiểm tra mật khẩu bắt buộc bằng BCrypt qua PasswordHasher port (R-08, BR-01)
         boolean passwordMatches = false;
         try {
-            passwordMatches = SecurityUtil.checkPassword(password, user.getPassword());
-        } catch (Exception ignored) {}
-
-        if (!passwordMatches && user.getPassword() != null && user.getPassword().equals(password)) {
-            passwordMatches = true;
+            passwordMatches = getHasher().matches(password, user.getPassword());
+        } catch (Exception ignored) {
+            // Hash không hợp lệ / lỗi giải mã: trả lỗi AUTH chung, không lộ thông tin nội bộ
+            passwordMatches = false;
         }
 
         if (!passwordMatches) {
@@ -107,6 +120,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return 0;
     }
 
+    private boolean validatePasswordStrength(String password) {
+        return password != null && PWD_PATTERN.matcher(password).matches();
+    }
+
+    private boolean validateCccd(String cccd) {
+        return cccd != null && CCCD_PATTERN.matcher(cccd.trim()).matches();
+    }
+
     @Override
     public void register(RegisterRequestDto request) {
         if (request == null) {
@@ -124,11 +145,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new IllegalArgumentException("Vui lòng điền đầy đủ các thông tin bắt buộc!");
         }
 
-        if (!SecurityUtil.validatePasswordStrength(rawPassword)) {
+        if (!validatePasswordStrength(rawPassword)) {
             throw new IllegalArgumentException("Mật khẩu phải từ 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.");
         }
 
-        if (!cccd.isEmpty() && !SecurityUtil.validateCccd(cccd)) {
+        if (!cccd.isEmpty() && !validateCccd(cccd)) {
             throw new IllegalArgumentException("Số CCCD/CMND không hợp lệ (phải gồm 9 hoặc 12 chữ số).");
         }
 
@@ -147,8 +168,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String nextUserId = repo.generateNextUserId();
         String nextCardNumber = repo.generateNextCardNumber();
 
-        String hashedPassword = SecurityUtil.hashPassword(rawPassword);
-        String encryptedCccd = (!cccd.isEmpty()) ? SecurityUtil.encryptAes(cccd) : "";
+        String hashedPassword = getHasher().hash(rawPassword);
+        String encryptedCccd = (!cccd.isEmpty()) ? getHasher().encrypt(cccd) : "";
 
         User newUser = new User();
         newUser.setId(nextUserId);
@@ -217,7 +238,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         String nextUserId = repo.generateNextUserId();
-        String hashedPassword = SecurityUtil.hashPassword(rawPassword);
+        String hashedPassword = getHasher().hash(rawPassword);
 
         User newUser = new User();
         newUser.setId(nextUserId);
@@ -255,7 +276,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (rawPassword == null || rawPassword.length() < 6) {
             throw new IllegalArgumentException("Mật khẩu mới phải có ít nhất 6 ký tự.");
         }
-        String hashed = SecurityUtil.hashPassword(rawPassword);
+        String hashed = getHasher().hash(rawPassword);
         getRepo().resetPassword(userId.trim(), hashed);
     }
 }
