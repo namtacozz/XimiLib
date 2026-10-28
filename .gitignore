@@ -14,11 +14,17 @@ sources/target/
 *.zip
 *.tar.gz
 *.rar
+dist/*.jar
+!dist/.gitkeep
+sources/dependency-reduced-pom.xml
 
 # Runtime logs
 *.log
 logs/*
 !logs/.gitkeep
+
+# Sensitive configurations
+config/db.properties
 
 # Database backups (preserve folder structure)
 database/backups/*
