@@ -23,7 +23,6 @@ sources/src/main/java/com/ximilib/domain/repository/UserRepository.java:4:com.xi
 # Application Layer Violations (Luật: application không import javax.swing, java.sql, com.ximilib.infrastructure, com.ximilib.presentation, com.ximilib.gui)
 sources/src/main/java/com/ximilib/application/service/impl/AuthenticationServiceImpl.java:8:com.ximilib.gui.util.UserSession
 sources/src/main/java/com/ximilib/application/service/impl/AuthenticationServiceImpl.java:9:com.ximilib.infrastructure.config.AppContainer
-sources/src/main/java/com/ximilib/application/service/impl/AuthenticationServiceImpl.java:10:com.ximilib.infrastructure.security.SecurityUtil
 sources/src/main/java/com/ximilib/application/service/impl/BookCatalogServiceImpl.java:11:com.ximilib.infrastructure.persistence.impl.BookRepositoryImpl
 sources/src/main/java/com/ximilib/application/service/impl/CirculationServiceImpl.java:14:com.ximilib.infrastructure.config.AppContainer
 

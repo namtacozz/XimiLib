@@ -2,8 +2,10 @@ package com.ximilib.application.service;
 
 import com.ximilib.application.dto.LoginResult;
 import com.ximilib.application.dto.RegisterRequestDto;
+import com.ximilib.application.port.PasswordHasher;
 import com.ximilib.application.service.impl.AuthenticationServiceImpl;
 import com.ximilib.domain.repository.UserRepository;
+import com.ximilib.infrastructure.security.SecurityUtil;
 import com.ximilib.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,11 +22,13 @@ class AuthenticationServiceTest {
 
     private AuthenticationServiceImpl authService;
     private StubUserRepository userRepository;
+    private PasswordHasher passwordHasher;
 
     @BeforeEach
     void setUp() {
-        userRepository = new StubUserRepository();
-        authService = new AuthenticationServiceImpl(userRepository);
+        passwordHasher = new SecurityUtil();
+        userRepository = new StubUserRepository(passwordHasher);
+        authService = new AuthenticationServiceImpl(userRepository, passwordHasher);
     }
 
     @Test
@@ -160,19 +164,106 @@ class AuthenticationServiceTest {
         assertTrue(ex.getMessage().contains("Mật khẩu phải từ 8 ký tự"));
     }
 
+    @Test
+    @DisplayName("TC-AUTH-10: CSDL chứa mật khẩu thô (plaintext) - Chặn hoàn toàn, tuyệt đối không đăng nhập được")
+    void testPlaintextPasswordInDatabaseFailsToLogin() {
+        // Tài khoản plain.user có mật khẩu lưu trực tiếp là "123456" (chưa băm BCrypt)
+        LoginResult result = authService.login("plain.user", "123456");
+
+        assertFalse(result.isSuccess(), "Mật khẩu thô không khớp định dạng BCrypt phải bị từ chối");
+        assertNull(result.getUser());
+        assertEquals("AUTH_001", result.getErrorCode());
+        assertEquals("Tên đăng nhập hoặc mật khẩu không chính xác.", result.getErrorMessage());
+    }
+
+    @Test
+    @DisplayName("TC-AUTH-11: CSDL chứa chuỗi hash hỏng / không hợp lệ - Trả lỗi AUTH chung, không văng exception")
+    void testCorruptHashInDatabaseFailsGracefully() {
+        // Tài khoản corrupt.user có chuỗi hash không hợp lệ
+        assertDoesNotThrow(() -> {
+            LoginResult result = authService.login("corrupt.user", "123456");
+            assertFalse(result.isSuccess());
+            assertNull(result.getUser());
+            assertEquals("AUTH_001", result.getErrorCode());
+            assertEquals("Tên đăng nhập hoặc mật khẩu không chính xác.", result.getErrorMessage());
+        });
+    }
+
+    @Test
+    @DisplayName("TC-AUTH-12: Giữ nguyên BR-01 với tài khoản có hash hỏng hoặc thô (nhập sai 5 lần vẫn bị khóa 15 phút)")
+    void testBr01LockoutWorksOnPlaintextAccount() {
+        String username = "plain.user";
+
+        for (int i = 1; i <= 4; i++) {
+            LoginResult r = authService.login(username, "123456");
+            assertFalse(r.isSuccess());
+            assertEquals("AUTH_001", r.getErrorCode());
+        }
+
+        LoginResult lockedResult = authService.login(username, "123456");
+        assertFalse(lockedResult.isSuccess());
+        assertEquals("AUTH_002", lockedResult.getErrorCode());
+        assertTrue(lockedResult.getRemainingLockMinutes() > 0);
+        assertTrue(lockedResult.getErrorMessage().contains("khóa 15 phút"));
+    }
+
+    @Test
+    @DisplayName("TC-AUTH-13: Hoạt động chuẩn xác với Fake/Mock PasswordHasher (Inversion of Control)")
+    void testLoginWithFakePasswordHasherPort() {
+        // Tạo fake PasswordHasher dùng tiền tố "fakehash_"
+        PasswordHasher fakeHasher = new PasswordHasher() {
+            @Override
+            public String hash(String rawPassword) {
+                return "fakehash_" + rawPassword;
+            }
+
+            @Override
+            public boolean matches(String rawPassword, String hashedPassword) {
+                return ("fakehash_" + rawPassword).equals(hashedPassword);
+            }
+
+            @Override
+            public String encrypt(String plainText) {
+                return "encrypted_" + plainText;
+            }
+        };
+
+        StubUserRepository stubRepo = new StubUserRepository(fakeHasher);
+        AuthenticationServiceImpl customService = new AuthenticationServiceImpl(stubRepo, fakeHasher);
+
+        // Đăng nhập thành công qua fakeHasher
+        LoginResult successResult = customService.login("admin", "123456");
+        assertTrue(successResult.isSuccess());
+        assertEquals("admin", successResult.getUser().getUsername());
+
+        // Đăng nhập sai qua fakeHasher
+        LoginResult failResult = customService.login("admin", "wrongpass");
+        assertFalse(failResult.isSuccess());
+        assertEquals("AUTH_001", failResult.getErrorCode());
+    }
+
     private static class StubUserRepository implements UserRepository {
         private final Map<String, User> userMap = new HashMap<>();
 
-        public StubUserRepository() {
-            User u1 = new User("ND001", "admin", "123456", "Nguyễn Việt Nhật", "nhat.nguyen@dut.udn.vn", "0901", "Quản Trị");
-            User u2 = new User("ND002", "kien.phan", "123456", "Phan Vũ Xuân Kiên", "kien.phan@dut.udn.vn", "0902", "Thủ Thư");
-            User u3 = new User("ND003", "nam.le", "123456", "Lê Võ Thành Nam", "nam.le@dut.udn.vn", "0903", "Thủ Thư");
-            User u4 = new User("ND004", "sinhvien", "123456", "Trần Văn An", "an.tran@dut.udn.vn", "0904", "Bạn Đọc");
+        public StubUserRepository(PasswordHasher hasher) {
+            String hash123456 = hasher.hash("123456");
+            User u1 = new User("ND001", "admin", hash123456, "Nguyễn Việt Nhật", "nhat.nguyen@dut.udn.vn", "0901", "Quản Trị");
+            User u2 = new User("ND002", "kien.phan", hash123456, "Phan Vũ Xuân Kiên", "kien.phan@dut.udn.vn", "0902", "Thủ Thư");
+            User u3 = new User("ND003", "nam.le", hash123456, "Lê Võ Thành Nam", "nam.le@dut.udn.vn", "0903", "Thủ Thư");
+            User u4 = new User("ND004", "sinhvien", hash123456, "Trần Văn An", "an.tran@dut.udn.vn", "0904", "Bạn Đọc");
+
+            // Tài khoản lưu mật khẩu dạng chuỗi trần (plaintext) trong DB
+            User uPlain = new User("ND099", "plain.user", "123456", "Người Dùng Plaintext", "plain@dut.udn.vn", "0909", "Bạn Đọc");
+
+            // Tài khoản lưu hash bị hỏng (corrupted hash) trong DB
+            User uCorrupt = new User("ND098", "corrupt.user", "$2a$10$abcdefghijklmno_corrupt_hash_invalid", "Người Dùng Hash Hỏng", "corrupt@dut.udn.vn", "0908", "Bạn Đọc");
 
             userMap.put(u1.getId(), u1);
             userMap.put(u2.getId(), u2);
             userMap.put(u3.getId(), u3);
             userMap.put(u4.getId(), u4);
+            userMap.put(uPlain.getId(), uPlain);
+            userMap.put(uCorrupt.getId(), uCorrupt);
         }
 
         @Override

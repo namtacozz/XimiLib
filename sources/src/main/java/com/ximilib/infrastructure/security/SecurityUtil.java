@@ -1,5 +1,6 @@
 package com.ximilib.infrastructure.security;
 
+import com.ximilib.application.port.PasswordHasher;
 import org.mindrot.jbcrypt.BCrypt;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -11,17 +12,33 @@ import java.util.regex.Pattern;
 
 /**
  * SecurityUtil: Tiện ích bảo mật chuẩn hóa toàn hệ thống (R-08, UC-1, UC-2).
+ * - Triển khai PasswordHasher port cho tầng Application (Pure DI, DIP).
  * - Băm mật khẩu một chiều bằng BCrypt.
  * - Mã hóa hai chiều đối xứng AES-256 cho trường thông tin định danh CCCD.
  * - Kiểm tra độ mạnh mật khẩu và định dạng CCCD theo đúng bản Đặc tả SRS.
  */
-public final class SecurityUtil {
+public final class SecurityUtil implements PasswordHasher {
 
     private static final String DEFAULT_AES_KEY = "XimiLib_Library_Secret_Key_2026_Secure_AES";
     private static final Pattern PWD_PATTERN = Pattern.compile("^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,}$");
     private static final Pattern CCCD_PATTERN = Pattern.compile("^(\\d{9}|\\d{12})$");
 
-    private SecurityUtil() {}
+    public SecurityUtil() {}
+
+    @Override
+    public String hash(String rawPassword) {
+        return hashPassword(rawPassword);
+    }
+
+    @Override
+    public boolean matches(String rawPassword, String hashedPassword) {
+        return checkPassword(rawPassword, hashedPassword);
+    }
+
+    @Override
+    public String encrypt(String plainText) {
+        return encryptAes(plainText);
+    }
 
     /**
      * Băm mật khẩu bằng thuật toán BCrypt với salt ngẫu nhiên.
