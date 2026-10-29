@@ -48,6 +48,7 @@ public class AppContainer {
     private final DashboardService dashboardService;
     private final com.ximilib.application.port.BookCommentPort bookCommentPort;
     private final com.ximilib.application.port.FeedbackPort feedbackPort;
+    private final com.ximilib.application.port.ReportPort reportPort;
 
     private AppContainer() {
         this.connectionManager = new DatabaseConnectionManager();
@@ -70,6 +71,7 @@ public class AppContainer {
         this.dashboardService = new DashboardServiceImpl(dashboardQueryPort);
         this.bookCommentPort = new com.ximilib.infrastructure.persistence.impl.BookCommentRepositoryImpl(connectionManager);
         this.feedbackPort = new com.ximilib.infrastructure.persistence.impl.FeedbackRepositoryImpl(connectionManager);
+        this.reportPort = new com.ximilib.infrastructure.persistence.impl.ReportRepositoryImpl(connectionManager);
     }
 
     public static synchronized AppContainer getInstance() {
@@ -141,5 +143,9 @@ public class AppContainer {
 
     public com.ximilib.application.port.FeedbackPort getFeedbackPort() {
         return feedbackPort;
+    }
+
+    public com.ximilib.application.port.ReportPort getReportPort() {
+        return reportPort;
     }
 }
