@@ -11,7 +11,7 @@ import com.ximilib.domain.repository.CirculationRepository.BookCopyInfo;
 import com.ximilib.domain.repository.CirculationRepository.UserCardInfo;
 import com.ximilib.gui.components.SearchField;
 import com.ximilib.gui.util.UITheme;
-import com.ximilib.models.User;
+import com.ximilib.domain.model.User;
 import com.ximilib.presentation.util.UiModalHelper;
 
 import javax.swing.*;

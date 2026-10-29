@@ -11,7 +11,7 @@ import com.ximilib.domain.model.LoanDueClassification;
 import com.ximilib.gui.components.KpiCard;
 import com.ximilib.gui.util.UITheme;
 import com.ximilib.infrastructure.config.AppContainer;
-import com.ximilib.models.User;
+import com.ximilib.domain.model.User;
 import com.ximilib.presentation.component.BookCoverTile;
 import com.ximilib.presentation.component.BookDetailModalPanel;
 import com.ximilib.presentation.component.EmptyStatePanel;

@@ -1,6 +1,6 @@
 package com.ximilib.application.dto;
 
-import com.ximilib.models.User;
+import com.ximilib.domain.model.User;
 
 /**
  * LoginResult: Kết quả phản hồi từ Application Service khi thực hiện đăng nhập.

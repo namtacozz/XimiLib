@@ -6,7 +6,7 @@ import com.ximilib.application.port.PasswordHasher;
 import com.ximilib.application.service.impl.AuthenticationServiceImpl;
 import com.ximilib.domain.repository.UserRepository;
 import com.ximilib.infrastructure.security.SecurityUtil;
-import com.ximilib.models.User;
+import com.ximilib.domain.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

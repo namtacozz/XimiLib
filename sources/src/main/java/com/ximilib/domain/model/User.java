@@ -1,4 +1,4 @@
-package com.ximilib.models;
+package com.ximilib.domain.model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

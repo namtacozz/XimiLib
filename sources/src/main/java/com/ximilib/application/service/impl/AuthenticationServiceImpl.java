@@ -8,7 +8,7 @@ import com.ximilib.domain.model.LibraryPolicy;
 import com.ximilib.domain.repository.UserRepository;
 import com.ximilib.gui.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
-import com.ximilib.models.User;
+import com.ximilib.domain.model.User;
 
 import java.time.Duration;
 import java.time.LocalDate;

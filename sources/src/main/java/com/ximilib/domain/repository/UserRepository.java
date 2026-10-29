@@ -2,7 +2,7 @@ package com.ximilib.domain.repository;
 
 import com.ximilib.application.dto.PatronDto;
 import com.ximilib.application.dto.UserAccountDto;
-import com.ximilib.models.User;
+import com.ximilib.domain.model.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;

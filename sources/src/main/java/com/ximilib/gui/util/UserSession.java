@@ -1,6 +1,6 @@
 package com.ximilib.gui.util;
 
-import com.ximilib.models.User;
+import com.ximilib.domain.model.User;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 

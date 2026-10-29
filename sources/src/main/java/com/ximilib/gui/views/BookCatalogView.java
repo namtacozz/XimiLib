@@ -13,7 +13,7 @@ import com.ximilib.gui.components.SearchField;
 import com.ximilib.gui.util.UITheme;
 import com.ximilib.gui.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
-import com.ximilib.models.User;
+import com.ximilib.domain.model.User;
 import com.ximilib.presentation.component.BookFormModalPanel;
 import com.ximilib.presentation.component.table.*;
 import com.ximilib.presentation.component.table.FilterItems.AvailabilityItem;

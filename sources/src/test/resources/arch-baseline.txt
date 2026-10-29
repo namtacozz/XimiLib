@@ -7,7 +7,6 @@
 
 # Luật Package: Cấm tồn tại package com.ximilib.gui và com.ximilib.models
 FORBIDDEN_PACKAGE:com.ximilib.gui
-FORBIDDEN_PACKAGE:com.ximilib.models
 
 # Domain Layer Violations (Luật: domain không import javax.swing, java.sql, com.zaxxer, com.ximilib.application, com.ximilib.infrastructure, com.ximilib.presentation, com.ximilib.gui)
 sources/src/main/java/com/ximilib/domain/model/LoanDueClassification.java:3:com.ximilib.gui.util.UITheme

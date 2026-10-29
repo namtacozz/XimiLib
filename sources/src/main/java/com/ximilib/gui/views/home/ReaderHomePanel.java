@@ -10,7 +10,7 @@ import com.ximilib.application.service.DashboardService;
 import com.ximilib.domain.model.LoanDueClassification;
 import com.ximilib.gui.util.UITheme;
 import com.ximilib.gui.util.UserSession;
-import com.ximilib.models.User;
+import com.ximilib.domain.model.User;
 import com.ximilib.presentation.component.BookCoverTile;
 import com.ximilib.presentation.component.BookDetailModalPanel;
 import com.ximilib.presentation.component.SectionHeader;

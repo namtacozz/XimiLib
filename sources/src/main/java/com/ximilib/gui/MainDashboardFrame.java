@@ -9,7 +9,7 @@ import com.ximilib.gui.views.*;
 import com.ximilib.gui.views.home.ReaderHomePanel;
 import com.ximilib.gui.views.home.StaffHomePanel;
 import com.ximilib.infrastructure.config.AppContainer;
-import com.ximilib.models.User;
+import com.ximilib.domain.model.User;
 import com.ximilib.presentation.component.HelpGuideModalPanel;
 import com.ximilib.presentation.component.NotificationPopupPanel;
 import com.ximilib.presentation.component.TabbedViewPanel;

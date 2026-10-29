@@ -4,7 +4,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.ximilib.application.dto.LoginResult;
 import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.infrastructure.config.AppContainer;
-import com.ximilib.models.User;
+import com.ximilib.domain.model.User;
 import com.ximilib.gui.MainDashboardFrame;
 import com.ximilib.gui.RegisterForm;
 import com.ximilib.gui.util.IconFactory;

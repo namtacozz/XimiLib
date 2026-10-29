@@ -5,7 +5,7 @@ import com.ximilib.gui.LoginForm;
 import com.ximilib.gui.util.UITheme;
 import com.ximilib.gui.util.UserSession;
 import com.ximilib.infrastructure.security.SecurityUtil;
-import com.ximilib.models.User;
+import com.ximilib.domain.model.User;
 import com.ximilib.presentation.util.UiModalHelper;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
