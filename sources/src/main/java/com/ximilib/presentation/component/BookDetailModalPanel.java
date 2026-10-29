@@ -133,8 +133,8 @@ public class BookDetailModalPanel extends JPanel {
             btnBorrow.setMaximumSize(new Dimension(300, 38));
             btnBorrow.addActionListener(e -> {
                 UiModalHelper.closeModal("BOOK_DETAIL");
-                if (com.ximilib.gui.MainDashboardFrame.getInstance() != null) {
-                    com.ximilib.gui.MainDashboardFrame.getInstance().openBorrowRegistration(book);
+                if (com.ximilib.presentation.view.MainDashboardFrame.getInstance() != null) {
+                    com.ximilib.presentation.view.MainDashboardFrame.getInstance().openBorrowRegistration(book);
                 }
             });
             panel.add(btnBorrow);

@@ -1,13 +1,13 @@
-package com.ximilib.gui;
+package com.ximilib.presentation.view;
 
 import com.ximilib.presentation.component.DigitalCardDialog;
 import com.ximilib.presentation.component.SearchField;
 import com.ximilib.presentation.component.SidebarPanel;
 import com.ximilib.presentation.util.IconFactory;
 import com.ximilib.presentation.util.UITheme;
-import com.ximilib.gui.views.*;
-import com.ximilib.gui.views.home.ReaderHomePanel;
-import com.ximilib.gui.views.home.StaffHomePanel;
+import com.ximilib.presentation.view.*;
+import com.ximilib.presentation.view.home.ReaderHomePanel;
+import com.ximilib.presentation.view.home.StaffHomePanel;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.domain.model.User;
 import com.ximilib.presentation.component.HelpGuideModalPanel;

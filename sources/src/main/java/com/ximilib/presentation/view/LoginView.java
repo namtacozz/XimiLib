@@ -1,4 +1,4 @@
-package com.ximilib.gui.views;
+package com.ximilib.presentation.view;
 
 import com.ximilib.presentation.component.BrandPanel;
 import com.ximilib.presentation.component.LoginFormPanel;

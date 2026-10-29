@@ -1,7 +1,7 @@
 package com.ximilib.presentation.component;
 
 import com.ximilib.infrastructure.config.AppContainer;
-import com.ximilib.gui.LoginForm;
+import com.ximilib.presentation.view.LoginForm;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UserSession;
 import com.ximilib.infrastructure.security.SecurityUtil;

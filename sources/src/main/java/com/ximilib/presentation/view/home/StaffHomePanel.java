@@ -1,4 +1,4 @@
-package com.ximilib.gui.views.home;
+package com.ximilib.presentation.view.home;
 
 import com.ximilib.application.dto.BookSummaryDto;
 import com.ximilib.application.dto.StaffDashboardDto;

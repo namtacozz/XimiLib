@@ -1,7 +1,7 @@
-package com.ximilib.gui;
+package com.ximilib.presentation.view;
 
 import com.ximilib.presentation.util.UITheme;
-import com.ximilib.gui.views.LoginView;
+import com.ximilib.presentation.view.LoginView;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;

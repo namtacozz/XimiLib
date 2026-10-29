@@ -1,4 +1,4 @@
-package com.ximilib.gui.views;
+package com.ximilib.presentation.view;
 
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UserSession;

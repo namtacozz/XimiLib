@@ -1,4 +1,4 @@
-package com.ximilib.gui;
+package com.ximilib.presentation.view;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.ximilib.application.dto.RegisterRequestDto;

@@ -1,4 +1,4 @@
-package com.ximilib.gui.views;
+package com.ximilib.presentation.view;
 
 import com.ximilib.application.dto.PatronDto;
 import com.ximilib.application.service.AuthenticationService;
