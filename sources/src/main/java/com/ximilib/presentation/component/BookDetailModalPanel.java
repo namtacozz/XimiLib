@@ -1,8 +1,8 @@
 package com.ximilib.presentation.component;
 
 import com.ximilib.application.dto.BookSummaryDto;
-import com.ximilib.gui.util.UITheme;
-import com.ximilib.gui.util.UserSession;
+import com.ximilib.presentation.util.UITheme;
+import com.ximilib.presentation.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
 import raven.modal.component.SimpleModalBorder;

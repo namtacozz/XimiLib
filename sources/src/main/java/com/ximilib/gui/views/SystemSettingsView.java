@@ -1,7 +1,7 @@
 package com.ximilib.gui.views;
 
-import com.ximilib.gui.util.UITheme;
-import com.ximilib.gui.util.UserSession;
+import com.ximilib.presentation.util.UITheme;
+import com.ximilib.presentation.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.infrastructure.logging.AuditLogger;
 import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;

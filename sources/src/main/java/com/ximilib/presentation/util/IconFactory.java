@@ -1,4 +1,4 @@
-package com.ximilib.gui.util;
+package com.ximilib.presentation.util;
 
 import java.awt.*;
 import java.awt.geom.Path2D;

@@ -1,7 +1,7 @@
 package com.ximilib.presentation.component.table;
 
 import com.ximilib.application.dto.BookSummaryDto;
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.UITheme;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.util.Set;

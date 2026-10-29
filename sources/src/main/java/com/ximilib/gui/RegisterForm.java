@@ -3,7 +3,7 @@ package com.ximilib.gui;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.ximilib.application.dto.RegisterRequestDto;
 import com.ximilib.application.service.AuthenticationService;
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.UITheme;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
 import raven.datetime.DatePicker;

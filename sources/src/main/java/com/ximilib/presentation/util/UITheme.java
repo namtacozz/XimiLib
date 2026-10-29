@@ -1,4 +1,4 @@
-package com.ximilib.gui.util;
+package com.ximilib.presentation.util;
 
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;

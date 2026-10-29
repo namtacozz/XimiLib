@@ -1,6 +1,6 @@
 package com.ximilib.gui.components;
 
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.UITheme;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;

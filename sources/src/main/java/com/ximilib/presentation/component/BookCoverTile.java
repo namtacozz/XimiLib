@@ -1,7 +1,7 @@
 package com.ximilib.presentation.component;
 
 import com.ximilib.application.dto.StaffDashboardDto.NewBookTileDto;
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.UITheme;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;

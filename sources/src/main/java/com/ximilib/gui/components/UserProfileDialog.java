@@ -1,6 +1,6 @@
 package com.ximilib.gui.components;
 
-import com.ximilib.gui.util.UserSession;
+import com.ximilib.presentation.util.UserSession;
 import com.ximilib.domain.model.User;
 import com.ximilib.presentation.component.UserProfileModalPanel;
 import javax.swing.JFrame;

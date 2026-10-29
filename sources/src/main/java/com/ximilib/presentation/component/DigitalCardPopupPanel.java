@@ -1,6 +1,6 @@
 package com.ximilib.presentation.component;
 
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.AppLogo;
 import com.ximilib.presentation.util.UiModalHelper;
 import java.awt.*;

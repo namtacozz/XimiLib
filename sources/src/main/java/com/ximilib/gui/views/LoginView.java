@@ -2,7 +2,7 @@ package com.ximilib.gui.views;
 
 import com.ximilib.gui.components.BrandPanel;
 import com.ximilib.gui.components.LoginFormPanel;
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.UITheme;
 import java.awt.*;
 import javax.swing.*;
 

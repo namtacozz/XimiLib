@@ -1,4 +1,4 @@
-package com.ximilib.gui.util;
+package com.ximilib.presentation.util;
 
 import com.ximilib.domain.model.User;
 import org.junit.jupiter.api.BeforeEach;

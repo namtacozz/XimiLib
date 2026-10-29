@@ -1,8 +1,8 @@
 package com.ximilib.gui.views;
 
 import com.ximilib.application.service.BookCatalogService;
-import com.ximilib.gui.util.IconFactory;
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.IconFactory;
+import com.ximilib.presentation.util.UITheme;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
 

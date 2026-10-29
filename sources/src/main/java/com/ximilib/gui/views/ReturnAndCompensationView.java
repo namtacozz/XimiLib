@@ -4,7 +4,7 @@ import com.ximilib.application.dto.CompensationResultDto;
 import com.ximilib.application.dto.ReturnResultDto;
 import com.ximilib.application.service.CirculationService;
 import com.ximilib.domain.repository.CirculationRepository.BorrowDetailInfo;
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.UITheme;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
 

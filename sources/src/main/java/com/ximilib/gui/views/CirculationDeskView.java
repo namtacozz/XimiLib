@@ -5,7 +5,7 @@ import com.ximilib.application.service.CirculationService;
 import com.ximilib.domain.model.LoanType;
 import com.ximilib.domain.repository.CirculationRepository.BookCopyInfo;
 import com.ximilib.domain.repository.CirculationRepository.UserCardInfo;
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.UITheme;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
 

@@ -1,7 +1,7 @@
 package com.ximilib.gui.components;
 
-import com.ximilib.gui.util.IconFactory;
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.IconFactory;
+import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UiModalHelper;
 
 import javax.swing.*;
