@@ -8,10 +8,10 @@ import com.ximilib.domain.event.BookStockChangedEvent;
 import com.ximilib.domain.event.DomainEventPublisher;
 import com.ximilib.domain.exception.BookInUseException;
 import com.ximilib.domain.repository.BookRepository;
-import com.ximilib.infrastructure.persistence.impl.BookRepositoryImpl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * BookCatalogServiceImpl: Triển khai thực tế nghiệp vụ quản lý kho sách từ MySQL CSDL.
@@ -23,16 +23,8 @@ public class BookCatalogServiceImpl implements BookCatalogService {
 
     private final BookRepository bookRepository;
 
-    public BookCatalogServiceImpl() {
-        this(new BookRepositoryImpl(null));
-    }
-
     public BookCatalogServiceImpl(BookRepository bookRepository) {
-        if (bookRepository == null) {
-            this.bookRepository = new BookRepositoryImpl(null);
-        } else {
-            this.bookRepository = bookRepository;
-        }
+        this.bookRepository = Objects.requireNonNull(bookRepository, "bookRepository không được null");
     }
 
     @Override

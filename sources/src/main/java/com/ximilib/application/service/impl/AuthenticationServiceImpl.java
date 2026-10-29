@@ -6,13 +6,13 @@ import com.ximilib.application.port.PasswordHasher;
 import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.domain.model.LibraryPolicy;
 import com.ximilib.domain.repository.UserRepository;
-import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.domain.model.User;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -28,25 +28,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordHasher passwordHasher;
 
-    public AuthenticationServiceImpl() {
-        this(null, null);
-    }
-
-    public AuthenticationServiceImpl(UserRepository userRepository) {
-        this(userRepository, null);
-    }
-
     public AuthenticationServiceImpl(UserRepository userRepository, PasswordHasher passwordHasher) {
-        this.userRepository = userRepository;
-        this.passwordHasher = passwordHasher;
+        this.userRepository = Objects.requireNonNull(userRepository, "userRepository không được null");
+        this.passwordHasher = Objects.requireNonNull(passwordHasher, "passwordHasher không được null");
     }
 
     private UserRepository getRepo() {
-        return (userRepository != null) ? userRepository : AppContainer.getInstance().getUserRepository();
+        return userRepository;
     }
 
     private PasswordHasher getHasher() {
-        return (passwordHasher != null) ? passwordHasher : AppContainer.getInstance().getPasswordHasher();
+        return passwordHasher;
     }
 
     @Override

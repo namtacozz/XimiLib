@@ -11,7 +11,6 @@ import com.ximilib.domain.model.LoanTicketStatus;
 import com.ximilib.domain.model.LoanType;
 import com.ximilib.domain.repository.CirculationRepository;
 import com.ximilib.domain.repository.CirculationRepository.*;
-import com.ximilib.infrastructure.config.AppContainer;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * CirculationServiceImpl: Triển khai các quy tắc nghiệp vụ Lưu hành, Mượn trả và Bồi thường.
@@ -28,12 +28,8 @@ public class CirculationServiceImpl implements CirculationService {
 
     private final CirculationRepository circulationRepository;
 
-    public CirculationServiceImpl() {
-        this(null);
-    }
-
     public CirculationServiceImpl(CirculationRepository repository) {
-        this.circulationRepository = (repository != null) ? repository : new com.ximilib.infrastructure.persistence.impl.CirculationRepositoryImpl(null);
+        this.circulationRepository = Objects.requireNonNull(repository, "circulationRepository không được null");
     }
 
     private CirculationRepository getRepo() {
