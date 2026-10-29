@@ -12,8 +12,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 
 /**
@@ -216,43 +214,26 @@ public class ReturnAndCompensationView extends JPanel {
         lblBorrower.setText("Mã bạn đọc: " + detail.userId() + " | Mã phiếu: " + detail.ticketId());
         lblDueDate.setText("Hạn trả: " + (detail.dueDate() != null ? detail.dueDate().toLocalDate() : "Không rõ"));
 
-        int overdueDays = 0;
-        if (detail.dueDate() != null && LocalDateTime.now().isAfter(detail.dueDate())) {
-            overdueDays = (int) Math.max(1, ChronoUnit.DAYS.between(detail.dueDate().toLocalDate(), LocalDateTime.now().toLocalDate()));
-            lblOverdueStatus.setText("<html><font color='#dc2626'><b>Quá hạn " + overdueDays + " ngày (Phạt 2.000đ/ngày)</b></font></html>");
-        } else {
-            lblOverdueStatus.setText("<html><font color='#16a34a'>Đang trong thời hạn mượn hợp lệ</font></html>");
-        }
-
         recalculateFine();
     }
 
     private void recalculateFine() {
         if (currentDetail == null) return;
 
-        LocalDateTime now = LocalDateTime.now();
-        int overdueDays = 0;
-        BigDecimal overdueFine = BigDecimal.ZERO;
-        if (currentDetail.dueDate() != null && now.isAfter(currentDetail.dueDate())) {
-            overdueDays = (int) Math.max(1, ChronoUnit.DAYS.between(currentDetail.dueDate().toLocalDate(), now.toLocalDate()));
-            overdueFine = new BigDecimal("2000.00").multiply(BigDecimal.valueOf(overdueDays));
+        boolean isLost = radLost.isSelected();
+        boolean isDamaged = radDamaged.isSelected();
+
+        CompensationResultDto calc = circulationService.calculateCompensation(currentDetail.copyId(), isLost, isDamaged);
+
+        if (calc.getOverdueDays() > 0) {
+            lblOverdueStatus.setText("<html><font color='#dc2626'><b>Quá hạn " + calc.getOverdueDays() + " ngày (Phạt 2.000đ/ngày)</b></font></html>");
+        } else {
+            lblOverdueStatus.setText("<html><font color='#16a34a'>Đang trong thời hạn mượn hợp lệ</font></html>");
         }
 
-        BigDecimal techFee = BigDecimal.ZERO;
-        BigDecimal lossAmount = BigDecimal.ZERO;
-
-        if (radDamaged.isSelected()) {
-            techFee = new BigDecimal("20000.00");
-        } else if (radLost.isSelected()) {
-            BigDecimal cover = currentDetail.coverPrice() != null ? currentDetail.coverPrice() : new BigDecimal("50000.00");
-            lossAmount = cover.multiply(new BigDecimal("2.0"));
-            techFee = new BigDecimal("20000.00");
-        }
-
-        BigDecimal total = overdueFine.add(techFee).add(lossAmount);
-        lblFineDetail.setText("Phạt trễ: " + currencyFormat.format(overdueFine) + " + Phí: " + currencyFormat.format(techFee)
-            + (lossAmount.compareTo(BigDecimal.ZERO) > 0 ? " + Đền bù mất sách (200%): " + currencyFormat.format(lossAmount) : ""));
-        lblTotalAmount.setText("TỔNG TIỀN PHẢI NỘP: " + currencyFormat.format(total));
+        lblFineDetail.setText("Phạt trễ: " + currencyFormat.format(calc.getOverdueFine()) + " + Phí: " + currencyFormat.format(calc.getTechFee())
+            + (calc.getBookLossAmount().compareTo(BigDecimal.ZERO) > 0 ? " + Đền bù mất sách (200%): " + currencyFormat.format(calc.getBookLossAmount()) : ""));
+        lblTotalAmount.setText("TỔNG TIỀN PHẢI NỘP: " + currencyFormat.format(calc.getTotalAmount()));
     }
 
     private void executeReturnOrLoss() {
