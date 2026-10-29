@@ -1,5 +1,6 @@
 package com.ximilib.infrastructure.config;
 
+import com.ximilib.application.port.BookQueryPort;
 import com.ximilib.application.port.CirculationQueryPort;
 import com.ximilib.application.port.DashboardQueryPort;
 import com.ximilib.application.port.PasswordHasher;
@@ -34,6 +35,7 @@ public class AppContainer {
     private final DatabaseConnectionManager connectionManager;
     private final PasswordHasher passwordHasher;
     private final BookRepository bookRepository;
+    private final BookQueryPort bookQueryPort;
     private final BookCatalogService bookCatalogService;
     private final UserRepository userRepository;
     private final UserQueryPort userQueryPort;
@@ -48,8 +50,10 @@ public class AppContainer {
     private AppContainer() {
         this.connectionManager = new DatabaseConnectionManager();
         this.passwordHasher = new SecurityUtil();
-        this.bookRepository = new BookRepositoryImpl(connectionManager);
-        this.bookCatalogService = new BookCatalogServiceImpl(bookRepository);
+        BookRepositoryImpl bookRepo = new BookRepositoryImpl(connectionManager);
+        this.bookRepository = bookRepo;
+        this.bookQueryPort = bookRepo;
+        this.bookCatalogService = new BookCatalogServiceImpl(bookRepository, bookQueryPort);
         UserRepositoryImpl userRepo = new UserRepositoryImpl(connectionManager);
         this.userRepository = userRepo;
         this.userQueryPort = userRepo;
@@ -77,6 +81,10 @@ public class AppContainer {
 
     public BookRepository getBookRepository() {
         return bookRepository;
+    }
+
+    public BookQueryPort getBookQueryPort() {
+        return bookQueryPort;
     }
 
     public BookCatalogService getBookCatalogService() {
