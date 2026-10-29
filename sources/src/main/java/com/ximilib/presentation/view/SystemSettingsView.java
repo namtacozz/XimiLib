@@ -1,20 +1,16 @@
 package com.ximilib.presentation.view;
 
+import com.ximilib.application.port.SystemSettingsPort;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
-import com.ximilib.infrastructure.logging.AuditLogger;
-import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
 import com.ximilib.presentation.util.UiModalHelper;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.List;
 
 /**
  * SystemSettingsView: Màn hình Cài đặt Quy định Thư viện (SRS & Bảng cauhinh).
@@ -24,16 +20,16 @@ import java.sql.SQLException;
  */
 public class SystemSettingsView extends JPanel {
 
-    private final DatabaseConnectionManager connectionManager;
+    private final SystemSettingsPort settingsPort;
     private final DefaultTableModel tableModel;
     private JTable settingsTable;
 
     public SystemSettingsView() {
-        this(AppContainer.getInstance().getConnectionManager());
+        this(AppContainer.getInstance().getSystemSettingsPort());
     }
 
-    public SystemSettingsView(DatabaseConnectionManager connectionManager) {
-        this.connectionManager = (connectionManager != null) ? connectionManager : AppContainer.getInstance().getConnectionManager();
+    public SystemSettingsView(SystemSettingsPort settingsPort) {
+        this.settingsPort = (settingsPort != null) ? settingsPort : AppContainer.getInstance().getSystemSettingsPort();
 
         setOpaque(false);
         setLayout(new BorderLayout());
@@ -48,6 +44,11 @@ public class SystemSettingsView extends JPanel {
 
         initUI();
         loadSettingsAsync();
+    }
+
+    @Deprecated
+    public SystemSettingsView(Object legacyConnectionManager) {
+        this(AppContainer.getInstance().getSystemSettingsPort());
     }
 
     private void initUI() {
@@ -110,25 +111,21 @@ public class SystemSettingsView extends JPanel {
     }
 
     private void loadSettingsAsync() {
-        new SwingWorker<Void, Object[]>() {
+        new SwingWorker<List<Object[]>, Void>() {
             @Override
-            protected Void doInBackground() throws SQLException {
-                String sql = "SELECT khoa, giatri, mota FROM cauhinh ORDER BY khoa ASC";
-                try (Connection conn = connectionManager.getConnection();
-                     PreparedStatement ps = conn.prepareStatement(sql);
-                     ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        publish(new Object[]{rs.getString(1), rs.getString(2), rs.getString(3)});
-                    }
-                }
-                return null;
+            protected List<Object[]> doInBackground() {
+                return settingsPort.getAllSettings();
             }
 
             @Override
-            protected void process(java.util.List<Object[]> chunks) {
-                tableModel.setRowCount(0);
-                for (Object[] row : chunks) {
-                    tableModel.addRow(row);
+            protected void done() {
+                try {
+                    List<Object[]> rows = get();
+                    tableModel.setRowCount(0);
+                    for (Object[] row : rows) {
+                        tableModel.addRow(row);
+                    }
+                } catch (Exception ignored) {
                 }
             }
         }.execute();
@@ -147,24 +144,17 @@ public class SystemSettingsView extends JPanel {
 
         String key = (String) tableModel.getValueAt(row, 0);
         String val = (String) tableModel.getValueAt(row, 1);
+        String user = (UserSession.getCurrentUser() != null) ? UserSession.getCurrentUser().getId() : "ADMIN";
 
         new SwingWorker<Void, Void>() {
             @Override
-            protected Void doInBackground() throws SQLException {
-                String sql = "UPDATE cauhinh SET giatri = ? WHERE khoa = ?";
-                try (Connection conn = connectionManager.getConnection();
-                     PreparedStatement ps = conn.prepareStatement(sql)) {
-                    ps.setString(1, val.trim());
-                    ps.setString(2, key);
-                    ps.executeUpdate();
-                }
+            protected Void doInBackground() {
+                settingsPort.updateSetting(key, val, user);
                 return null;
             }
 
             @Override
             protected void done() {
-                String user = (UserSession.getCurrentUser() != null) ? UserSession.getCurrentUser().getId() : "ADMIN";
-                AuditLogger.log(user, "UPDATE_CONFIG", "Cập nhật tham số " + key + " = " + val);
                 UiModalHelper.showToastSuccess(SystemSettingsView.this, "Đã cập nhật tham số [" + key + "] thành công!");
             }
         }.execute();
