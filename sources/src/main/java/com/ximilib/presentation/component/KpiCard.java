@@ -1,4 +1,4 @@
-package com.ximilib.gui.components;
+package com.ximilib.presentation.component;
 
 import com.ximilib.presentation.util.UITheme;
 import java.awt.*;

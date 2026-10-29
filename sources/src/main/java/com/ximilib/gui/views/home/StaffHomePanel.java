@@ -8,7 +8,7 @@ import com.ximilib.domain.event.BookStockChangedEvent;
 import com.ximilib.domain.event.DomainEventListener;
 import com.ximilib.domain.event.DomainEventPublisher;
 import com.ximilib.domain.model.LoanDueClassification;
-import com.ximilib.gui.components.KpiCard;
+import com.ximilib.presentation.component.KpiCard;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.domain.model.User;

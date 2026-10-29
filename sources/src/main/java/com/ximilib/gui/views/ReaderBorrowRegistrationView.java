@@ -9,7 +9,7 @@ import com.ximilib.domain.model.LibraryPolicy;
 import com.ximilib.domain.model.LoanType;
 import com.ximilib.domain.repository.CirculationRepository.BookCopyInfo;
 import com.ximilib.domain.repository.CirculationRepository.UserCardInfo;
-import com.ximilib.gui.components.SearchField;
+import com.ximilib.presentation.component.SearchField;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.domain.model.User;
 import com.ximilib.presentation.util.UiModalHelper;

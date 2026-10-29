@@ -1,4 +1,4 @@
-package com.ximilib.gui.components;
+package com.ximilib.presentation.component;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

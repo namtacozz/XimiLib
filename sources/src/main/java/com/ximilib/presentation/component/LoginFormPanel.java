@@ -1,4 +1,4 @@
-package com.ximilib.gui.components;
+package com.ximilib.presentation.component;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.ximilib.application.dto.LoginResult;

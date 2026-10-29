@@ -1,8 +1,8 @@
 package com.ximilib.gui;
 
-import com.ximilib.gui.components.DigitalCardDialog;
-import com.ximilib.gui.components.SearchField;
-import com.ximilib.gui.components.SidebarPanel;
+import com.ximilib.presentation.component.DigitalCardDialog;
+import com.ximilib.presentation.component.SearchField;
+import com.ximilib.presentation.component.SidebarPanel;
 import com.ximilib.presentation.util.IconFactory;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.gui.views.*;

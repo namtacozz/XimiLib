@@ -1,4 +1,4 @@
-package com.ximilib.gui.components;
+package com.ximilib.presentation.component;
 
 import com.ximilib.presentation.component.DigitalCardPopupPanel;
 import com.ximilib.presentation.util.UiModalHelper;

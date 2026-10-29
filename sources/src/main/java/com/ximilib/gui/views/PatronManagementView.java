@@ -2,7 +2,7 @@ package com.ximilib.gui.views;
 
 import com.ximilib.application.dto.PatronDto;
 import com.ximilib.application.service.AuthenticationService;
-import com.ximilib.gui.components.SearchField;
+import com.ximilib.presentation.component.SearchField;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
