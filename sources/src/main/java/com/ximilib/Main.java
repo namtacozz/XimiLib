@@ -1,7 +1,7 @@
 package com.ximilib;
 
-import com.ximilib.gui.LoginForm;
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.view.LoginForm;
+import com.ximilib.presentation.util.UITheme;
 import java.awt.Rectangle;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;

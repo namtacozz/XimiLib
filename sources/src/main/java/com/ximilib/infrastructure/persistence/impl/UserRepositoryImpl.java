@@ -4,7 +4,7 @@ import com.ximilib.application.dto.PatronDto;
 import com.ximilib.application.dto.UserAccountDto;
 import com.ximilib.domain.repository.UserRepository;
 import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
-import com.ximilib.models.User;
+import com.ximilib.domain.model.User;
 import java.sql.*;
 import java.sql.Date;
 import java.time.LocalDate;

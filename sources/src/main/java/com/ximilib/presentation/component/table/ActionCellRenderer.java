@@ -1,8 +1,8 @@
 package com.ximilib.presentation.component.table;
 
 import com.ximilib.application.dto.BookSummaryDto;
-import com.ximilib.gui.util.IconFactory;
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.IconFactory;
+import com.ximilib.presentation.util.UITheme;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.util.Set;

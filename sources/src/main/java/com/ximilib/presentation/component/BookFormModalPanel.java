@@ -1,7 +1,7 @@
 package com.ximilib.presentation.component;
 
 import com.ximilib.application.dto.BookSummaryDto;
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UiModalHelper;
 import java.awt.*;
 import java.time.LocalDate;

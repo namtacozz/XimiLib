@@ -1,7 +1,7 @@
 package com.ximilib.presentation.component;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.Illustrations;
 import com.ximilib.presentation.util.UiModalHelper;
 import raven.modal.component.SimpleModalBorder;

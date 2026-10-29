@@ -149,7 +149,7 @@ public class UiModalHelper {
 
     public static void showQuickPopup(Component content) {
         runOnEdt(() -> {
-            com.ximilib.gui.MainDashboardFrame mainFrame = com.ximilib.gui.MainDashboardFrame.getInstance();
+            com.ximilib.presentation.view.MainDashboardFrame mainFrame = com.ximilib.presentation.view.MainDashboardFrame.getInstance();
             if (mainFrame != null && (!GlassPanePopup.isInit() || GlassPanePopup.getMainFrame() != mainFrame)) {
                 initMainFrame(mainFrame);
             }
@@ -176,7 +176,7 @@ public class UiModalHelper {
 
     public static void showQuickPopup(Component content, String title) {
         runOnEdt(() -> {
-            com.ximilib.gui.MainDashboardFrame mainFrame = com.ximilib.gui.MainDashboardFrame.getInstance();
+            com.ximilib.presentation.view.MainDashboardFrame mainFrame = com.ximilib.presentation.view.MainDashboardFrame.getInstance();
             if (mainFrame != null && (!GlassPanePopup.isInit() || GlassPanePopup.getMainFrame() != mainFrame)) {
                 initMainFrame(mainFrame);
             }

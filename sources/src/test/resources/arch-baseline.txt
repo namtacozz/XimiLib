@@ -6,11 +6,9 @@
 # ==============================================================================
 
 # Luật Package: Cấm tồn tại package com.ximilib.gui và com.ximilib.models
-FORBIDDEN_PACKAGE:com.ximilib.gui
-FORBIDDEN_PACKAGE:com.ximilib.models
 
 # Domain Layer Violations (Luật: domain không import javax.swing, java.sql, com.zaxxer, com.ximilib.application, com.ximilib.infrastructure, com.ximilib.presentation, com.ximilib.gui)
-sources/src/main/java/com/ximilib/domain/model/LoanDueClassification.java:3:com.ximilib.gui.util.UITheme
+sources/src/main/java/com/ximilib/domain/model/LoanDueClassification.java:3:com.ximilib.presentation.util.UITheme
 sources/src/main/java/com/ximilib/domain/repository/BookRepository.java:3:com.ximilib.application.dto.BookSearchCriteria
 sources/src/main/java/com/ximilib/domain/repository/BookRepository.java:4:com.ximilib.application.dto.BookSummaryDto
 sources/src/main/java/com/ximilib/domain/repository/BookRepository.java:5:com.ximilib.application.dto.PagedResult
@@ -21,7 +19,7 @@ sources/src/main/java/com/ximilib/domain/repository/UserRepository.java:3:com.xi
 sources/src/main/java/com/ximilib/domain/repository/UserRepository.java:4:com.ximilib.application.dto.UserAccountDto
 
 # Application Layer Violations (Luật: application không import javax.swing, java.sql, com.ximilib.infrastructure, com.ximilib.presentation, com.ximilib.gui)
-sources/src/main/java/com/ximilib/application/service/impl/AuthenticationServiceImpl.java:8:com.ximilib.gui.util.UserSession
+sources/src/main/java/com/ximilib/application/service/impl/AuthenticationServiceImpl.java:8:com.ximilib.presentation.util.UserSession
 sources/src/main/java/com/ximilib/application/service/impl/AuthenticationServiceImpl.java:9:com.ximilib.infrastructure.config.AppContainer
 sources/src/main/java/com/ximilib/application/service/impl/BookCatalogServiceImpl.java:11:com.ximilib.infrastructure.persistence.impl.BookRepositoryImpl
 sources/src/main/java/com/ximilib/application/service/impl/CirculationServiceImpl.java:14:com.ximilib.infrastructure.config.AppContainer
@@ -31,18 +29,18 @@ sources/src/main/java/com/ximilib/presentation/component/BookDetailModalPanel.ja
 sources/src/main/java/com/ximilib/presentation/component/BookDetailModalPanel.java:15:java.sql.PreparedStatement
 sources/src/main/java/com/ximilib/presentation/component/BookDetailModalPanel.java:16:java.sql.ResultSet
 sources/src/main/java/com/ximilib/presentation/component/BookDetailModalPanel.java:17:java.sql.SQLException
-sources/src/main/java/com/ximilib/gui/views/FeedbackManagementView.java:7:com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager
-sources/src/main/java/com/ximilib/gui/views/FeedbackManagementView.java:14:java.sql.Connection
-sources/src/main/java/com/ximilib/gui/views/FeedbackManagementView.java:15:java.sql.PreparedStatement
-sources/src/main/java/com/ximilib/gui/views/FeedbackManagementView.java:16:java.sql.ResultSet
-sources/src/main/java/com/ximilib/gui/views/FeedbackManagementView.java:17:java.sql.SQLException
-sources/src/main/java/com/ximilib/gui/views/ReportsDashboardView.java:7:com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager
-sources/src/main/java/com/ximilib/gui/views/ReportsDashboardView.java:20:java.sql.Connection
-sources/src/main/java/com/ximilib/gui/views/ReportsDashboardView.java:21:java.sql.PreparedStatement
-sources/src/main/java/com/ximilib/gui/views/ReportsDashboardView.java:22:java.sql.ResultSet
-sources/src/main/java/com/ximilib/gui/views/ReportsDashboardView.java:23:java.sql.SQLException
-sources/src/main/java/com/ximilib/gui/views/SystemSettingsView.java:7:com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager
-sources/src/main/java/com/ximilib/gui/views/SystemSettingsView.java:14:java.sql.Connection
-sources/src/main/java/com/ximilib/gui/views/SystemSettingsView.java:15:java.sql.PreparedStatement
-sources/src/main/java/com/ximilib/gui/views/SystemSettingsView.java:16:java.sql.ResultSet
-sources/src/main/java/com/ximilib/gui/views/SystemSettingsView.java:17:java.sql.SQLException
+sources/src/main/java/com/ximilib/presentation/view/FeedbackManagementView.java:7:com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager
+sources/src/main/java/com/ximilib/presentation/view/FeedbackManagementView.java:14:java.sql.Connection
+sources/src/main/java/com/ximilib/presentation/view/FeedbackManagementView.java:15:java.sql.PreparedStatement
+sources/src/main/java/com/ximilib/presentation/view/FeedbackManagementView.java:16:java.sql.ResultSet
+sources/src/main/java/com/ximilib/presentation/view/FeedbackManagementView.java:17:java.sql.SQLException
+sources/src/main/java/com/ximilib/presentation/view/ReportsDashboardView.java:7:com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager
+sources/src/main/java/com/ximilib/presentation/view/ReportsDashboardView.java:20:java.sql.Connection
+sources/src/main/java/com/ximilib/presentation/view/ReportsDashboardView.java:21:java.sql.PreparedStatement
+sources/src/main/java/com/ximilib/presentation/view/ReportsDashboardView.java:22:java.sql.ResultSet
+sources/src/main/java/com/ximilib/presentation/view/ReportsDashboardView.java:23:java.sql.SQLException
+sources/src/main/java/com/ximilib/presentation/view/SystemSettingsView.java:7:com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager
+sources/src/main/java/com/ximilib/presentation/view/SystemSettingsView.java:14:java.sql.Connection
+sources/src/main/java/com/ximilib/presentation/view/SystemSettingsView.java:15:java.sql.PreparedStatement
+sources/src/main/java/com/ximilib/presentation/view/SystemSettingsView.java:16:java.sql.ResultSet
+sources/src/main/java/com/ximilib/presentation/view/SystemSettingsView.java:17:java.sql.SQLException

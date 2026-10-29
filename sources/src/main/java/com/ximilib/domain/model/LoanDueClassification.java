@@ -1,6 +1,6 @@
 package com.ximilib.domain.model;
 
-import com.ximilib.gui.util.UITheme;
+import com.ximilib.presentation.util.UITheme;
 import java.awt.Color;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;

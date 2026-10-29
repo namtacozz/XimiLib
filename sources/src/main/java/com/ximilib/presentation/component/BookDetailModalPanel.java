@@ -1,8 +1,8 @@
 package com.ximilib.presentation.component;
 
 import com.ximilib.application.dto.BookSummaryDto;
-import com.ximilib.gui.util.UITheme;
-import com.ximilib.gui.util.UserSession;
+import com.ximilib.presentation.util.UITheme;
+import com.ximilib.presentation.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
 import raven.modal.component.SimpleModalBorder;
@@ -133,8 +133,8 @@ public class BookDetailModalPanel extends JPanel {
             btnBorrow.setMaximumSize(new Dimension(300, 38));
             btnBorrow.addActionListener(e -> {
                 UiModalHelper.closeModal("BOOK_DETAIL");
-                if (com.ximilib.gui.MainDashboardFrame.getInstance() != null) {
-                    com.ximilib.gui.MainDashboardFrame.getInstance().openBorrowRegistration(book);
+                if (com.ximilib.presentation.view.MainDashboardFrame.getInstance() != null) {
+                    com.ximilib.presentation.view.MainDashboardFrame.getInstance().openBorrowRegistration(book);
                 }
             });
             panel.add(btnBorrow);
