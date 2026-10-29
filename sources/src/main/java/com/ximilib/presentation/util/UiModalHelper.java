@@ -19,19 +19,19 @@ import raven.popup.component.GlassPaneChild;
 import raven.popup.component.SimplePopupBorder;
 
 /**
- * UiModalHelper: Bo cong cu Helper/Factory chuan hoa toan bo giao dien
- * tren nen FlatLaf ket hop 3 thu vien DJ-Raven:
+ * UiModalHelper: Bộ công cụ Helper/Factory chuẩn hóa toàn bộ giao diện
+ * trên nền FlatLaf kết hợp 3 thư viện DJ-Raven:
  * 1. raven.modal (ModalDialog, SimpleModalBorder, Toast)
  * 2. raven.popup (GlassPanePopup)
  * 3. raven.datetime (DatePicker, TimePicker)
  *
- * Tuyet doi thay the 100% JOptionPane va JDialog truyen thong bang In-App Modal Overlay.
+ * Tuyệt đối thay thế 100% JOptionPane và JDialog truyền thống bằng In-App Modal Overlay.
  */
 public class UiModalHelper {
 
     /**
-     * Khoi tao GlassPanePopup va cau hinh mac dinh cho ModalDialog tren JFrame chinh.
-     * Goi 1 lan duy nhat khi khoi dong cua so (MainDashboard / LoginForm).
+     * Khởi tạo GlassPanePopup và cấu hình mặc định cho ModalDialog trên JFrame chính.
+     * Gọi 1 lần duy nhất khi khởi động cửa sổ (MainDashboard / LoginForm).
      */
     public static void initMainFrame(JFrame frame) {
         if (frame != null && (!GlassPanePopup.isInit() || GlassPanePopup.getMainFrame() != frame)) {
@@ -75,7 +75,7 @@ public class UiModalHelper {
     // =========================================================================
 
     /**
-     * Hien thi hop thoai xac nhan (YES / NO) bang SimpleModalBorder.
+     * Hiển thị hộp thoại xác nhận (YES / NO) bằng SimpleModalBorder.
      */
     public static void showConfirm(Component parent, String title, String message, Runnable onConfirm) {
         runOnEdt(() -> {
@@ -105,7 +105,7 @@ public class UiModalHelper {
     }
 
     /**
-     * Hien thi Custom Form Modal (Them/Sua sach, Lap phieu muon, Bao mat...)
+     * Hiển thị Custom Form Modal (Thêm/Sửa sách, Lập phiếu mượn, Báo mất...)
      */
     public static void showCustomModal(Component parent, String id, String title, Component content, int optionType, ModalCallback callback) {
         runOnEdt(() -> {
@@ -124,7 +124,7 @@ public class UiModalHelper {
     }
 
     /**
-     * Hien thi Modal voi nut dong co ban
+     * Hiển thị Modal với nút đóng cơ bản
      */
     public static void showModal(Component parent, String title, Component content) {
         runOnEdt(() -> {
@@ -200,9 +200,9 @@ public class UiModalHelper {
     // =========================================================================
 
     /**
-     * Tao DatePicker gan vao JFormattedTextField voi format dd/MM/yyyy.
-     * @param editor Text field hien thi va nhan nhap ngay
-     * @param isRange true neu chon khoang ngay (Between), false neu chon 1 ngay
+     * Tạo DatePicker gắn vào JFormattedTextField với format dd/MM/yyyy.
+     * @param editor Text field hiển thị và nhận nhập ngày
+     * @param isRange true nếu chọn khoảng ngày (Between), false nếu chọn 1 ngày
      */
     public static DatePicker createDatePicker(JFormattedTextField editor, boolean isRange) {
         DatePicker datePicker = new DatePicker();
@@ -216,7 +216,7 @@ public class UiModalHelper {
     }
 
     /**
-     * Tao TimePicker gan vao JFormattedTextField (mac dinh 24h: HH:mm).
+     * Tạo TimePicker gắn vào JFormattedTextField (mặc định 24h: HH:mm).
      */
     public static TimePicker createTimePicker(JFormattedTextField editor, boolean is24Hour) {
         TimePicker timePicker = new TimePicker();
@@ -226,7 +226,7 @@ public class UiModalHelper {
     }
 
     /**
-     * Helper dam bao thuc thi tren Swing EDT
+     * Helper đảm bảo thực thi trên Swing EDT
      */
     public static void runOnEdt(Runnable r) {
         if (SwingUtilities.isEventDispatchThread()) {

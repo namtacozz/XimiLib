@@ -14,9 +14,9 @@ import javax.swing.border.TitledBorder;
 import raven.popup.component.GlassPaneChild;
 
 /**
- * UserProfileModalPanel: Popup thong tin tai khoan & doi mat khau
- * ke thua GlassPaneChild (In-App Overlay chuan GlassPanePopup).
- * Khac phuc triet de hien tuong tat ngay khi click tren thanh Header.
+ * UserProfileModalPanel: Popup thông tin tài khoản & đổi mật khẩu
+ * kế thừa GlassPaneChild (In-App Overlay chuẩn GlassPanePopup).
+ * Khắc phục triệt để hiện tượng tắt ngay khi click trên thanh Header.
  */
 public class UserProfileModalPanel extends GlassPaneChild {
 

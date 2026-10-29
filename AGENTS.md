@@ -10,7 +10,8 @@ Quy ước nhãn: [TBD] = chưa chốt, cần xác nhận | [ASSUMPTION] = đề
 
 ## 1. Tổng quan
 - **XimiLib**: ứng dụng desktop quản lý thư viện, đồ án PBL – Trường ĐH Bách Khoa, ĐH Đà Nẵng.
-- **Stack**: Java 17, Swing + FlatLaf, MySQL 8.0+ tập trung (JDBC + HikariCP), JUnit 5.
+- **Stack**: Java 17, Swing + FlatLaf (`flatlaf`, `flatlaf-extras`, `miglayout-swing`), DJ-Raven Suite (`modal-dialog`, `swing-glasspane-popup`, `swing-datetime-picker`), MySQL 8.0+ tập trung (JDBC + HikariCP), BCrypt (`jbcrypt`), JUnit 5.
+- **Danh mục thư viện đã duyệt (Whitelist)**: `flatlaf`, `flatlaf-extras`, `miglayout-swing`, `modal-dialog`, `swing-glasspane-popup`, `swing-datetime-picker`, `jbcrypt`, `HikariCP`, `mysql-connector-j`.
 - **Kiến trúc**: Clean Architecture (`presentation → application → domain ← infrastructure`), Pure DI tại Composition Root, Repository Pattern, Observer kết hợp quét DB định kỳ để đồng bộ nhiều máy.
 - **Tác nhân (RBAC)**: Admin, Thủ thư, Độc giả.
 - `docs/` là Single Source of Truth (SSOT).
@@ -56,7 +57,7 @@ Khi hai nguồn mâu thuẫn: tên bảng/cột/enum theo `DATABASE_SCHEMA.md` >
 | R-09 | **Enum và hằng số**: trạng thái, vai trò, loại phạt dùng enum domain khớp DATABASE_SCHEMA §Enum. Các hằng quy định (3 cuốn, 14 ngày, 2.000đ/ngày...) khai báo một nơi duy nhất, không rải số trong code. | BR-02..BR-08 |
 | R-10 | **Mất/hỏng sách**: khi báo mất sách, phiếu mượn chuyển `CHO_XU_LY_BOI_THUONG` và lập phiếu phạt đền bù theo BR-08; chỉ chính thức đóng phiếu mượn sang `DA_MAT` sau khi hoàn tất nộp tiền đền bù (SRS UC-9, C1). | BR-08, UC-9 |
 | R-11 | **Chuẩn hóa UI (DJ-Raven Suite)**: Tuyệt đối cấm sử dụng `JOptionPane`, `JDialog` thuần của OS hoặc `JTextField` nhập ngày thủ công. Bắt buộc dùng `ModalDialog`/`Toast` (`swing-modal-dialog`) cho form CRUD/xác nhận/thông báo; `GlassPanePopup` (`swing-glasspane-popup`) cho quick overlay (thẻ thư viện số, chuông thông báo); và `DatePicker` (`swing-datetime-picker`) cho mọi trường `LocalDate`/`LocalDateTime`. Toàn bộ tương tác UI thông qua `UiModalHelper`. | ARCHITECTURE |
-| R-12 | **Không bịa**: không thêm bảng, cột, use case, thư viện ngoài tài liệu. Đổi schema phải cập nhật `DATABASE_SCHEMA.md` trong cùng commit. Thiếu dữ kiện thì ghi Open Issue, không suy diễn. | — |
+| R-12 | **Không bịa / Thư viện**: Chỉ sử dụng các thư viện đã được phê duyệt trong danh mục (FlatLaf, flatlaf-extras, miglayout, DJ-Raven Suite, jbcrypt, HikariCP, mysql-connector-j); không tự ý thêm bảng, cột, use case hay thư viện mới ngoài tài liệu. Đổi schema phải cập nhật `DATABASE_SCHEMA.md` trong cùng commit. Thiếu dữ kiện thì ghi Open Issue, không suy diễn. | — |
 
 ## 6. Quy chuẩn Thiết kế Giao diện (UI Component Standards - DJ-Raven Suite)
 Hệ thống sử dụng bộ 3 thư viện DJ-Raven trên nền FlatLaf tập trung qua `com.ximilib.presentation.util.UiModalHelper`:

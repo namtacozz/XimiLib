@@ -6,10 +6,10 @@ import com.ximilib.presentation.component.UserProfileModalPanel;
 import javax.swing.JFrame;
 
 /**
- * UserProfileDialog: Adapter hien thi Thong tin tai khoan & Doi mat khau
- * bang ModalDialog (SimpleModalBorder In-App Overlay).
- * Triet tieu hoan toan OS JDialog truyen thong theo dung quy chuan XimiLib.
- * Tac gia: Phan Vu Xuan Kien
+ * UserProfileDialog: Adapter hiển thị Thông tin tài khoản & Đổi mật khẩu
+ * bằng ModalDialog (SimpleModalBorder In-App Overlay).
+ * Triệt tiêu hoàn toàn OS JDialog truyền thống theo đúng quy chuẩn XimiLib.
+ * Tác giả: Phan Vũ Xuân Kiên
  */
 public class UserProfileDialog {
 
