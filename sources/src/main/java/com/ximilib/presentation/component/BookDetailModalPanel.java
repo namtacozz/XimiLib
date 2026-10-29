@@ -1,6 +1,7 @@
 package com.ximilib.presentation.component;
 
 import com.ximilib.application.dto.BookSummaryDto;
+import com.ximilib.application.port.BookCommentPort;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
@@ -11,10 +12,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.File;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,13 +24,19 @@ import java.util.List;
 public class BookDetailModalPanel extends JPanel {
 
     private final BookSummaryDto book;
+    private final BookCommentPort commentPort;
     private final JPanel commentsListPanel = new JPanel();
     private JLabel lblRatingAverage;
     private JComboBox<Integer> cmbRating;
     private JTextArea txtNewComment;
 
     public BookDetailModalPanel(BookSummaryDto book) {
+        this(book, AppContainer.getInstance().getBookCommentPort());
+    }
+
+    public BookDetailModalPanel(BookSummaryDto book, BookCommentPort commentPort) {
         this.book = book;
+        this.commentPort = commentPort != null ? commentPort : AppContainer.getInstance().getBookCommentPort();
 
         setPreferredSize(new Dimension(680, 580));
         setBackground(UITheme.CARD_BG);
@@ -206,16 +209,8 @@ public class BookDetailModalPanel extends JPanel {
 
         new SwingWorker<Void, Void>() {
             @Override
-            protected Void doInBackground() throws SQLException {
-                String sql = "INSERT INTO binhluan (Masach, id_nguoidung, noidung, diemsao, ngaytao) VALUES (?, ?, ?, ?, NOW())";
-                try (Connection conn = AppContainer.getInstance().getConnectionManager().getConnection();
-                     PreparedStatement ps = conn.prepareStatement(sql)) {
-                    ps.setString(1, book.getBookId());
-                    ps.setString(2, userId);
-                    ps.setString(3, content);
-                    ps.setInt(4, stars);
-                    ps.executeUpdate();
-                }
+            protected Void doInBackground() {
+                commentPort.addComment(book.getBookId(), userId, content, stars);
                 return null;
             }
 
@@ -229,52 +224,27 @@ public class BookDetailModalPanel extends JPanel {
     }
 
     private void loadLocationAndCommentsAsync() {
-        new SwingWorker<CommentData, Void>() {
+        new SwingWorker<BookCommentPort.BookCommentData, Void>() {
             @Override
-            protected CommentData doInBackground() {
-                CommentData data = new CommentData();
-                String sql = """
-                    SELECT b.noidung, b.diemsao, b.ngaytao, u.Hoten
-                    FROM binhluan b
-                    JOIN nguoidung u ON b.id_nguoidung = u.ID
-                    WHERE b.Masach = ? AND b.IsDeleted = FALSE
-                    ORDER BY b.ngaytao DESC
-                """;
-                try (Connection conn = AppContainer.getInstance().getConnectionManager().getConnection();
-                     PreparedStatement ps = conn.prepareStatement(sql)) {
-                    ps.setString(1, book.getBookId());
-                    try (ResultSet rs = ps.executeQuery()) {
-                        int count = 0;
-                        int sumStars = 0;
-                        while (rs.next()) {
-                            count++;
-                            int stars = rs.getInt(2);
-                            sumStars += stars;
-                            data.comments.add(new CommentItem(rs.getString(4), rs.getString(1), stars, rs.getDate(3).toString()));
-                        }
-                        data.averageRating = count > 0 ? (double) sumStars / count : 5.0;
-                        data.totalReviews = count;
-                    }
-                } catch (SQLException ignored) {
-                }
-                return data;
+            protected BookCommentPort.BookCommentData doInBackground() {
+                return commentPort.getBookComments(book.getBookId());
             }
 
             @Override
             protected void done() {
                 try {
-                    CommentData data = get();
-                    lblRatingAverage.setText(String.format("Đánh giá: ⭐ %.1f / 5.0 (%d lượt nhận xét)", data.averageRating, data.totalReviews));
+                    BookCommentPort.BookCommentData data = get();
+                    lblRatingAverage.setText(String.format("Đánh giá: ⭐ %.1f / 5.0 (%d lượt nhận xét)", data.getAverageRating(), data.getTotalReviews()));
 
                     commentsListPanel.removeAll();
-                    if (data.comments.isEmpty()) {
+                    if (data.getComments().isEmpty()) {
                         JLabel lblEmpty = new JLabel("Chưa có nhận xét nào. Hãy là người đầu tiên đánh giá cuốn sách này!");
                         lblEmpty.setFont(UITheme.FONT_SMALL);
                         lblEmpty.setForeground(UITheme.TEXT_MUTED);
                         lblEmpty.setBorder(new EmptyBorder(16, 16, 16, 16));
                         commentsListPanel.add(lblEmpty);
                     } else {
-                        for (CommentItem item : data.comments) {
+                        for (BookCommentPort.BookCommentItem item : data.getComments()) {
                             commentsListPanel.add(createCommentCard(item));
                             commentsListPanel.add(Box.createVerticalStrut(6));
                         }
@@ -287,7 +257,7 @@ public class BookDetailModalPanel extends JPanel {
         }.execute();
     }
 
-    private JPanel createCommentCard(CommentItem item) {
+    private JPanel createCommentCard(BookCommentPort.BookCommentItem item) {
         JPanel card = new JPanel(new BorderLayout(0, 4));
         card.setBackground(UITheme.BG_LIGHT);
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -298,18 +268,18 @@ public class BookDetailModalPanel extends JPanel {
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
 
-        JLabel lblName = new JLabel(item.author + " - " + "⭐".repeat(Math.max(1, item.stars)));
+        JLabel lblName = new JLabel(item.author() + " - " + "⭐".repeat(Math.max(1, item.stars())));
         lblName.setFont(UITheme.FONT_BOLD);
         lblName.setForeground(UITheme.TEXT_MAIN);
 
-        JLabel lblDate = new JLabel(item.date);
+        JLabel lblDate = new JLabel(item.date());
         lblDate.setFont(UITheme.FONT_BADGE);
         lblDate.setForeground(UITheme.TEXT_MUTED);
 
         header.add(lblName, BorderLayout.WEST);
         header.add(lblDate, BorderLayout.EAST);
 
-        JLabel lblText = new JLabel("<html>" + item.text + "</html>");
+        JLabel lblText = new JLabel("<html>" + item.text() + "</html>");
         lblText.setFont(UITheme.FONT_REGULAR);
         lblText.setForeground(UITheme.TEXT_MAIN);
 
@@ -359,12 +329,4 @@ public class BookDetailModalPanel extends JPanel {
             null
         );
     }
-
-    private static class CommentData {
-        double averageRating = 5.0;
-        int totalReviews = 0;
-        final List<CommentItem> comments = new ArrayList<>();
-    }
-
-    private record CommentItem(String author, String text, int stars, String date) {}
 }
