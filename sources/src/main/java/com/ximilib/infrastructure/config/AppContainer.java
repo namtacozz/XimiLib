@@ -2,6 +2,7 @@ package com.ximilib.infrastructure.config;
 
 import com.ximilib.application.port.DashboardQueryPort;
 import com.ximilib.application.port.PasswordHasher;
+import com.ximilib.application.port.UserQueryPort;
 import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.application.service.BookCatalogService;
 import com.ximilib.application.service.CirculationService;
@@ -34,6 +35,7 @@ public class AppContainer {
     private final BookRepository bookRepository;
     private final BookCatalogService bookCatalogService;
     private final UserRepository userRepository;
+    private final UserQueryPort userQueryPort;
     private final AuthenticationService authenticationService;
     private final CirculationRepository circulationRepository;
     private final CirculationService circulationService;
@@ -46,8 +48,10 @@ public class AppContainer {
         this.passwordHasher = new SecurityUtil();
         this.bookRepository = new BookRepositoryImpl(connectionManager);
         this.bookCatalogService = new BookCatalogServiceImpl(bookRepository);
-        this.userRepository = new UserRepositoryImpl(connectionManager);
-        this.authenticationService = new AuthenticationServiceImpl(userRepository, passwordHasher);
+        UserRepositoryImpl userRepo = new UserRepositoryImpl(connectionManager);
+        this.userRepository = userRepo;
+        this.userQueryPort = userRepo;
+        this.authenticationService = new AuthenticationServiceImpl(userRepository, userQueryPort, passwordHasher);
         this.circulationRepository = new CirculationRepositoryImpl(connectionManager);
         this.circulationService = new CirculationServiceImpl(circulationRepository);
         DashboardRepositoryImpl dashRepo = new DashboardRepositoryImpl(connectionManager);
@@ -77,6 +81,10 @@ public class AppContainer {
 
     public UserRepository getUserRepository() {
         return userRepository;
+    }
+
+    public UserQueryPort getUserQueryPort() {
+        return userQueryPort;
     }
 
     public PasswordHasher getPasswordHasher() {

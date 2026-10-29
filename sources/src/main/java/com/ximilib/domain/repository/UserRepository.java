@@ -1,7 +1,5 @@
 package com.ximilib.domain.repository;
 
-import com.ximilib.application.dto.PatronDto;
-import com.ximilib.application.dto.UserAccountDto;
 import com.ximilib.domain.model.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,13 +32,9 @@ public interface UserRepository {
 
     String generateNextCardNumber();
 
-    List<PatronDto> searchPatrons(String keyword);
-
     void updateCardStatus(String cardNumber, String status);
 
     void extendCardValidity(String cardNumber, int days);
-
-    List<UserAccountDto> getAllUsers(String keyword, String roleCode);
 
     void createUser(User user, String roleCode);
 
