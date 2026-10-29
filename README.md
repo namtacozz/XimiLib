@@ -91,7 +91,7 @@ scripts\build.bat
 ```cmd
 mvn clean package -f sources/pom.xml -DskipTests
 ```
-File JAR thực thi sẽ tự động được sao chép vào `dist/XimiLib.jar`.
+File JAR thực thi sẽ tự động được tạo trực tiếp vào `dist/XimiLib.jar`.
 
 ### 4. Khởi chạy Ứng dụng (Run)
 - **Cách 1:** Click đúp trực tiếp vào file **`run.bat`** ở thư mục gốc.
