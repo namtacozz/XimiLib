@@ -12,6 +12,7 @@ import com.ximilib.domain.model.LoanTicketStatus;
 import com.ximilib.domain.model.LoanType;
 import com.ximilib.domain.repository.CirculationRepository;
 import com.ximilib.domain.repository.CirculationRepository.*;
+import com.ximilib.domain.service.FineCalculationService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -30,14 +31,24 @@ public class CirculationServiceImpl implements CirculationService {
 
     private final CirculationRepository circulationRepository;
     private final CirculationQueryPort circulationQueryPort;
+    private final FineCalculationService fineCalculationService;
 
     public CirculationServiceImpl(CirculationRepository repository) {
-        this(repository, (repository instanceof CirculationQueryPort cqp) ? cqp : null);
+        this(repository, (repository instanceof CirculationQueryPort cqp) ? cqp : null, new FineCalculationService());
     }
 
     public CirculationServiceImpl(CirculationRepository repository, CirculationQueryPort queryPort) {
+        this(repository, queryPort, new FineCalculationService());
+    }
+
+    public CirculationServiceImpl(CirculationRepository repository, FineCalculationService fineCalculationService) {
+        this(repository, (repository instanceof CirculationQueryPort cqp) ? cqp : null, fineCalculationService);
+    }
+
+    public CirculationServiceImpl(CirculationRepository repository, CirculationQueryPort queryPort, FineCalculationService fineCalculationService) {
         this.circulationRepository = Objects.requireNonNull(repository, "circulationRepository không được null");
         this.circulationQueryPort = (queryPort != null) ? queryPort : ((repository instanceof CirculationQueryPort cqp) ? cqp : null);
+        this.fineCalculationService = (fineCalculationService != null) ? fineCalculationService : new FineCalculationService();
     }
 
     private CirculationRepository getRepo() {
@@ -109,24 +120,20 @@ public class CirculationServiceImpl implements CirculationService {
         }
 
         CirculationRepository repo = getRepo();
-        BorrowDetailInfo detail = repo.findActiveLoanByCopy(copyBarcode)
+        BorrowDetailInfo detail = repo.findActiveLoanByCopy(copyBarcode.trim())
             .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu mượn đang hoạt động cho cuốn sách: " + copyBarcode));
 
         LocalDateTime now = LocalDateTime.now();
-        int overdueDays = 0;
-        BigDecimal overdueFine = BigDecimal.ZERO;
+        boolean isDamaged = returnCondition != null && (returnCondition.toLowerCase().contains("hỏng") || returnCondition.toLowerCase().contains("rách"));
 
-        if (detail.dueDate() != null && now.isAfter(detail.dueDate())) {
-            overdueDays = (int) Math.max(1, ChronoUnit.DAYS.between(detail.dueDate().toLocalDate(), now.toLocalDate()));
-            overdueFine = LibraryPolicy.FINE_PER_DAY.multiply(BigDecimal.valueOf(overdueDays));
-        }
+        FineCalculationService.CompensationBreakdown breakdown = fineCalculationService.calculateCompensation(
+            detail.coverPrice(), detail.dueDate(), now, false, isDamaged
+        );
 
-        BigDecimal damageFine = BigDecimal.ZERO;
-        if (returnCondition != null && (returnCondition.toLowerCase().contains("hỏng") || returnCondition.toLowerCase().contains("rách"))) {
-            damageFine = LibraryPolicy.TECHNICAL_FEE; // 20.000 VNĐ xử lý kỹ thuật (BR-08)
-        }
-
-        BigDecimal totalFine = overdueFine.add(damageFine);
+        int overdueDays = breakdown.getOverdueDays();
+        BigDecimal overdueFine = breakdown.getOverdueFine();
+        BigDecimal damageFine = breakdown.getTechFee();
+        BigDecimal totalFine = breakdown.getTotalAmount();
 
         if (totalFine.compareTo(BigDecimal.ZERO) > 0) {
             String fineId = repo.generateNextFineId();
@@ -152,22 +159,13 @@ public class CirculationServiceImpl implements CirculationService {
         }
 
         CirculationRepository repo = getRepo();
-        BorrowDetailInfo detail = repo.findActiveLoanByCopy(copyBarcode)
+        BorrowDetailInfo detail = repo.findActiveLoanByCopy(copyBarcode.trim())
             .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin mượn của cuốn sách: " + copyBarcode));
 
         LocalDateTime now = LocalDateTime.now();
-        int overdueDays = 0;
-        BigDecimal overdueFine = BigDecimal.ZERO;
-        if (detail.dueDate() != null && now.isAfter(detail.dueDate())) {
-            overdueDays = (int) Math.max(1, ChronoUnit.DAYS.between(detail.dueDate().toLocalDate(), now.toLocalDate()));
-            overdueFine = LibraryPolicy.FINE_PER_DAY.multiply(BigDecimal.valueOf(overdueDays));
-        }
-
-        // BR-08: 200% Giá bìa + 20.000đ phí xử lý kỹ thuật + phạt quá hạn
-        BigDecimal coverPrice = detail.coverPrice() != null ? detail.coverPrice() : new BigDecimal("50000.00");
-        BigDecimal bookLossAmount = coverPrice.multiply(LibraryPolicy.COMPENSATION_RATE).setScale(2, java.math.RoundingMode.HALF_UP);
-        BigDecimal techFee = LibraryPolicy.TECHNICAL_FEE;
-        BigDecimal totalAmount = bookLossAmount.add(techFee).add(overdueFine).setScale(2, java.math.RoundingMode.HALF_UP);
+        FineCalculationService.CompensationBreakdown breakdown = fineCalculationService.calculateCompensation(
+            detail.coverPrice(), detail.dueDate(), now, true, false
+        );
 
         // Chuyển trạng thái phiếu mượn sang CHO_XU_LY_BOI_THUONG (4) theo SRS UC-9 & R-10
         repo.updateTicketStatus(detail.ticketId(), LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode());
@@ -175,13 +173,41 @@ public class CirculationServiceImpl implements CirculationService {
 
         String fineId = repo.generateNextFineId();
         repo.createFine(fineId, detail.userId(), detail.detailId(), "Bồi thường mất sách: " + detail.bookTitle(),
-            totalAmount, "200% giá bìa + 20.000đ phí + phạt quá hạn");
+            breakdown.getTotalAmount(), "200% giá bìa + 20.000đ phí + phạt quá hạn");
 
         DomainEventPublisher.publish(new BookStockChangedEvent("LOSS", "BOOK_LOST"));
 
         return new CompensationResultDto(
-            fineId, detail.ticketId(), detail.bookTitle(), coverPrice, bookLossAmount,
-            techFee, overdueDays, overdueFine, totalAmount
+            fineId, detail.ticketId(), detail.bookTitle(), breakdown.getCoverPrice(),
+            breakdown.getBookLossAmount(), breakdown.getTechFee(), breakdown.getOverdueDays(),
+            breakdown.getOverdueFine(), breakdown.getTotalAmount()
+        );
+    }
+
+    @Override
+    public CompensationResultDto calculateCompensation(String copyBarcode, boolean isLost, boolean isDamaged) {
+        if (copyBarcode == null || copyBarcode.trim().isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng quét hoặc nhập mã vạch cuốn sách.");
+        }
+
+        CirculationRepository repo = getRepo();
+        BorrowDetailInfo detail = repo.findActiveLoanByCopy(copyBarcode.trim())
+            .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu mượn đang hoạt động cho cuốn sách: " + copyBarcode));
+
+        FineCalculationService.CompensationBreakdown breakdown = fineCalculationService.calculateCompensation(
+            detail.coverPrice(), detail.dueDate(), LocalDateTime.now(), isLost, isDamaged
+        );
+
+        return new CompensationResultDto(
+            null,
+            detail.ticketId(),
+            detail.bookTitle(),
+            breakdown.getCoverPrice(),
+            breakdown.getBookLossAmount(),
+            breakdown.getTechFee(),
+            breakdown.getOverdueDays(),
+            breakdown.getOverdueFine(),
+            breakdown.getTotalAmount()
         );
     }
 
