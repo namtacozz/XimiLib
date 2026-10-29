@@ -15,6 +15,7 @@ import com.ximilib.presentation.component.NotificationPopupPanel;
 import com.ximilib.presentation.component.TabbedViewPanel;
 import com.ximilib.presentation.component.UserProfileModalPanel;
 import com.ximilib.presentation.util.UiModalHelper;
+import com.ximilib.presentation.util.UserSession;
 
 import javax.swing.*;
 import java.awt.*;
@@ -63,6 +64,7 @@ public class MainDashboardFrame extends JFrame {
             "Phan Vũ Xuân Kiên", "kien.phan@dut.udn.vn", "0905 123 456",
             "Thủ Thư"
         );
+        UserSession.setCurrentUser(this.currentUser);
 
         setTitle("XimiLib – Quản lý Thư viện");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

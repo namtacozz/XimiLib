@@ -6,7 +6,6 @@ import com.ximilib.application.port.PasswordHasher;
 import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.domain.model.LibraryPolicy;
 import com.ximilib.domain.repository.UserRepository;
-import com.ximilib.presentation.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.domain.model.User;
 
@@ -101,9 +100,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
         }
 
-        // 3. Đăng nhập thành công: Reset số lần sai và cập nhật UserSession
+        // 3. Đăng nhập thành công: Reset số lần sai và trả về kết quả
         repo.resetFailedAttempts(user.getId());
-        UserSession.setCurrentUser(user);
         return LoginResult.success(user);
     }
 
@@ -192,7 +190,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void logout() {
-        UserSession.setCurrentUser(null);
+        // Presentation layer tự quản lý trạng thái phiên làm việc (UserSession)
     }
 
     @Override
