@@ -1,6 +1,7 @@
 package com.ximilib.infrastructure.persistence.impl;
 
 import com.ximilib.application.dto.BorrowTicketDto;
+import com.ximilib.application.port.CirculationQueryPort;
 import com.ximilib.domain.model.LoanType;
 import com.ximilib.domain.repository.CirculationRepository;
 import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
@@ -16,7 +17,7 @@ import java.util.*;
  * CirculationRepositoryImpl: Hiện thực thao tác CSDL cho Lưu hành mượn trả và bồi hoàn sách.
  * Tuân thủ R-01, R-04, R-05 (Transaction, Locking), R-07 (PreparedStatement).
  */
-public class CirculationRepositoryImpl implements CirculationRepository {
+public class CirculationRepositoryImpl implements CirculationRepository, CirculationQueryPort {
 
     private final DatabaseConnectionManager connectionManager;
 

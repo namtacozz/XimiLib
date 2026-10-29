@@ -3,6 +3,7 @@ package com.ximilib.application.service;
 import com.ximilib.application.dto.BorrowTicketDto;
 import com.ximilib.application.dto.CompensationResultDto;
 import com.ximilib.application.dto.ReturnResultDto;
+import com.ximilib.application.port.CirculationQueryPort;
 import com.ximilib.application.service.impl.CirculationServiceImpl;
 import com.ximilib.domain.model.LoanTicketStatus;
 import com.ximilib.domain.model.LoanType;
@@ -115,7 +116,7 @@ class CirculationServiceTest {
         assertTrue(ex.getMessage().contains("tối đa 1 lần"));
     }
 
-    private static class StubCirculationRepository implements CirculationRepository {
+    private static class StubCirculationRepository implements CirculationRepository, CirculationQueryPort {
         private boolean hasUnpaidFine = false;
         private int activeHomeLoansCount = 0;
         private final Map<String, Integer> ticketStatuses = new HashMap<>();

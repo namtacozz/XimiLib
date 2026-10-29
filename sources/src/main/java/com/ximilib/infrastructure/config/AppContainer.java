@@ -1,5 +1,6 @@
 package com.ximilib.infrastructure.config;
 
+import com.ximilib.application.port.CirculationQueryPort;
 import com.ximilib.application.port.DashboardQueryPort;
 import com.ximilib.application.port.PasswordHasher;
 import com.ximilib.application.port.UserQueryPort;
@@ -38,6 +39,7 @@ public class AppContainer {
     private final UserQueryPort userQueryPort;
     private final AuthenticationService authenticationService;
     private final CirculationRepository circulationRepository;
+    private final CirculationQueryPort circulationQueryPort;
     private final CirculationService circulationService;
     private final DashboardRepository dashboardRepository;
     private final DashboardQueryPort dashboardQueryPort;
@@ -52,8 +54,10 @@ public class AppContainer {
         this.userRepository = userRepo;
         this.userQueryPort = userRepo;
         this.authenticationService = new AuthenticationServiceImpl(userRepository, userQueryPort, passwordHasher);
-        this.circulationRepository = new CirculationRepositoryImpl(connectionManager);
-        this.circulationService = new CirculationServiceImpl(circulationRepository);
+        CirculationRepositoryImpl circRepo = new CirculationRepositoryImpl(connectionManager);
+        this.circulationRepository = circRepo;
+        this.circulationQueryPort = circRepo;
+        this.circulationService = new CirculationServiceImpl(circulationRepository, circulationQueryPort);
         DashboardRepositoryImpl dashRepo = new DashboardRepositoryImpl(connectionManager);
         this.dashboardRepository = dashRepo;
         this.dashboardQueryPort = dashRepo;
@@ -97,6 +101,10 @@ public class AppContainer {
 
     public CirculationRepository getCirculationRepository() {
         return circulationRepository;
+    }
+
+    public CirculationQueryPort getCirculationQueryPort() {
+        return circulationQueryPort;
     }
 
     public CirculationService getCirculationService() {

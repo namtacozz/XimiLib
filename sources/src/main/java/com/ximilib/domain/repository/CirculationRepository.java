@@ -1,6 +1,5 @@
 package com.ximilib.domain.repository;
 
-import com.ximilib.application.dto.BorrowTicketDto;
 import com.ximilib.domain.model.LoanType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,10 +29,6 @@ public interface CirculationRepository {
 
     void createBorrowTicket(String ticketId, String userId, String cardId, LoanType loanType,
                             LocalDateTime borrowDate, LocalDateTime dueDate, List<String> copyIds, String notes);
-
-    List<BorrowTicketDto> findTickets(String keyword, Integer statusFilter);
-
-    List<BorrowTicketDto> findTicketsByReader(String userId);
 
     Optional<BorrowDetailInfo> findActiveLoanByCopy(String copyBarcode);
 
