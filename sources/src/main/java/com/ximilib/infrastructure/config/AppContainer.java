@@ -1,5 +1,6 @@
 package com.ximilib.infrastructure.config;
 
+import com.ximilib.application.port.DashboardQueryPort;
 import com.ximilib.application.port.PasswordHasher;
 import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.application.service.BookCatalogService;
@@ -37,6 +38,7 @@ public class AppContainer {
     private final CirculationRepository circulationRepository;
     private final CirculationService circulationService;
     private final DashboardRepository dashboardRepository;
+    private final DashboardQueryPort dashboardQueryPort;
     private final DashboardService dashboardService;
 
     private AppContainer() {
@@ -48,8 +50,10 @@ public class AppContainer {
         this.authenticationService = new AuthenticationServiceImpl(userRepository, passwordHasher);
         this.circulationRepository = new CirculationRepositoryImpl(connectionManager);
         this.circulationService = new CirculationServiceImpl(circulationRepository);
-        this.dashboardRepository = new DashboardRepositoryImpl(connectionManager);
-        this.dashboardService = new DashboardServiceImpl(dashboardRepository);
+        DashboardRepositoryImpl dashRepo = new DashboardRepositoryImpl(connectionManager);
+        this.dashboardRepository = dashRepo;
+        this.dashboardQueryPort = dashRepo;
+        this.dashboardService = new DashboardServiceImpl(dashboardQueryPort);
     }
 
     public static synchronized AppContainer getInstance() {
@@ -93,6 +97,10 @@ public class AppContainer {
 
     public DashboardRepository getDashboardRepository() {
         return dashboardRepository;
+    }
+
+    public DashboardQueryPort getDashboardQueryPort() {
+        return dashboardQueryPort;
     }
 
     public DashboardService getDashboardService() {

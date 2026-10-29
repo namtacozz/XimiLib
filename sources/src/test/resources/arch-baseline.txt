@@ -12,8 +12,6 @@ sources/src/main/java/com/ximilib/domain/repository/BookRepository.java:3:com.xi
 sources/src/main/java/com/ximilib/domain/repository/BookRepository.java:4:com.ximilib.application.dto.BookSummaryDto
 sources/src/main/java/com/ximilib/domain/repository/BookRepository.java:5:com.ximilib.application.dto.PagedResult
 sources/src/main/java/com/ximilib/domain/repository/CirculationRepository.java:3:com.ximilib.application.dto.BorrowTicketDto
-sources/src/main/java/com/ximilib/domain/repository/DashboardRepository.java:3:com.ximilib.application.dto.ReaderDashboardDto
-sources/src/main/java/com/ximilib/domain/repository/DashboardRepository.java:4:com.ximilib.application.dto.StaffDashboardDto
 sources/src/main/java/com/ximilib/domain/repository/UserRepository.java:3:com.ximilib.application.dto.PatronDto
 sources/src/main/java/com/ximilib/domain/repository/UserRepository.java:4:com.ximilib.application.dto.UserAccountDto
 
