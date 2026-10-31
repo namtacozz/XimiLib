@@ -2,6 +2,7 @@ package com.ximilib.infrastructure.persistence.impl;
 
 import com.ximilib.application.dto.PatronDto;
 import com.ximilib.application.dto.UserAccountDto;
+import com.ximilib.application.port.UserQueryPort;
 import com.ximilib.domain.repository.UserRepository;
 import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
 import com.ximilib.domain.model.User;
@@ -17,7 +18,7 @@ import java.util.Optional;
  * UserRepositoryImpl: Truy vấn và lưu trữ dữ liệu người dùng qua JDBC PreparedStatement.
  * Tuân thủ R-01, R-03, R-05, R-07.
  */
-public class UserRepositoryImpl implements UserRepository {
+public class UserRepositoryImpl implements UserRepository, UserQueryPort {
 
     private final DatabaseConnectionManager connectionManager;
 

@@ -3,15 +3,17 @@ package com.ximilib.application.service.impl;
 import com.ximilib.application.dto.BookSearchCriteria;
 import com.ximilib.application.dto.BookSummaryDto;
 import com.ximilib.application.dto.PagedResult;
+import com.ximilib.application.port.BookQueryPort;
 import com.ximilib.application.service.BookCatalogService;
 import com.ximilib.domain.event.BookStockChangedEvent;
 import com.ximilib.domain.event.DomainEventPublisher;
 import com.ximilib.domain.exception.BookInUseException;
 import com.ximilib.domain.repository.BookRepository;
-import com.ximilib.infrastructure.persistence.impl.BookRepositoryImpl;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * BookCatalogServiceImpl: Triển khai thực tế nghiệp vụ quản lý kho sách từ MySQL CSDL.
@@ -22,22 +24,23 @@ import java.util.Map;
 public class BookCatalogServiceImpl implements BookCatalogService {
 
     private final BookRepository bookRepository;
-
-    public BookCatalogServiceImpl() {
-        this(new BookRepositoryImpl(null));
-    }
+    private final BookQueryPort bookQueryPort;
 
     public BookCatalogServiceImpl(BookRepository bookRepository) {
-        if (bookRepository == null) {
-            this.bookRepository = new BookRepositoryImpl(null);
-        } else {
-            this.bookRepository = bookRepository;
-        }
+        this(bookRepository, (bookRepository instanceof BookQueryPort bqp) ? bqp : null);
+    }
+
+    public BookCatalogServiceImpl(BookRepository bookRepository, BookQueryPort bookQueryPort) {
+        this.bookRepository = Objects.requireNonNull(bookRepository, "bookRepository không được null");
+        this.bookQueryPort = (bookQueryPort != null) ? bookQueryPort : ((bookRepository instanceof BookQueryPort bqp) ? bqp : null);
     }
 
     @Override
     public PagedResult<BookSummaryDto> searchBooks(BookSearchCriteria criteria, int page, int pageSize) {
-        return bookRepository.searchBooks(criteria, page, pageSize);
+        if (bookQueryPort != null) {
+            return bookQueryPort.searchBooks(criteria, page, pageSize);
+        }
+        return new PagedResult<>(Collections.emptyList(), 0, page, pageSize);
     }
 
     @Override
@@ -74,7 +77,10 @@ public class BookCatalogServiceImpl implements BookCatalogService {
 
     @Override
     public List<BookSummaryDto> getDeletedBooks() {
-        return bookRepository.getDeletedBooks();
+        if (bookQueryPort != null) {
+            return bookQueryPort.getDeletedBooks();
+        }
+        return Collections.emptyList();
     }
 
     @Override

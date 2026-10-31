@@ -1,6 +1,10 @@
 package com.ximilib.infrastructure.config;
 
+import com.ximilib.application.port.BookQueryPort;
+import com.ximilib.application.port.CirculationQueryPort;
+import com.ximilib.application.port.DashboardQueryPort;
 import com.ximilib.application.port.PasswordHasher;
+import com.ximilib.application.port.UserQueryPort;
 import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.application.service.BookCatalogService;
 import com.ximilib.application.service.CirculationService;
@@ -31,25 +35,37 @@ public class AppContainer {
     private final DatabaseConnectionManager connectionManager;
     private final PasswordHasher passwordHasher;
     private final BookRepository bookRepository;
+    private final BookQueryPort bookQueryPort;
     private final BookCatalogService bookCatalogService;
     private final UserRepository userRepository;
+    private final UserQueryPort userQueryPort;
     private final AuthenticationService authenticationService;
     private final CirculationRepository circulationRepository;
+    private final CirculationQueryPort circulationQueryPort;
     private final CirculationService circulationService;
     private final DashboardRepository dashboardRepository;
+    private final DashboardQueryPort dashboardQueryPort;
     private final DashboardService dashboardService;
 
     private AppContainer() {
         this.connectionManager = new DatabaseConnectionManager();
         this.passwordHasher = new SecurityUtil();
-        this.bookRepository = new BookRepositoryImpl(connectionManager);
-        this.bookCatalogService = new BookCatalogServiceImpl(bookRepository);
-        this.userRepository = new UserRepositoryImpl(connectionManager);
-        this.authenticationService = new AuthenticationServiceImpl(userRepository, passwordHasher);
-        this.circulationRepository = new CirculationRepositoryImpl(connectionManager);
-        this.circulationService = new CirculationServiceImpl(circulationRepository);
-        this.dashboardRepository = new DashboardRepositoryImpl(connectionManager);
-        this.dashboardService = new DashboardServiceImpl(dashboardRepository);
+        BookRepositoryImpl bookRepo = new BookRepositoryImpl(connectionManager);
+        this.bookRepository = bookRepo;
+        this.bookQueryPort = bookRepo;
+        this.bookCatalogService = new BookCatalogServiceImpl(bookRepository, bookQueryPort);
+        UserRepositoryImpl userRepo = new UserRepositoryImpl(connectionManager);
+        this.userRepository = userRepo;
+        this.userQueryPort = userRepo;
+        this.authenticationService = new AuthenticationServiceImpl(userRepository, userQueryPort, passwordHasher);
+        CirculationRepositoryImpl circRepo = new CirculationRepositoryImpl(connectionManager);
+        this.circulationRepository = circRepo;
+        this.circulationQueryPort = circRepo;
+        this.circulationService = new CirculationServiceImpl(circulationRepository, circulationQueryPort);
+        DashboardRepositoryImpl dashRepo = new DashboardRepositoryImpl(connectionManager);
+        this.dashboardRepository = dashRepo;
+        this.dashboardQueryPort = dashRepo;
+        this.dashboardService = new DashboardServiceImpl(dashboardQueryPort);
     }
 
     public static synchronized AppContainer getInstance() {
@@ -67,12 +83,20 @@ public class AppContainer {
         return bookRepository;
     }
 
+    public BookQueryPort getBookQueryPort() {
+        return bookQueryPort;
+    }
+
     public BookCatalogService getBookCatalogService() {
         return bookCatalogService;
     }
 
     public UserRepository getUserRepository() {
         return userRepository;
+    }
+
+    public UserQueryPort getUserQueryPort() {
+        return userQueryPort;
     }
 
     public PasswordHasher getPasswordHasher() {
@@ -87,12 +111,20 @@ public class AppContainer {
         return circulationRepository;
     }
 
+    public CirculationQueryPort getCirculationQueryPort() {
+        return circulationQueryPort;
+    }
+
     public CirculationService getCirculationService() {
         return circulationService;
     }
 
     public DashboardRepository getDashboardRepository() {
         return dashboardRepository;
+    }
+
+    public DashboardQueryPort getDashboardQueryPort() {
+        return dashboardQueryPort;
     }
 
     public DashboardService getDashboardService() {

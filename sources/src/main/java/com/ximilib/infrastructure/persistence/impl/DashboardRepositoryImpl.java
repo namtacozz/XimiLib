@@ -2,6 +2,7 @@ package com.ximilib.infrastructure.persistence.impl;
 
 import com.ximilib.application.dto.ReaderDashboardDto;
 import com.ximilib.application.dto.StaffDashboardDto;
+import com.ximilib.application.port.DashboardQueryPort;
 import com.ximilib.domain.model.LoanDueClassification;
 import com.ximilib.domain.repository.DashboardRepository;
 import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
@@ -22,7 +23,7 @@ import java.util.List;
  * DashboardRepositoryImpl: Hiện thực truy vấn CSDL MySQL cho dữ liệu Trang chủ.
  * Tuân thủ R-01, R-07 (100% PreparedStatement, tham số ?).
  */
-public class DashboardRepositoryImpl implements DashboardRepository {
+public class DashboardRepositoryImpl implements DashboardRepository, DashboardQueryPort {
 
     private final DatabaseConnectionManager connectionManager;
 

@@ -8,6 +8,7 @@ import com.ximilib.application.service.BookCatalogService;
 import com.ximilib.application.service.CirculationService;
 import com.ximilib.application.service.DashboardService;
 import com.ximilib.domain.model.LoanDueClassification;
+import com.ximilib.presentation.util.LoanDueBadgeHelper;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UserSession;
 import com.ximilib.domain.model.User;
@@ -338,10 +339,10 @@ public class ReaderHomePanel extends JPanel {
         JLabel lblBadge = new JLabel(loan.classification().displayText());
         lblBadge.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 11f));
         lblBadge.setOpaque(true);
-        lblBadge.setBackground(loan.classification().backgroundColor());
-        lblBadge.setForeground(loan.classification().textColor());
+        lblBadge.setBackground(LoanDueBadgeHelper.getBackgroundColor(loan.classification().type()));
+        lblBadge.setForeground(LoanDueBadgeHelper.getTextColor(loan.classification().type()));
         lblBadge.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(loan.classification().borderColor(), 1, true),
+            BorderFactory.createLineBorder(LoanDueBadgeHelper.getBorderColor(loan.classification().type()), 1, true),
             BorderFactory.createEmptyBorder(3, 8, 3, 8)
         ));
         rightPanel.add(lblBadge);

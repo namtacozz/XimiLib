@@ -2,9 +2,9 @@ package com.ximilib.application.service;
 
 import com.ximilib.application.dto.ReaderDashboardDto;
 import com.ximilib.application.dto.StaffDashboardDto;
+import com.ximilib.application.port.DashboardQueryPort;
 import com.ximilib.application.service.impl.DashboardServiceImpl;
 import com.ximilib.domain.model.LoanDueClassification;
-import com.ximilib.domain.repository.DashboardRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,12 +18,12 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("Unit Test: DashboardService")
 class DashboardServiceTest {
 
-    private DashboardRepository fakeRepository;
+    private DashboardQueryPort fakeRepository;
     private DashboardService dashboardService;
 
     @BeforeEach
     void setUp() {
-        fakeRepository = new DashboardRepository() {
+        fakeRepository = new DashboardQueryPort() {
             @Override
             public StaffDashboardDto.StaffKpiSummary getStaffKpiSummary() {
                 return new StaffDashboardDto.StaffKpiSummary(221, 663, 10, 26, 2);

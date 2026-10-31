@@ -3,6 +3,7 @@ package com.ximilib.infrastructure.persistence.impl;
 import com.ximilib.application.dto.BookSearchCriteria;
 import com.ximilib.application.dto.BookSummaryDto;
 import com.ximilib.application.dto.PagedResult;
+import com.ximilib.application.port.BookQueryPort;
 import com.ximilib.domain.repository.BookRepository;
 import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
 import java.awt.Color;
@@ -14,7 +15,7 @@ import java.util.*;
  * - Tuân thủ R-01, R-03, R-04, R-07.
  * - 100% PreparedStatement có tham số `?`, không cộng chuỗi SQL.
  */
-public class BookRepositoryImpl implements BookRepository {
+public class BookRepositoryImpl implements BookRepository, BookQueryPort {
 
     private static final Color[] PALETTE = {
         new Color(79, 70, 229),

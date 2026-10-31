@@ -1,7 +1,5 @@
 package com.ximilib.domain.model;
 
-import com.ximilib.presentation.util.UITheme;
-import java.awt.Color;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
@@ -31,30 +29,6 @@ public record LoanDueClassification(Type type, int days, String label) {
 
     public String displayText() {
         return label;
-    }
-
-    public Color textColor() {
-        return switch (type) {
-            case OVERDUE -> UITheme.DANGER_TEXT;
-            case DUE_TODAY -> UITheme.WARNING_TEXT;
-            case DUE_SOON -> UITheme.SUCCESS_TEXT;
-        };
-    }
-
-    public Color backgroundColor() {
-        return switch (type) {
-            case OVERDUE -> UITheme.DANGER_BG;
-            case DUE_TODAY -> UITheme.WARNING_BG;
-            case DUE_SOON -> UITheme.SUCCESS_BG;
-        };
-    }
-
-    public Color borderColor() {
-        return switch (type) {
-            case OVERDUE -> Color.decode("#FECACA");
-            case DUE_TODAY -> Color.decode("#FDE68A");
-            case DUE_SOON -> Color.decode("#A7F3D0");
-        };
     }
 
     public static LoanDueClassification classify(LocalDate dueDate, LocalDate today) {

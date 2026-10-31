@@ -3,17 +3,17 @@ package com.ximilib.application.service.impl;
 import com.ximilib.application.dto.LoginResult;
 import com.ximilib.application.dto.RegisterRequestDto;
 import com.ximilib.application.port.PasswordHasher;
+import com.ximilib.application.port.UserQueryPort;
 import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.domain.model.LibraryPolicy;
 import com.ximilib.domain.repository.UserRepository;
-import com.ximilib.presentation.util.UserSession;
-import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.domain.model.User;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -27,27 +27,25 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private static final Pattern CCCD_PATTERN = Pattern.compile("^(\\d{9}|\\d{12})$");
 
     private final UserRepository userRepository;
+    private final UserQueryPort userQueryPort;
     private final PasswordHasher passwordHasher;
 
-    public AuthenticationServiceImpl() {
-        this(null, null);
-    }
-
-    public AuthenticationServiceImpl(UserRepository userRepository) {
-        this(userRepository, null);
-    }
-
     public AuthenticationServiceImpl(UserRepository userRepository, PasswordHasher passwordHasher) {
-        this.userRepository = userRepository;
-        this.passwordHasher = passwordHasher;
+        this(userRepository, (userRepository instanceof UserQueryPort uqp) ? uqp : null, passwordHasher);
+    }
+
+    public AuthenticationServiceImpl(UserRepository userRepository, UserQueryPort userQueryPort, PasswordHasher passwordHasher) {
+        this.userRepository = Objects.requireNonNull(userRepository, "userRepository không được null");
+        this.userQueryPort = (userQueryPort != null) ? userQueryPort : ((userRepository instanceof UserQueryPort uqp) ? uqp : null);
+        this.passwordHasher = Objects.requireNonNull(passwordHasher, "passwordHasher không được null");
     }
 
     private UserRepository getRepo() {
-        return (userRepository != null) ? userRepository : AppContainer.getInstance().getUserRepository();
+        return userRepository;
     }
 
     private PasswordHasher getHasher() {
-        return (passwordHasher != null) ? passwordHasher : AppContainer.getInstance().getPasswordHasher();
+        return passwordHasher;
     }
 
     @Override
@@ -101,9 +99,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
         }
 
-        // 3. Đăng nhập thành công: Reset số lần sai và cập nhật UserSession
+        // 3. Đăng nhập thành công: Reset số lần sai và trả về kết quả
         repo.resetFailedAttempts(user.getId());
-        UserSession.setCurrentUser(user);
         return LoginResult.success(user);
     }
 
@@ -192,12 +189,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void logout() {
-        UserSession.setCurrentUser(null);
+        // Presentation layer tự quản lý trạng thái phiên làm việc (UserSession)
     }
 
     @Override
     public List<com.ximilib.application.dto.PatronDto> searchPatrons(String keyword) {
-        return getRepo().searchPatrons(keyword);
+        if (userQueryPort != null) {
+            return userQueryPort.searchPatrons(keyword);
+        }
+        return List.of();
     }
 
     @Override
@@ -212,7 +212,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public List<com.ximilib.application.dto.UserAccountDto> getAllUsers(String keyword, String roleCode) {
-        return getRepo().getAllUsers(keyword, roleCode);
+        if (userQueryPort != null) {
+            return userQueryPort.getAllUsers(keyword, roleCode);
+        }
+        return List.of();
     }
 
     @Override

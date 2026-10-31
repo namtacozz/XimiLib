@@ -3,6 +3,7 @@ package com.ximilib.application.service;
 import com.ximilib.application.dto.LoginResult;
 import com.ximilib.application.dto.RegisterRequestDto;
 import com.ximilib.application.port.PasswordHasher;
+import com.ximilib.application.port.UserQueryPort;
 import com.ximilib.application.service.impl.AuthenticationServiceImpl;
 import com.ximilib.domain.repository.UserRepository;
 import com.ximilib.infrastructure.security.SecurityUtil;
@@ -242,7 +243,7 @@ class AuthenticationServiceTest {
         assertEquals("AUTH_001", failResult.getErrorCode());
     }
 
-    private static class StubUserRepository implements UserRepository {
+    private static class StubUserRepository implements UserRepository, UserQueryPort {
         private final Map<String, User> userMap = new HashMap<>();
 
         public StubUserRepository(PasswordHasher hasher) {

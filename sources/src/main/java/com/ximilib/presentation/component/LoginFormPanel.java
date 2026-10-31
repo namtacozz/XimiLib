@@ -9,6 +9,7 @@ import com.ximilib.presentation.view.MainDashboardFrame;
 import com.ximilib.presentation.view.RegisterForm;
 import com.ximilib.presentation.util.IconFactory;
 import com.ximilib.presentation.util.UITheme;
+import com.ximilib.presentation.util.UserSession;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -458,6 +459,8 @@ public class LoginFormPanel extends JPanel {
         btnLogin.setText("ĐĂNG NHẬP");
 
         if (result.isSuccess()) {
+            UserSession.setCurrentUser(result.getUser());
+
             // Lưu username nếu người dùng chọn ghi nhớ (chỉ lưu identifier, KHÔNG lưu mật khẩu)
             if (chkRemember.isSelected()) {
                 prefs.put(PREF_REMEMBERED_USER, identifier);

@@ -3,6 +3,7 @@ package com.ximilib.application.service.impl;
 import com.ximilib.application.dto.BorrowTicketDto;
 import com.ximilib.application.dto.CompensationResultDto;
 import com.ximilib.application.dto.ReturnResultDto;
+import com.ximilib.application.port.CirculationQueryPort;
 import com.ximilib.application.service.CirculationService;
 import com.ximilib.domain.event.BookStockChangedEvent;
 import com.ximilib.domain.event.DomainEventPublisher;
@@ -11,14 +12,15 @@ import com.ximilib.domain.model.LoanTicketStatus;
 import com.ximilib.domain.model.LoanType;
 import com.ximilib.domain.repository.CirculationRepository;
 import com.ximilib.domain.repository.CirculationRepository.*;
-import com.ximilib.infrastructure.config.AppContainer;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * CirculationServiceImpl: Triển khai các quy tắc nghiệp vụ Lưu hành, Mượn trả và Bồi thường.
@@ -27,13 +29,15 @@ import java.util.List;
 public class CirculationServiceImpl implements CirculationService {
 
     private final CirculationRepository circulationRepository;
-
-    public CirculationServiceImpl() {
-        this(null);
-    }
+    private final CirculationQueryPort circulationQueryPort;
 
     public CirculationServiceImpl(CirculationRepository repository) {
-        this.circulationRepository = (repository != null) ? repository : new com.ximilib.infrastructure.persistence.impl.CirculationRepositoryImpl(null);
+        this(repository, (repository instanceof CirculationQueryPort cqp) ? cqp : null);
+    }
+
+    public CirculationServiceImpl(CirculationRepository repository, CirculationQueryPort queryPort) {
+        this.circulationRepository = Objects.requireNonNull(repository, "circulationRepository không được null");
+        this.circulationQueryPort = (queryPort != null) ? queryPort : ((repository instanceof CirculationQueryPort cqp) ? cqp : null);
     }
 
     private CirculationRepository getRepo() {
@@ -203,7 +207,9 @@ public class CirculationServiceImpl implements CirculationService {
             throw new IllegalStateException("Mỗi phiếu mượn chỉ được gia hạn tối đa 1 lần (Quy tắc BR-03).");
         }
 
-        List<BorrowTicketDto> tickets = repo.findTickets(borrowTicketId.trim(), null);
+        List<BorrowTicketDto> tickets = (circulationQueryPort != null)
+            ? circulationQueryPort.findTickets(borrowTicketId.trim(), null)
+            : Collections.emptyList();
         if (tickets.isEmpty()) {
             throw new IllegalArgumentException("Không tìm thấy phiếu mượn: " + borrowTicketId);
         }
@@ -230,12 +236,18 @@ public class CirculationServiceImpl implements CirculationService {
 
     @Override
     public List<BorrowTicketDto> getReaderLoans(String userId) {
-        return getRepo().findTicketsByReader(userId);
+        if (circulationQueryPort != null) {
+            return circulationQueryPort.findTicketsByReader(userId);
+        }
+        return Collections.emptyList();
     }
 
     @Override
     public List<BorrowTicketDto> getAllLoans(String keyword, Integer status) {
-        return getRepo().findTickets(keyword, status);
+        if (circulationQueryPort != null) {
+            return circulationQueryPort.findTickets(keyword, status);
+        }
+        return Collections.emptyList();
     }
 
     @Override
