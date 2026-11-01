@@ -47,7 +47,7 @@ class AuthenticationServiceTest {
     @Test
     @DisplayName("TC-AUTH-02: Đăng nhập thành công bằng Email (không phân biệt hoa thường)")
     void testLoginSuccessWithEmail() {
-        LoginResult result = authService.login("NHAT.NGUYEN@DUT.UDN.VN", "123456");
+        LoginResult result = authService.login("NHAT.NGUYEN@DUT.UDN.VN", "admin123");
 
         assertTrue(result.isSuccess());
         assertNotNull(result.getUser());
@@ -233,7 +233,7 @@ class AuthenticationServiceTest {
         AuthenticationServiceImpl customService = new AuthenticationServiceImpl(stubRepo, fakeHasher);
 
         // Đăng nhập thành công qua fakeHasher
-        LoginResult successResult = customService.login("admin", "123456");
+        LoginResult successResult = customService.login("admin", "admin123");
         assertTrue(successResult.isSuccess());
         assertEquals("admin", successResult.getUser().getUsername());
 
@@ -243,12 +243,25 @@ class AuthenticationServiceTest {
         assertEquals("AUTH_001", failResult.getErrorCode());
     }
 
+    @Test
+    @DisplayName("TC-AUTH-HASH: Kiểm chứng tính hợp lệ của mã băm BCrypt cho 4 tài khoản mẫu chuẩn")
+    void testSampleAccountBcryptHashes() {
+        String hAdmin = "$2a$10$GQBiVxZMhZXp.now2MCu3.OW8KqSUGVH5//qTuN1/Lb.zps5QMo02";
+        String hStaff = "$2a$10$9BQggIBf5SOkBmU6Xgldruss1DCko8/sJgeUFVcWRJpJs7OxlkaHC";
+
+        assertTrue(passwordHasher.matches("admin123", hAdmin), "Hash của admin phải khớp với admin123");
+        assertTrue(passwordHasher.matches("123456", hStaff), "Hash của kien.phan phải khớp với 123456");
+        assertTrue(passwordHasher.matches("123456", hStaff), "Hash của nam.le phải khớp với 123456");
+        assertTrue(passwordHasher.matches("123456", hStaff), "Hash của sinhvien phải khớp với 123456");
+    }
+
     private static class StubUserRepository implements UserRepository, UserQueryPort {
         private final Map<String, User> userMap = new HashMap<>();
 
         public StubUserRepository(PasswordHasher hasher) {
+            String hashAdmin = hasher.hash("admin123");
             String hash123456 = hasher.hash("123456");
-            User u1 = new User("ND001", "admin", hash123456, "Nguyễn Việt Nhật", "nhat.nguyen@dut.udn.vn", "0901", "Quản Trị");
+            User u1 = new User("ND001", "admin", hashAdmin, "Nguyễn Việt Nhật", "nhat.nguyen@dut.udn.vn", "0901", "Quản Trị");
             User u2 = new User("ND002", "kien.phan", hash123456, "Phan Vũ Xuân Kiên", "kien.phan@dut.udn.vn", "0902", "Thủ Thư");
             User u3 = new User("ND003", "nam.le", hash123456, "Lê Võ Thành Nam", "nam.le@dut.udn.vn", "0903", "Thủ Thư");
             User u4 = new User("ND004", "sinhvien", hash123456, "Trần Văn An", "an.tran@dut.udn.vn", "0904", "Bạn Đọc");

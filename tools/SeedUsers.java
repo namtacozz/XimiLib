@@ -19,6 +19,7 @@ public class SeedUsers {
                        + "VALUES (?, ?, ?, ?, 1) "
                        + "ON DUPLICATE KEY UPDATE `Ngayhethan` = VALUES(`Ngayhethan`), `Trangthai` = 1";
 
+        String hashAdmin = SecurityUtil.hashPassword("admin123");
         String hash123456 = SecurityUtil.hashPassword("123456");
 
         try (Connection conn = cm.getConnection()) {
@@ -28,7 +29,7 @@ public class SeedUsers {
                 // 1. Admin
                 ps.setString(1, "ND001");
                 ps.setString(2, "admin");
-                ps.setString(3, hash123456);
+                ps.setString(3, hashAdmin);
                 ps.setString(4, "Nguyễn Việt Nhật");
                 ps.setString(5, "nhat.nguyen@dut.udn.vn");
                 ps.setBoolean(6, true);

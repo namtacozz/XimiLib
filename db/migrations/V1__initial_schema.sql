@@ -260,3 +260,16 @@ INSERT INTO `vaitro` (`Mavaitro`, `Tenvaitro`, `Mota`) VALUES
 ('LIBRARIAN', 'Thủ thư', 'Quản lý kho sách, lập phiếu mượn/trả và xử lý phạt'),
 ('READER', 'Độc giả', 'Tra cứu sách, đặt trước và xem lịch sử cá nhân')
 ON DUPLICATE KEY UPDATE `Tenvaitro` = VALUES(`Tenvaitro`);
+
+-- Khởi tạo các tài khoản người dùng mẫu mặc định (admin/admin123, nhân viên & độc giả/123456, đã băm BCrypt)
+INSERT INTO `nguoidung` (`ID`, `Tendangnhap`, `Matkhau`, `Hoten`, `Email`, `Gioitinh`, `Sdt`, `Mavaitro`, `Trangthai`) VALUES
+('ND001', 'admin', '$2a$10$GQBiVxZMhZXp.now2MCu3.OW8KqSUGVH5//qTuN1/Lb.zps5QMo02', 'Nguyễn Việt Nhật', 'nhat.nguyen@dut.udn.vn', 1, '0905111222', 'ADMIN', 1),
+('ND002', 'kien.phan', '$2a$10$9BQggIBf5SOkBmU6Xgldruss1DCko8/sJgeUFVcWRJpJs7OxlkaHC', 'Phan Vũ Xuân Kiên', 'kien.phan@dut.udn.vn', 1, '0905123456', 'LIBRARIAN', 1),
+('ND003', 'nam.le', '$2a$10$9BQggIBf5SOkBmU6Xgldruss1DCko8/sJgeUFVcWRJpJs7OxlkaHC', 'Lê Võ Thành Nam', 'nam.le@dut.udn.vn', 1, '0905333444', 'LIBRARIAN', 1),
+('ND004', 'sinhvien', '$2a$10$9BQggIBf5SOkBmU6Xgldruss1DCko8/sJgeUFVcWRJpJs7OxlkaHC', 'Trần Văn An', 'an.tran@sv.dut.udn.vn', 1, '0914999888', 'READER', 1)
+ON DUPLICATE KEY UPDATE `Hoten` = VALUES(`Hoten`), `Matkhau` = VALUES(`Matkhau`), `Email` = VALUES(`Email`), `Mavaitro` = VALUES(`Mavaitro`), `Trangthai` = VALUES(`Trangthai`);
+
+-- Khởi tạo thẻ thư viện mẫu cho độc giả sinh viên
+INSERT INTO `thethuvien` (`Mathe`, `ID`, `Ngaycap`, `Ngayhethan`, `Trangthai`) VALUES
+('LIB-2026-00001', 'ND004', CURDATE(), CURDATE() + INTERVAL 1 YEAR, 1)
+ON DUPLICATE KEY UPDATE `Trangthai` = VALUES(`Trangthai`);
