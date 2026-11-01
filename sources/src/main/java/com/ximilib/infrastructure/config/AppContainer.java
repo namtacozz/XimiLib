@@ -50,6 +50,10 @@ public class AppContainer {
     private final com.ximilib.application.port.FeedbackPort feedbackPort;
     private final com.ximilib.application.port.ReportPort reportPort;
     private final com.ximilib.application.port.SystemSettingsPort systemSettingsPort;
+    private final com.ximilib.domain.repository.ZoneRepository zoneRepository;
+    private final com.ximilib.domain.repository.ShelfRepository shelfRepository;
+    private final com.ximilib.application.port.StorageQueryPort storageQueryPort;
+    private final com.ximilib.application.service.StorageService storageService;
 
     private AppContainer() {
         this.connectionManager = new DatabaseConnectionManager();
@@ -74,6 +78,11 @@ public class AppContainer {
         this.feedbackPort = new com.ximilib.infrastructure.persistence.impl.FeedbackRepositoryImpl(connectionManager);
         this.reportPort = new com.ximilib.infrastructure.persistence.impl.ReportRepositoryImpl(connectionManager);
         this.systemSettingsPort = new com.ximilib.infrastructure.persistence.impl.SystemSettingsRepositoryImpl(connectionManager);
+        com.ximilib.infrastructure.persistence.impl.ShelfRepositoryImpl shelfRepo = new com.ximilib.infrastructure.persistence.impl.ShelfRepositoryImpl(connectionManager);
+        this.zoneRepository = new com.ximilib.infrastructure.persistence.impl.ZoneRepositoryImpl(connectionManager);
+        this.shelfRepository = shelfRepo;
+        this.storageQueryPort = shelfRepo;
+        this.storageService = new com.ximilib.application.service.impl.StorageServiceImpl(zoneRepository, shelfRepository, storageQueryPort);
     }
 
     public static synchronized AppContainer getInstance() {
@@ -153,6 +162,22 @@ public class AppContainer {
 
     public com.ximilib.application.port.SystemSettingsPort getSystemSettingsPort() {
         return systemSettingsPort;
+    }
+
+    public com.ximilib.domain.repository.ZoneRepository getZoneRepository() {
+        return zoneRepository;
+    }
+
+    public com.ximilib.domain.repository.ShelfRepository getShelfRepository() {
+        return shelfRepository;
+    }
+
+    public com.ximilib.application.port.StorageQueryPort getStorageQueryPort() {
+        return storageQueryPort;
+    }
+
+    public com.ximilib.application.service.StorageService getStorageService() {
+        return storageService;
     }
 
 }
