@@ -6,6 +6,7 @@ import com.ximilib.application.dto.PagedResult;
 import com.ximilib.application.service.impl.BookCatalogServiceImpl;
 import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
 import com.ximilib.infrastructure.persistence.impl.BookRepositoryImpl;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,9 +29,23 @@ class MySqlBookCatalogIntegrationTest {
         service = new BookCatalogServiceImpl(repository);
     }
 
+    private boolean isDatabaseAvailable() {
+        try (var conn = connectionManager.getConnection()) {
+            return conn != null && !conn.isClosed();
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private void assumeDatabaseAvailable() {
+        Assumptions.assumeTrue(isDatabaseAvailable(), 
+            "Bỏ qua kiểm thử tích hợp: Máy chủ MySQL không khả dụng hoặc thông tin kết nối chưa được thiết lập.");
+    }
+
     @Test
     @DisplayName("IT-01: CSDL MySQL thật chứa đúng 221 đầu sách đã nhập từ kho cũ")
     void testTotalBooksCountInMySql() {
+        assumeDatabaseAvailable();
         int total = repository.countTotalBooks() + repository.getDeletedBooks().size();
         assertEquals(221, total, "Tổng số đầu sách trong MySQL phải đúng chính xác 221");
     }
@@ -38,6 +53,7 @@ class MySqlBookCatalogIntegrationTest {
     @Test
     @DisplayName("IT-02: Lấy đầy đủ 11 thể loại thực tế từ bảng theloai trong MySQL")
     void testGetCategoriesFromMySql() {
+        assumeDatabaseAvailable();
         Map<Integer, String> categories = service.getCategories();
         assertNotNull(categories);
         assertEquals(11, categories.size(), "Bảng theloai phải có đúng 11 thể loại đã nhập");
@@ -49,6 +65,7 @@ class MySqlBookCatalogIntegrationTest {
     @Test
     @DisplayName("IT-03: Tìm kiếm sách theo từ khóa từ MySQL và kiểm tra đường dẫn ảnh bìa")
     void testSearchBookByKeyword() {
+        assumeDatabaseAvailable();
         BookSearchCriteria criteria = new BookSearchCriteria("Sapiens", null, BookSearchCriteria.AvailabilityFilter.ALL);
         PagedResult<BookSummaryDto> result = service.searchBooks(criteria, 1, 10);
 
@@ -63,6 +80,7 @@ class MySqlBookCatalogIntegrationTest {
     @Test
     @DisplayName("IT-04: Phân trang từ MySQL đúng cấu trúc (10 cuốn / trang)")
     void testPaginationFromMySql() {
+        assumeDatabaseAvailable();
         PagedResult<BookSummaryDto> page1 = service.searchBooks(null, 1, 10);
         assertEquals(10, page1.getItems().size());
         assertTrue(page1.getTotalElements() >= 220, "Số lượng sách khả dụng phải >= 220");
@@ -92,6 +110,7 @@ class MySqlBookCatalogIntegrationTest {
     @Test
     @DisplayName("IT-06: Xác thực tài khoản người dùng thật từ bảng nguoidung (không bị lỗi cột Sodienthoai)")
     void testFindUserByIdentifierInMySql() {
+        assumeDatabaseAvailable();
         com.ximilib.infrastructure.persistence.impl.UserRepositoryImpl userRepo = 
             new com.ximilib.infrastructure.persistence.impl.UserRepositoryImpl(connectionManager);
         var userOpt = userRepo.findByIdentifier("kien.phan");
