@@ -1,6 +1,7 @@
 package com.ximilib.infrastructure.security;
 
 import com.ximilib.application.port.PasswordHasher;
+import com.ximilib.infrastructure.config.DatabaseConfig;
 import org.mindrot.jbcrypt.BCrypt;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -15,15 +16,40 @@ import java.util.regex.Pattern;
  * - Triển khai PasswordHasher port cho tầng Application (Pure DI, DIP).
  * - Băm mật khẩu một chiều bằng BCrypt.
  * - Mã hóa hai chiều đối xứng AES-256 cho trường thông tin định danh CCCD.
+ * - Đọc khóa mã hóa AES từ cấu hình (DatabaseConfig), không lưu cứng trong mã nguồn.
  * - Kiểm tra độ mạnh mật khẩu và định dạng CCCD theo đúng bản Đặc tả SRS.
  */
 public final class SecurityUtil implements PasswordHasher {
 
-    private static final String DEFAULT_AES_KEY = "XimiLib_Library_Secret_Key_2026_Secure_AES";
     private static final Pattern PWD_PATTERN = Pattern.compile("^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,}$");
     private static final Pattern CCCD_PATTERN = Pattern.compile("^(\\d{9}|\\d{12})$");
+    private static volatile String testAesKey = null;
+    private static volatile boolean forceMissingAesKey = false;
 
     public SecurityUtil() {}
+
+    /**
+     * Thiết lập khóa AES giả lập cho môi trường kiểm thử (Unit Tests).
+     */
+    public static void setTestAesKey(String key) {
+        testAesKey = key;
+        forceMissingAesKey = false;
+    }
+
+    /**
+     * Giả lập môi trường thiếu cấu hình khóa AES cho kiểm thử.
+     */
+    public static void setForceMissingAesKey(boolean force) {
+        forceMissingAesKey = force;
+    }
+
+    /**
+     * Xóa khóa AES giả lập sau khi kết thúc kiểm thử.
+     */
+    public static void clearTestAesKey() {
+        testAesKey = null;
+        forceMissingAesKey = false;
+    }
 
     @Override
     public String hash(String rawPassword) {
@@ -73,8 +99,10 @@ public final class SecurityUtil implements PasswordHasher {
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
             byte[] encrypted = cipher.doFinal(plainText.trim().getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(encrypted);
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (Exception e) {
-            return plainText; // Fallback an toàn nếu lỗi crypto
+            throw new RuntimeException("Lỗi mã hóa dữ liệu AES: " + e.getMessage(), e);
         }
     }
 
@@ -89,8 +117,10 @@ public final class SecurityUtil implements PasswordHasher {
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
             byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(cipherText.trim()));
             return new String(decrypted, StandardCharsets.UTF_8);
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (Exception e) {
-            return cipherText;
+            throw new RuntimeException("Lỗi giải mã dữ liệu AES: " + e.getMessage(), e);
         }
     }
 
@@ -111,9 +141,15 @@ public final class SecurityUtil implements PasswordHasher {
     }
 
     private static SecretKeySpec getAesKeySpec() throws Exception {
-        String key = System.getenv("XIMILIB_AES_KEY");
+        if (forceMissingAesKey) {
+            throw new IllegalStateException("Thiếu cấu hình khóa mã hóa AES! Vui lòng thiết lập biến môi trường XIMILIB_AES_KEY hoặc khai báo 'security.aes.key' trong file config/db.properties.");
+        }
+        String key = testAesKey;
         if (key == null || key.trim().isEmpty()) {
-            key = DEFAULT_AES_KEY;
+            key = DatabaseConfig.getInstance().getAesKey();
+        }
+        if (key == null || key.trim().isEmpty()) {
+            throw new IllegalStateException("Thiếu cấu hình khóa mã hóa AES! Vui lòng thiết lập biến môi trường XIMILIB_AES_KEY hoặc khai báo 'security.aes.key' trong file config/db.properties.");
         }
         byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
         MessageDigest sha = MessageDigest.getInstance("SHA-256");
