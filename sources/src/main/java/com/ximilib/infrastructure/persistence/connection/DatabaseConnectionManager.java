@@ -159,6 +159,14 @@ public class DatabaseConnectionManager implements AutoCloseable {
         }
     }
 
+    /**
+     * Đóng pool kết nối (tương đương {@link #close()}).
+     * Dùng cho Integration Test khi cần đóng manager sau mỗi test class.
+     */
+    public void shutdown() {
+        close();
+    }
+
     public String getUrl() {
         if (isCustom) return customUrl;
         return DatabaseConfig.getInstance().getJdbcUrl();
