@@ -206,29 +206,30 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
 
     @Override
     public int softDeleteBatch(List<String> bookIds) {
+        return softDeleteBatch(null, bookIds);
+    }
+
+    @Override
+    public int softDeleteBatch(com.ximilib.domain.repository.TransactionContext tx, List<String> bookIds) {
         if (bookIds == null || bookIds.isEmpty()) return 0;
+        if (tx == null) {
+            return new com.ximilib.infrastructure.persistence.connection.JdbcTransactionCoordinator(connectionManager)
+                    .execute(ctx -> softDeleteBatch(ctx, bookIds));
+        }
+        Connection conn = ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection();
         String sql = "UPDATE sach SET IsDeleted = TRUE WHERE Masach = ?";
         int count = 0;
-        try (Connection conn = connectionManager.getConnection()) {
-            conn.setAutoCommit(false);
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                for (String id : bookIds) {
-                    ps.setString(1, id);
-                    ps.addBatch();
-                }
-                int[] results = ps.executeBatch();
-                conn.commit();
-                for (int r : results) {
-                    if (r > 0 || r == Statement.SUCCESS_NO_INFO) count++;
-                }
-            } catch (SQLException ex) {
-                conn.rollback();
-                throw ex;
-            } finally {
-                conn.setAutoCommit(true);
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (String id : bookIds) {
+                ps.setString(1, id);
+                ps.addBatch();
             }
-        } catch (SQLException e) {
-            throw new RuntimeException("Lỗi xóa mềm hàng loạt sách từ MySQL: " + e.getMessage(), e);
+            int[] results = ps.executeBatch();
+            for (int r : results) {
+                if (r > 0 || r == Statement.SUCCESS_NO_INFO) count++;
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Lỗi xóa mềm hàng loạt sách từ MySQL: " + ex.getMessage(), ex);
         }
         return count;
     }

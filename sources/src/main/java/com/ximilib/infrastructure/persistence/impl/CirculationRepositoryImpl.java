@@ -183,6 +183,18 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
     @Override
     public void createBorrowTicket(String ticketId, String userId, String cardId, LoanType loanType,
                                   LocalDateTime borrowDate, LocalDateTime dueDate, List<String> copyIds, String notes) {
+        createBorrowTicket(null, ticketId, userId, cardId, loanType, borrowDate, dueDate, copyIds, notes);
+    }
+
+    @Override
+    public void createBorrowTicket(com.ximilib.domain.repository.TransactionContext tx, String ticketId, String userId, String cardId, LoanType loanType,
+                                  LocalDateTime borrowDate, LocalDateTime dueDate, List<String> copyIds, String notes) {
+        if (tx == null) {
+            new com.ximilib.infrastructure.persistence.connection.JdbcTransactionCoordinator(connectionManager)
+                    .executeVoid(ctx -> createBorrowTicket(ctx, ticketId, userId, cardId, loanType, borrowDate, dueDate, copyIds, notes));
+            return;
+        }
+
         List<String> sortedCopyIds = new ArrayList<>(copyIds);
         Collections.sort(sortedCopyIds); // Khóa theo thứ tự id tăng dần tránh deadlock (R-05)
 
@@ -196,56 +208,47 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
         """;
         String updateCopySql = "UPDATE cuonsach SET Trangthaisach = 'DANG_MUON' WHERE Macuonsach = ?";
 
-        try (Connection conn = connectionManager.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                // Khóa bi quan SELECT ... FOR UPDATE (R-05)
-                for (String cid : sortedCopyIds) {
-                    try (PreparedStatement lockPs = conn.prepareStatement("SELECT Trangthaisach FROM cuonsach WHERE Macuonsach = ? FOR UPDATE")) {
-                        lockPs.setString(1, cid);
-                        try (ResultSet rs = lockPs.executeQuery()) {
-                            if (!rs.next() || !"KHA_DUNG".equalsIgnoreCase(rs.getString("Trangthaisach"))) {
-                                throw new IllegalStateException("Cuốn sách " + cid + " không còn ở trạng thái khả dụng để mượn!");
-                            }
+        Connection conn = ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection();
+        try {
+            // Khóa bi quan SELECT ... FOR UPDATE (R-05)
+            for (String cid : sortedCopyIds) {
+                try (PreparedStatement lockPs = conn.prepareStatement("SELECT Trangthaisach FROM cuonsach WHERE Macuonsach = ? FOR UPDATE")) {
+                    lockPs.setString(1, cid);
+                    try (ResultSet rs = lockPs.executeQuery()) {
+                        if (!rs.next() || !"KHA_DUNG".equalsIgnoreCase(rs.getString("Trangthaisach"))) {
+                            throw new IllegalStateException("Cuốn sách " + cid + " không còn ở trạng thái khả dụng để mượn!");
                         }
                     }
                 }
-
-                try (PreparedStatement psTicket = conn.prepareStatement(insertTicketSql)) {
-                    psTicket.setString(1, ticketId);
-                    psTicket.setString(2, userId);
-                    psTicket.setString(3, cardId);
-                    psTicket.setString(4, loanType.name());
-                    psTicket.setDate(5, Date.valueOf(borrowDate.toLocalDate()));
-                    psTicket.setTimestamp(6, Timestamp.valueOf(dueDate));
-                    psTicket.setString(7, notes != null ? notes : "");
-                    psTicket.executeUpdate();
-                }
-
-                int seq = 1;
-                for (String cid : sortedCopyIds) {
-                    String detailId = ticketId + "-D" + seq++;
-                    try (PreparedStatement psDetail = conn.prepareStatement(insertDetailSql)) {
-                        psDetail.setString(1, detailId);
-                        psDetail.setString(2, ticketId);
-                        psDetail.setString(3, cid);
-                        psDetail.executeUpdate();
-                    }
-
-                    try (PreparedStatement psCopy = conn.prepareStatement(updateCopySql)) {
-                        psCopy.setString(1, cid);
-                        psCopy.executeUpdate();
-                    }
-                }
-
-                conn.commit();
-            } catch (Exception ex) {
-                conn.rollback();
-                throw ex;
-            } finally {
-                conn.setAutoCommit(true);
             }
-        } catch (Exception e) {
+
+            try (PreparedStatement psTicket = conn.prepareStatement(insertTicketSql)) {
+                psTicket.setString(1, ticketId);
+                psTicket.setString(2, userId);
+                psTicket.setString(3, cardId);
+                psTicket.setString(4, loanType.name());
+                psTicket.setDate(5, Date.valueOf(borrowDate.toLocalDate()));
+                psTicket.setTimestamp(6, Timestamp.valueOf(dueDate));
+                psTicket.setString(7, notes != null ? notes : "");
+                psTicket.executeUpdate();
+            }
+
+            int seq = 1;
+            for (String cid : sortedCopyIds) {
+                String detailId = ticketId + "-D" + seq++;
+                try (PreparedStatement psDetail = conn.prepareStatement(insertDetailSql)) {
+                    psDetail.setString(1, detailId);
+                    psDetail.setString(2, ticketId);
+                    psDetail.setString(3, cid);
+                    psDetail.executeUpdate();
+                }
+
+                try (PreparedStatement psCopy = conn.prepareStatement(updateCopySql)) {
+                    psCopy.setString(1, cid);
+                    psCopy.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
             throw new RuntimeException("Lỗi tạo phiếu mượn: " + e.getMessage(), e);
         }
     }
@@ -356,6 +359,17 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
 
     @Override
     public void returnCopy(String detailId, String ticketId, String copyId, LocalDateTime returnDate, String condition, BigDecimal fine) {
+        returnCopy(null, detailId, ticketId, copyId, returnDate, condition, fine);
+    }
+
+    @Override
+    public void returnCopy(com.ximilib.domain.repository.TransactionContext tx, String detailId, String ticketId, String copyId, LocalDateTime returnDate, String condition, BigDecimal fine) {
+        if (tx == null) {
+            new com.ximilib.infrastructure.persistence.connection.JdbcTransactionCoordinator(connectionManager)
+                    .executeVoid(ctx -> returnCopy(ctx, detailId, ticketId, copyId, returnDate, condition, fine));
+            return;
+        }
+
         String updateDetailSql = """
             UPDATE chitietphieumuon
             SET Ngaytra = ?, Tinhtrangkhitra = ?, Tienphat = ?
@@ -363,26 +377,18 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
         """;
         String updateCopySql = "UPDATE cuonsach SET Trangthaisach = 'KHA_DUNG' WHERE Macuonsach = ?";
 
-        try (Connection conn = connectionManager.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                try (PreparedStatement ps = conn.prepareStatement(updateDetailSql)) {
-                    ps.setTimestamp(1, Timestamp.valueOf(returnDate));
-                    ps.setString(2, condition != null ? condition : "Bình thường");
-                    ps.setBigDecimal(3, fine != null ? fine : BigDecimal.ZERO);
-                    ps.setString(4, detailId);
-                    ps.executeUpdate();
-                }
-                try (PreparedStatement ps = conn.prepareStatement(updateCopySql)) {
-                    ps.setString(1, copyId);
-                    ps.executeUpdate();
-                }
-                conn.commit();
-            } catch (SQLException ex) {
-                conn.rollback();
-                throw ex;
-            } finally {
-                conn.setAutoCommit(true);
+        Connection conn = ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection();
+        try {
+            try (PreparedStatement ps = conn.prepareStatement(updateDetailSql)) {
+                ps.setTimestamp(1, Timestamp.valueOf(returnDate));
+                ps.setString(2, condition != null ? condition : "Bình thường");
+                ps.setBigDecimal(3, fine != null ? fine : BigDecimal.ZERO);
+                ps.setString(4, detailId);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = conn.prepareStatement(updateCopySql)) {
+                ps.setString(1, copyId);
+                ps.executeUpdate();
             }
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi cập nhật trả sách: " + e.getMessage(), e);
@@ -391,43 +397,73 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
 
     @Override
     public void closeTicketIfAllReturned(String ticketId) {
+        closeTicketIfAllReturned(null, ticketId);
+    }
+
+    @Override
+    public void closeTicketIfAllReturned(com.ximilib.domain.repository.TransactionContext tx, String ticketId) {
         String checkSql = "SELECT COUNT(*) FROM chitietphieumuon WHERE Maphieumuon = ? AND Ngaytra IS NULL";
         String closeSql = "UPDATE phieumuon SET Trangthai = 2, Ngaytra = ? WHERE Maphieumuon = ?";
 
-        try (Connection conn = connectionManager.getConnection();
-             PreparedStatement psCheck = conn.prepareStatement(checkSql)) {
-            psCheck.setString(1, ticketId);
-            try (ResultSet rs = psCheck.executeQuery()) {
-                if (rs.next() && rs.getInt(1) == 0) {
-                    try (PreparedStatement psClose = conn.prepareStatement(closeSql)) {
-                        psClose.setDate(1, Date.valueOf(LocalDate.now()));
-                        psClose.setString(2, ticketId);
-                        psClose.executeUpdate();
+        Connection conn = (tx != null)
+                ? ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection()
+                : null;
+        boolean ownConn = (conn == null);
+        try {
+            if (ownConn) conn = connectionManager.getConnection();
+            try (PreparedStatement psCheck = conn.prepareStatement(checkSql)) {
+                psCheck.setString(1, ticketId);
+                try (ResultSet rs = psCheck.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) == 0) {
+                        try (PreparedStatement psClose = conn.prepareStatement(closeSql)) {
+                            psClose.setDate(1, Date.valueOf(LocalDate.now()));
+                            psClose.setString(2, ticketId);
+                            psClose.executeUpdate();
+                        }
                     }
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi đóng phiếu mượn: " + e.getMessage(), e);
+        } finally {
+            if (ownConn && conn != null) {
+                try { conn.close(); } catch (SQLException ex) { /* ignore */ }
+            }
         }
     }
 
     @Override
     public void createFine(String fineId, String userId, String detailId, String reason, BigDecimal amount, String notes) {
+        createFine(null, fineId, userId, detailId, reason, amount, notes);
+    }
+
+    @Override
+    public void createFine(com.ximilib.domain.repository.TransactionContext tx, String fineId, String userId, String detailId, String reason, BigDecimal amount, String notes) {
         String sql = """
             INSERT INTO phieuphat (Maphieuphat, ID, Machitiet, Lydophat, Sotienphat, Ngayphat, Trangthai, Ghichuphat)
             VALUES (?, ?, ?, ?, ?, NOW(), 0, ?)
         """;
-        try (Connection conn = connectionManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, fineId);
-            ps.setString(2, userId);
-            ps.setString(3, detailId);
-            ps.setString(4, reason);
-            ps.setBigDecimal(5, amount);
-            ps.setString(6, notes != null ? notes : "");
-            ps.executeUpdate();
+        Connection conn = (tx != null)
+                ? ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection()
+                : null;
+        boolean ownConn = (conn == null);
+        try {
+            if (ownConn) conn = connectionManager.getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, fineId);
+                ps.setString(2, userId);
+                ps.setString(3, detailId);
+                ps.setString(4, reason);
+                ps.setBigDecimal(5, amount);
+                ps.setString(6, notes != null ? notes : "");
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi tạo phiếu phạt: " + e.getMessage(), e);
+        } finally {
+            if (ownConn && conn != null) {
+                try { conn.close(); } catch (SQLException ex) { /* ignore */ }
+            }
         }
     }
 
@@ -458,6 +494,17 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
 
     @Override
     public void payFineAndCloseLoss(String fineId, String paymentMethod) {
+        payFineAndCloseLoss(null, fineId, paymentMethod);
+    }
+
+    @Override
+    public void payFineAndCloseLoss(com.ximilib.domain.repository.TransactionContext tx, String fineId, String paymentMethod) {
+        if (tx == null) {
+            new com.ximilib.infrastructure.persistence.connection.JdbcTransactionCoordinator(connectionManager)
+                    .executeVoid(ctx -> payFineAndCloseLoss(ctx, fineId, paymentMethod));
+            return;
+        }
+
         String updateFineSql = "UPDATE phieuphat SET Trangthai = 1 WHERE Maphieuphat = ?";
         String findTicketSql = """
             SELECT p.Maphieumuon FROM phieuphat f
@@ -467,52 +514,44 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
         """;
         String closeLossSql = "UPDATE phieumuon SET Trangthai = 5, Ngaytra = ? WHERE Maphieumuon = ?"; // 5 = DA_MAT
 
-        try (Connection conn = connectionManager.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                try (PreparedStatement psFine = conn.prepareStatement(updateFineSql)) {
-                    psFine.setString(1, fineId);
-                    psFine.executeUpdate();
-                }
-
-                String ticketId = null;
-                try (PreparedStatement psFind = conn.prepareStatement(findTicketSql)) {
-                    psFind.setString(1, fineId);
-                    try (ResultSet rs = psFind.executeQuery()) {
-                        if (rs.next()) ticketId = rs.getString(1);
-                    }
-                }
-
-                if (ticketId != null) {
-                    try (PreparedStatement psLoss = conn.prepareStatement(closeLossSql)) {
-                        psLoss.setDate(1, Date.valueOf(LocalDate.now()));
-                        psLoss.setString(2, ticketId);
-                        psLoss.executeUpdate();
-                    }
-                }
-
-                // Ghi nhận thanh toán vào bảng thanhtoan (Bảng 18)
-                String payId = "PAY-" + System.currentTimeMillis();
-                String insertPaymentSql = """
-                    INSERT INTO thanhtoan (Mathanhtoan, Maphieuphat, Ngaythanhtoan, Sotien, Phuongthuc, Trangthai)
-                    VALUES (?, ?, NOW(), COALESCE((SELECT Sotienphat FROM phieuphat WHERE Maphieuphat = ?), 0), ?, 1)
-                """;
-                try (PreparedStatement psPay = conn.prepareStatement(insertPaymentSql)) {
-                    psPay.setString(1, payId);
-                    psPay.setString(2, fineId);
-                    psPay.setString(3, fineId);
-                    psPay.setString(4, (paymentMethod != null && !paymentMethod.isBlank()) ? paymentMethod : "Tiền mặt");
-                    psPay.executeUpdate();
-                }
-
-                conn.commit();
-                com.ximilib.infrastructure.logging.AuditLogger.log("CIRCULATION", "PAY_FINE", "Hoàn tất thanh toán phạt " + fineId + " bằng " + paymentMethod);
-            } catch (SQLException ex) {
-                conn.rollback();
-                throw ex;
-            } finally {
-                conn.setAutoCommit(true);
+        Connection conn = ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection();
+        try {
+            try (PreparedStatement psFine = conn.prepareStatement(updateFineSql)) {
+                psFine.setString(1, fineId);
+                psFine.executeUpdate();
             }
+
+            String ticketId = null;
+            try (PreparedStatement psFind = conn.prepareStatement(findTicketSql)) {
+                psFind.setString(1, fineId);
+                try (ResultSet rs = psFind.executeQuery()) {
+                    if (rs.next()) ticketId = rs.getString(1);
+                }
+            }
+
+            if (ticketId != null) {
+                try (PreparedStatement psLoss = conn.prepareStatement(closeLossSql)) {
+                    psLoss.setDate(1, Date.valueOf(LocalDate.now()));
+                    psLoss.setString(2, ticketId);
+                    psLoss.executeUpdate();
+                }
+            }
+
+            // Ghi nhận thanh toán vào bảng thanhtoan (Bảng 18)
+            String payId = "PAY-" + System.currentTimeMillis();
+            String insertPaymentSql = """
+                INSERT INTO thanhtoan (Mathanhtoan, Maphieuphat, Ngaythanhtoan, Sotien, Phuongthuc, Trangthai)
+                VALUES (?, ?, NOW(), COALESCE((SELECT Sotienphat FROM phieuphat WHERE Maphieuphat = ?), 0), ?, 1)
+            """;
+            try (PreparedStatement psPay = conn.prepareStatement(insertPaymentSql)) {
+                psPay.setString(1, payId);
+                psPay.setString(2, fineId);
+                psPay.setString(3, fineId);
+                psPay.setString(4, (paymentMethod != null && !paymentMethod.isBlank()) ? paymentMethod : "Tiền mặt");
+                psPay.executeUpdate();
+            }
+
+            com.ximilib.infrastructure.logging.AuditLogger.log("CIRCULATION", "PAY_FINE", "Hoàn tất thanh toán phạt " + fineId + " bằng " + paymentMethod);
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi thanh toán phạt và đóng bồi thường: " + e.getMessage(), e);
         }
@@ -549,6 +588,17 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
 
     @Override
     public void extendDueDate(String ticketId, LocalDateTime newDueDate, String reason) {
+        extendDueDate(null, ticketId, newDueDate, reason);
+    }
+
+    @Override
+    public void extendDueDate(com.ximilib.domain.repository.TransactionContext tx, String ticketId, LocalDateTime newDueDate, String reason) {
+        if (tx == null) {
+            new com.ximilib.infrastructure.persistence.connection.JdbcTransactionCoordinator(connectionManager)
+                    .executeVoid(ctx -> extendDueDate(ctx, ticketId, newDueDate, reason));
+            return;
+        }
+
         String getOldDueSql = "SELECT Hantranhan FROM phieumuon WHERE Maphieumuon = ?";
         String insertRenewSql = """
             INSERT INTO giahanmuon (Magiahan, Maphieumuon, Ngaygiahan, Hantracu, Hantramoi, Lydogiahan, Trangthai)
@@ -556,38 +606,30 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
         """;
         String updateDueSql = "UPDATE phieumuon SET Hantranhan = ? WHERE Maphieumuon = ?";
 
-        try (Connection conn = connectionManager.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                Timestamp oldDue = null;
-                try (PreparedStatement psGet = conn.prepareStatement(getOldDueSql)) {
-                    psGet.setString(1, ticketId);
-                    try (ResultSet rs = psGet.executeQuery()) {
-                        if (rs.next()) oldDue = rs.getTimestamp(1);
-                    }
+        Connection conn = ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection();
+        try {
+            Timestamp oldDue = null;
+            try (PreparedStatement psGet = conn.prepareStatement(getOldDueSql)) {
+                psGet.setString(1, ticketId);
+                try (ResultSet rs = psGet.executeQuery()) {
+                    if (rs.next()) oldDue = rs.getTimestamp(1);
                 }
+            }
 
-                String renewId = "GH-" + System.currentTimeMillis() % 1000000;
-                try (PreparedStatement psInsert = conn.prepareStatement(insertRenewSql)) {
-                    psInsert.setString(1, renewId);
-                    psInsert.setString(2, ticketId);
-                    psInsert.setTimestamp(3, oldDue != null ? oldDue : Timestamp.valueOf(LocalDateTime.now()));
-                    psInsert.setTimestamp(4, Timestamp.valueOf(newDueDate));
-                    psInsert.setString(5, reason != null ? reason : "Gia hạn trực tuyến");
-                    psInsert.executeUpdate();
-                }
+            String renewId = "GH-" + System.currentTimeMillis() % 1000000;
+            try (PreparedStatement psInsert = conn.prepareStatement(insertRenewSql)) {
+                psInsert.setString(1, renewId);
+                psInsert.setString(2, ticketId);
+                psInsert.setTimestamp(3, oldDue != null ? oldDue : Timestamp.valueOf(LocalDateTime.now()));
+                psInsert.setTimestamp(4, Timestamp.valueOf(newDueDate));
+                psInsert.setString(5, reason != null ? reason : "Gia hạn trực tuyến");
+                psInsert.executeUpdate();
+            }
 
-                try (PreparedStatement psUpdate = conn.prepareStatement(updateDueSql)) {
-                    psUpdate.setTimestamp(1, Timestamp.valueOf(newDueDate));
-                    psUpdate.setString(2, ticketId);
-                    psUpdate.executeUpdate();
-                }
-                conn.commit();
-            } catch (SQLException ex) {
-                conn.rollback();
-                throw ex;
-            } finally {
-                conn.setAutoCommit(true);
+            try (PreparedStatement psUpdate = conn.prepareStatement(updateDueSql)) {
+                psUpdate.setTimestamp(1, Timestamp.valueOf(newDueDate));
+                psUpdate.setString(2, ticketId);
+                psUpdate.executeUpdate();
             }
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi lưu thông tin gia hạn mượn: " + e.getMessage(), e);

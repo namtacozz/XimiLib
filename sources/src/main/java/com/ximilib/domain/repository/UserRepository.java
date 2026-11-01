@@ -28,6 +28,10 @@ public interface UserRepository {
 
     void registerReader(User user, String cardNumber, LocalDate issueDate, LocalDate expiryDate);
 
+    default void registerReader(TransactionContext tx, User user, String cardNumber, LocalDate issueDate, LocalDate expiryDate) {
+        registerReader(user, cardNumber, issueDate, expiryDate);
+    }
+
     String generateNextUserId();
 
     String generateNextCardNumber();

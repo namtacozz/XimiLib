@@ -69,7 +69,8 @@ public class AppContainer {
         CirculationRepositoryImpl circRepo = new CirculationRepositoryImpl(connectionManager);
         this.circulationRepository = circRepo;
         this.circulationQueryPort = circRepo;
-        this.circulationService = new CirculationServiceImpl(circulationRepository, circulationQueryPort);
+        com.ximilib.application.port.TransactionCoordinator txCoordinator = new com.ximilib.infrastructure.persistence.connection.JdbcTransactionCoordinator(connectionManager);
+        this.circulationService = new CirculationServiceImpl(circulationRepository, circulationQueryPort, null, txCoordinator);
         DashboardRepositoryImpl dashRepo = new DashboardRepositoryImpl(connectionManager);
         this.dashboardRepository = dashRepo;
         this.dashboardQueryPort = dashRepo;

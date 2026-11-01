@@ -9,6 +9,7 @@ import java.util.Optional;
 /**
  * CirculationRepository: Hợp đồng lưu trữ và truy vấn nghiệp vụ Lưu hành, Mượn/Trả, Bồi hoàn.
  * Tuân thủ Clean Architecture (Domain interface, không import SQL/JDBC/Swing - R-01).
+ * Hỗ trợ TransactionContext để Application Service làm chủ ranh giới giao dịch atomic.
  */
 public interface CirculationRepository {
 
@@ -30,13 +31,30 @@ public interface CirculationRepository {
     void createBorrowTicket(String ticketId, String userId, String cardId, LoanType loanType,
                             LocalDateTime borrowDate, LocalDateTime dueDate, List<String> copyIds, String notes);
 
+    default void createBorrowTicket(TransactionContext tx, String ticketId, String userId, String cardId, LoanType loanType,
+                            LocalDateTime borrowDate, LocalDateTime dueDate, List<String> copyIds, String notes) {
+        createBorrowTicket(ticketId, userId, cardId, loanType, borrowDate, dueDate, copyIds, notes);
+    }
+
     Optional<BorrowDetailInfo> findActiveLoanByCopy(String copyBarcode);
 
     void returnCopy(String detailId, String ticketId, String copyId, LocalDateTime returnDate, String condition, BigDecimal fine);
 
+    default void returnCopy(TransactionContext tx, String detailId, String ticketId, String copyId, LocalDateTime returnDate, String condition, BigDecimal fine) {
+        returnCopy(detailId, ticketId, copyId, returnDate, condition, fine);
+    }
+
     void closeTicketIfAllReturned(String ticketId);
 
+    default void closeTicketIfAllReturned(TransactionContext tx, String ticketId) {
+        closeTicketIfAllReturned(ticketId);
+    }
+
     void createFine(String fineId, String userId, String detailId, String reason, BigDecimal amount, String notes);
+
+    default void createFine(TransactionContext tx, String fineId, String userId, String detailId, String reason, BigDecimal amount, String notes) {
+        createFine(fineId, userId, detailId, reason, amount, notes);
+    }
 
     void updateTicketStatus(String ticketId, int status);
 
@@ -44,11 +62,19 @@ public interface CirculationRepository {
 
     void payFineAndCloseLoss(String fineId, String paymentMethod);
 
+    default void payFineAndCloseLoss(TransactionContext tx, String fineId, String paymentMethod) {
+        payFineAndCloseLoss(fineId, paymentMethod);
+    }
+
     boolean isTicketRenewed(String ticketId);
 
     int countReservations(String bookId);
 
     void extendDueDate(String ticketId, LocalDateTime newDueDate, String reason);
+
+    default void extendDueDate(TransactionContext tx, String ticketId, LocalDateTime newDueDate, String reason) {
+        extendDueDate(ticketId, newDueDate, reason);
+    }
 
     void createReservation(String resId, String userId, String bookId);
 
