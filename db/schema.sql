@@ -8,7 +8,7 @@
 -- ========================================================
 
 CREATE DATABASE IF NOT EXISTS `ximilib_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `ximilib_db`;
+-- Lưu ý: Thực thi DDL trên CSDL hiện hành (không hardcode USE ximilib_db để hỗ trợ đa môi trường)
 
 -- Tắt tạm thời kiểm tra khóa ngoại để khởi tạo an toàn
 SET FOREIGN_KEY_CHECKS = 0;
@@ -314,10 +314,18 @@ INSERT INTO `vaitro` (`Mavaitro`, `Tenvaitro`, `Mota`) VALUES
 ('READER', 'Độc giả', 'Tra cứu sách, đặt trước và xem lịch sử cá nhân')
 ON DUPLICATE KEY UPDATE `Tenvaitro` = VALUES(`Tenvaitro`);
 
--- Khởi tạo Tài khoản Quản trị viên mặc định (Mật khẩu mặc định: admin123, đã băm BCrypt)
+-- Khởi tạo các tài khoản người dùng mẫu mặc định (admin/admin123, nhân viên & độc giả/123456, đã băm BCrypt)
 INSERT INTO `nguoidung` (`ID`, `Tendangnhap`, `Matkhau`, `Hoten`, `Email`, `Gioitinh`, `Sdt`, `Mavaitro`, `Trangthai`) VALUES
-('USR-ADMIN-01', 'admin', '$2a$10$GQBiVxZMhZXp.now2MCu3.OW8KqSUGVH5//qTuN1/Lb.zps5QMo02', 'Quản trị viên Hệ thống', 'admin@ximilib.edu.vn', 1, '0905123456', 'ADMIN', 1)
-ON DUPLICATE KEY UPDATE `Hoten` = VALUES(`Hoten`);
+('ND001', 'admin', '$2a$10$GQBiVxZMhZXp.now2MCu3.OW8KqSUGVH5//qTuN1/Lb.zps5QMo02', 'Nguyễn Việt Nhật', 'nhat.nguyen@dut.udn.vn', 1, '0905111222', 'ADMIN', 1),
+('ND002', 'kien.phan', '$2a$10$9BQggIBf5SOkBmU6Xgldruss1DCko8/sJgeUFVcWRJpJs7OxlkaHC', 'Phan Vũ Xuân Kiên', 'kien.phan@dut.udn.vn', 1, '0905123456', 'LIBRARIAN', 1),
+('ND003', 'nam.le', '$2a$10$9BQggIBf5SOkBmU6Xgldruss1DCko8/sJgeUFVcWRJpJs7OxlkaHC', 'Lê Võ Thành Nam', 'nam.le@dut.udn.vn', 1, '0905333444', 'LIBRARIAN', 1),
+('ND004', 'sinhvien', '$2a$10$9BQggIBf5SOkBmU6Xgldruss1DCko8/sJgeUFVcWRJpJs7OxlkaHC', 'Trần Văn An', 'an.tran@sv.dut.udn.vn', 1, '0914999888', 'READER', 1)
+ON DUPLICATE KEY UPDATE `Hoten` = VALUES(`Hoten`), `Matkhau` = VALUES(`Matkhau`), `Email` = VALUES(`Email`), `Mavaitro` = VALUES(`Mavaitro`), `Trangthai` = VALUES(`Trangthai`);
+
+-- Khởi tạo thẻ thư viện mẫu cho độc giả sinh viên
+INSERT INTO `thethuvien` (`Mathe`, `ID`, `Ngaycap`, `Ngayhethan`, `Trangthai`) VALUES
+('LIB-2026-00001', 'ND004', CURDATE(), CURDATE() + INTERVAL 1 YEAR, 1)
+ON DUPLICATE KEY UPDATE `Trangthai` = VALUES(`Trangthai`);
 
 -- Khởi tạo một số Thể loại mẫu
 INSERT INTO `theloai` (`Matheloai`, `Tentheloai`, `Mota`) VALUES

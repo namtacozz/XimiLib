@@ -27,7 +27,7 @@ public class UserSession {
 
         // 1. Tài khoản Quản Trị Viên (TechLead Nhật)
         USERS.add(new User(
-            "ND001", "admin", "123456",
+            "ND001", "admin", "admin123",
             "Nguyễn Việt Nhật", "nhat.nguyen@dut.udn.vn", "0905 111 222",
             "Quản Trị"
         ));

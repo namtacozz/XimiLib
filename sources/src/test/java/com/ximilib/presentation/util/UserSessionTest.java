@@ -23,7 +23,7 @@ public class UserSessionTest {
 
     @Test
     public void testAuthenticateSuccessWithEmailCaseInsensitive() {
-        User user = UserSession.authenticate("NHAT.NGUYEN@DUT.UDN.VN", "123456");
+        User user = UserSession.authenticate("NHAT.NGUYEN@DUT.UDN.VN", "admin123");
         assertNotNull(user);
         assertEquals("admin", user.getUsername());
         assertEquals("Quản Trị", user.getRole());
@@ -84,7 +84,7 @@ public class UserSessionTest {
 
     @Test
     public void testSetCurrentUserAndLogout() {
-        User user = UserSession.authenticate("admin", "123456");
+        User user = UserSession.authenticate("admin", "admin123");
         assertEquals(user, UserSession.getCurrentUser());
 
         UserSession.setCurrentUser(null);

@@ -39,10 +39,10 @@ XimiLib/                                        # [ROOT] Thư mục gốc dự �
 │       ├── Tong_Quan_Kien_Truc_Patterns.docx   # Tài liệu phân tích kiến trúc và Design Patterns
 │       └── pbl_workspace.html                  # Công cụ quản lý tiến độ & ERD tương tác của nhóm
 │
-├── database/                                   # QUẢN TRỊ CƠ SỞ DỮ LIỆU MYSQL 8.0+
+├── db/                                         # QUẢN TRỊ CƠ SỞ DỮ LIỆU MYSQL 8.0+
 │   ├── schema.sql                              # Script DDL 20 bảng, khóa ngoại và chỉ mục chính thức
-│   ├── raw_from_workspace.sql                  # Bản xuất DDL tham khảo từ workspace
-│   └── backups/                                # Thư mục lưu trữ bản backup tự động (.gitkeep)
+│   ├── migrations/                             # Các bản migration phiên bản hóa (V1, V2, V3)
+│   └── seed/                                   # Dữ liệu mẫu (sách, bản sao, phiếu mượn demo)
 │
 ├── assets/                                     # TÀI NGUYÊN HÌNH ẢNH & MOCKUP
 │   ├── librack_exact_dashboard.jpg             # Ảnh mẫu thiết kế giao diện Dashboard
@@ -79,7 +79,7 @@ XimiLib/                                        # [ROOT] Thư mục gốc dự �
 ### 2. Khởi tạo Cơ sở Dữ liệu
 Mở MySQL Workbench hoặc terminal dòng lệnh và thực thi script:
 ```sql
-SOURCE database/schema.sql;
+SOURCE db/schema.sql;
 ```
 
 ### 3. Đóng gói Ứng dụng (Build)
