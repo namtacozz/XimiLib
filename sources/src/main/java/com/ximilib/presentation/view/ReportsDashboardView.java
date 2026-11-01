@@ -1,10 +1,10 @@
 package com.ximilib.presentation.view;
 
+import com.ximilib.application.port.ReportPort;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.infrastructure.logging.AuditLogger;
-import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
 import com.ximilib.presentation.util.UiModalHelper;
 
 import javax.swing.*;
@@ -17,10 +17,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Vector;
@@ -37,7 +33,7 @@ import java.util.Vector;
  */
 public class ReportsDashboardView extends JPanel {
 
-    private final DatabaseConnectionManager connectionManager;
+    private final ReportPort reportPort;
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
 
     private JComboBox<String> cmbReportType;
@@ -52,11 +48,11 @@ public class ReportsDashboardView extends JPanel {
     private JLabel lblTotalFinesVal;
 
     public ReportsDashboardView() {
-        this(AppContainer.getInstance().getConnectionManager());
+        this(AppContainer.getInstance().getReportPort());
     }
 
-    public ReportsDashboardView(DatabaseConnectionManager connectionManager) {
-        this.connectionManager = (connectionManager != null) ? connectionManager : AppContainer.getInstance().getConnectionManager();
+    public ReportsDashboardView(ReportPort reportPort) {
+        this.reportPort = (reportPort != null) ? reportPort : AppContainer.getInstance().getReportPort();
 
         setOpaque(false);
         setLayout(new BorderLayout());
@@ -65,6 +61,11 @@ public class ReportsDashboardView extends JPanel {
         initUI();
         loadKpisAsync();
         loadReportDataAsync();
+    }
+
+    @Deprecated
+    public ReportsDashboardView(Object legacyConnectionManager) {
+        this(AppContainer.getInstance().getReportPort());
     }
 
     private void initUI() {
@@ -209,46 +210,22 @@ public class ReportsDashboardView extends JPanel {
     }
 
     private void loadKpisAsync() {
-        new SwingWorker<Void, Void>() {
-            int totalBooks = 0;
-            int activeLoans = 0;
-            int overdueLoans = 0;
-            BigDecimal totalFines = BigDecimal.ZERO;
-
+        new SwingWorker<ReportPort.ReportKpiSummary, Void>() {
             @Override
-            protected Void doInBackground() {
-                try (Connection conn = connectionManager.getConnection()) {
-                    // Total books
-                    try (var ps = conn.prepareStatement("SELECT COUNT(*) FROM sach WHERE IsDeleted = FALSE");
-                         var rs = ps.executeQuery()) {
-                        if (rs.next()) totalBooks = rs.getInt(1);
-                    }
-                    // Active loans
-                    try (var ps = conn.prepareStatement("SELECT COUNT(*) FROM phieumuon WHERE Trangthai = 1");
-                         var rs = ps.executeQuery()) {
-                        if (rs.next()) activeLoans = rs.getInt(1);
-                    }
-                    // Overdue
-                    try (var ps = conn.prepareStatement("SELECT COUNT(*) FROM phieumuon WHERE Trangthai = 3 OR (Trangthai = 1 AND Hantranhan < NOW())");
-                         var rs = ps.executeQuery()) {
-                        if (rs.next()) overdueLoans = rs.getInt(1);
-                    }
-                    // Fines paid
-                    try (var ps = conn.prepareStatement("SELECT COALESCE(SUM(Sotien), 0) FROM thanhtoan WHERE Trangthai = 1");
-                         var rs = ps.executeQuery()) {
-                        if (rs.next()) totalFines = rs.getBigDecimal(1);
-                    }
-                } catch (SQLException ignored) {
-                }
-                return null;
+            protected ReportPort.ReportKpiSummary doInBackground() {
+                return reportPort.getKpiSummary();
             }
 
             @Override
             protected void done() {
-                lblTotalBooksVal.setText(String.format("%,d", totalBooks));
-                lblActiveLoansVal.setText(String.format("%,d", activeLoans));
-                lblOverdueVal.setText(String.format("%,d", overdueLoans));
-                lblTotalFinesVal.setText(currencyFormat.format(totalFines != null ? totalFines : BigDecimal.ZERO));
+                try {
+                    ReportPort.ReportKpiSummary kpi = get();
+                    lblTotalBooksVal.setText(String.format("%,d", kpi.totalBooks()));
+                    lblActiveLoansVal.setText(String.format("%,d", kpi.activeLoans()));
+                    lblOverdueVal.setText(String.format("%,d", kpi.overdueLoans()));
+                    lblTotalFinesVal.setText(currencyFormat.format(kpi.totalFines() != null ? kpi.totalFines() : BigDecimal.ZERO));
+                } catch (Exception ignored) {
+                }
             }
         }.execute();
     }
@@ -262,15 +239,33 @@ public class ReportsDashboardView extends JPanel {
             @Override
             protected DefaultTableModel doInBackground() {
                 DefaultTableModel model = new DefaultTableModel();
-                try (Connection conn = connectionManager.getConnection()) {
-                    switch (selectedIndex) {
-                        case 0 -> loadLoansReport(conn, model);
-                        case 1 -> loadOverdueReport(conn, model);
-                        case 2 -> loadDamagedBooksReport(conn, model);
-                        case 3 -> loadTopBooksReport(conn, model);
+                switch (selectedIndex) {
+                    case 0 -> {
+                        model.setColumnIdentifiers(new String[]{"Mã Phiếu", "Bạn Đọc", "Hình Thức", "Ngày Mượn", "Hạn Trả", "Ngày Trả Thực", "Trạng Thái"});
+                        for (Object[] row : reportPort.getLoansReport()) {
+                            model.addRow(row);
+                        }
                     }
-                } catch (SQLException e) {
-                    System.err.println("Lỗi truy vấn báo cáo: " + e.getMessage());
+                    case 1 -> {
+                        model.setColumnIdentifiers(new String[]{"Bạn Đọc", "Mã Thẻ", "Số ĐT", "Mã Phiếu", "Hạn Trả", "Nợ Phạt Tồn"});
+                        for (Object[] row : reportPort.getOverdueReport()) {
+                            BigDecimal fine = (row[5] instanceof BigDecimal bd) ? bd : BigDecimal.ZERO;
+                            row[5] = currencyFormat.format(fine);
+                            model.addRow(row);
+                        }
+                    }
+                    case 2 -> {
+                        model.setColumnIdentifiers(new String[]{"Mã Cuốn", "Tựa Sách", "Trạng Thái", "Tình Trạng", "Khu Vực", "Kệ Sách"});
+                        for (Object[] row : reportPort.getDamagedBooksReport()) {
+                            model.addRow(row);
+                        }
+                    }
+                    case 3 -> {
+                        model.setColumnIdentifiers(new String[]{"Mã Sách", "Tên Đầu Sách", "Thể Loại", "Số Lượt Mượn"});
+                        for (Object[] row : reportPort.getTopBooksReport()) {
+                            model.addRow(row);
+                        }
+                    }
                 }
                 return model;
             }
@@ -285,99 +280,6 @@ public class ReportsDashboardView extends JPanel {
                 }
             }
         }.execute();
-    }
-
-    private void loadLoansReport(Connection conn, DefaultTableModel model) throws SQLException {
-        model.setColumnIdentifiers(new String[]{"Mã Phiếu", "Bạn Đọc", "Hình Thức", "Ngày Mượn", "Hạn Trả", "Ngày Trả Thực", "Trạng Thái"});
-        String sql = """
-            SELECT p.Maphieumuon, u.Hoten, p.Hinhthuc, p.Ngaymuon, p.Hantranhan, p.Ngaytra,
-                   CASE p.Trangthai 
-                       WHEN 0 THEN 'Chờ duyệt'
-                       WHEN 1 THEN 'Đang mượn'
-                       WHEN 2 THEN 'Đã trả'
-                       WHEN 3 THEN 'Quá hạn'
-                       WHEN 4 THEN 'Chờ bồi thường'
-                       WHEN 5 THEN 'Đã mất'
-                       ELSE 'Hủy' END AS StatusTxt
-            FROM phieumuon p
-            JOIN nguoidung u ON p.ID = u.ID
-            ORDER BY p.Ngaymuon DESC LIMIT 100
-        """;
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getString(1), rs.getString(2), rs.getString(3),
-                    rs.getDate(4), rs.getDate(5), rs.getDate(6) != null ? rs.getDate(6) : "Chưa trả",
-                    rs.getString(7)
-                });
-            }
-        }
-    }
-
-    private void loadOverdueReport(Connection conn, DefaultTableModel model) throws SQLException {
-        model.setColumnIdentifiers(new String[]{"Bạn Đọc", "Mã Thẻ", "Số ĐT", "Mã Phiếu", "Hạn Trả", "Nợ Phạt Tồn"});
-        String sql = """
-            SELECT u.Hoten, COALESCE(t.Mathe, 'N/A'), COALESCE(u.Sdt, '-'), p.Maphieumuon, p.Hantranhan,
-                   COALESCE((SELECT SUM(Sotienphat) FROM phieuphat WHERE ID = u.ID AND Trangthai = 0), 0) AS TongNo
-            FROM phieumuon p
-            JOIN nguoidung u ON p.ID = u.ID
-            LEFT JOIN thethuvien t ON u.ID = t.ID
-            WHERE p.Trangthai = 3 OR (p.Trangthai = 1 AND p.Hantranhan < NOW())
-            ORDER BY p.Hantranhan ASC LIMIT 100
-        """;
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getString(1), rs.getString(2), rs.getString(3),
-                    rs.getString(4), rs.getDate(5), currencyFormat.format(rs.getBigDecimal(6))
-                });
-            }
-        }
-    }
-
-    private void loadDamagedBooksReport(Connection conn, DefaultTableModel model) throws SQLException {
-        model.setColumnIdentifiers(new String[]{"Mã Cuốn", "Tựa Sách", "Trạng Thái", "Tình Trạng", "Khu Vực", "Kệ Sách"});
-        String sql = """
-            SELECT c.Macuonsach, s.Tensach, c.Trangthaisach, COALESCE(c.Tinhtrangsach, '-'),
-                   COALESCE(k.Tenkhuvuc, '-'), COALESCE(ks.Tenkesach, '-')
-            FROM cuonsach c
-            JOIN sach s ON c.Masach = s.Masach
-            LEFT JOIN kesach ks ON c.Makesach = ks.Makesach
-            LEFT JOIN khuvuc k ON ks.Makhuvuc = k.Makhuvuc
-            WHERE c.Trangthaisach IN ('HONG', 'DA_MAT')
-            ORDER BY c.Macuonsach LIMIT 100
-        """;
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getString(1), rs.getString(2), rs.getString(3),
-                    rs.getString(4), rs.getString(5), rs.getString(6)
-                });
-            }
-        }
-    }
-
-    private void loadTopBooksReport(Connection conn, DefaultTableModel model) throws SQLException {
-        model.setColumnIdentifiers(new String[]{"Mã Sách", "Tên Đầu Sách", "Thể Loại", "Số Lượt Mượn"});
-        String sql = """
-            SELECT s.Masach, s.Tensach, COALESCE(tl.Tentheloai, '-'), COUNT(ct.Machitiet) AS SoLuotMuon
-            FROM sach s
-            LEFT JOIN chitietphieumuon ct ON s.Masach = ct.Masach
-            LEFT JOIN theloai tl ON s.Matheloai = tl.Matheloai
-            GROUP BY s.Masach, s.Tensach, tl.Tentheloai
-            ORDER BY SoLuotMuon DESC LIMIT 10
-        """;
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getString(1), rs.getString(2), rs.getString(3), rs.getInt(4)
-                });
-            }
-        }
     }
 
     private void exportToCsv() {
@@ -499,62 +401,8 @@ public class ReportsDashboardView extends JPanel {
         new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
-                try (Connection conn = connectionManager.getConnection()) {
-                    conn.setAutoCommit(false);
-                    try {
-                        String sql = "UPDATE phieumuon SET Trangthai = ? WHERE Maphieumuon = ?";
-                        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                            ps.setInt(1, newStatusCode);
-                            ps.setString(2, ticketId);
-                            ps.executeUpdate();
-                        }
-
-                        // Nếu cập nhật sang Đã trả (2) hoặc Đã hủy (6), tự động giải phóng sách về KHA_DUNG
-                        if (newStatusCode == 2 || newStatusCode == 6) {
-                            String sqlFreeCopies = """
-                                UPDATE cuonsach c
-                                JOIN chitietphieumuon ct ON c.Macuonsach = ct.Macuonsach
-                                SET c.Trangthaisach = 'KHA_DUNG'
-                                WHERE ct.Maphieumuon = ?
-                            """;
-                            try (PreparedStatement psFree = conn.prepareStatement(sqlFreeCopies)) {
-                                psFree.setString(1, ticketId);
-                                psFree.executeUpdate();
-                            }
-                        } else if (newStatusCode == 1 || newStatusCode == 3) {
-                            // Đang mượn hoặc Quá hạn -> Sách ở trạng thái DANG_MUON
-                            String sqlBusyCopies = """
-                                UPDATE cuonsach c
-                                JOIN chitietphieumuon ct ON c.Macuonsach = ct.Macuonsach
-                                SET c.Trangthaisach = 'DANG_MUON'
-                                WHERE ct.Maphieumuon = ?
-                            """;
-                            try (PreparedStatement psBusy = conn.prepareStatement(sqlBusyCopies)) {
-                                psBusy.setString(1, ticketId);
-                                psBusy.executeUpdate();
-                            }
-                        } else if (newStatusCode == 4 || newStatusCode == 5) {
-                            // Chờ bồi thường hoặc Đã mất -> HONG_MAT
-                            String sqlLostCopies = """
-                                UPDATE cuonsach c
-                                JOIN chitietphieumuon ct ON c.Macuonsach = ct.Macuonsach
-                                SET c.Trangthaisach = 'HONG_MAT'
-                                WHERE ct.Maphieumuon = ?
-                            """;
-                            try (PreparedStatement psLost = conn.prepareStatement(sqlLostCopies)) {
-                                psLost.setString(1, ticketId);
-                                psLost.executeUpdate();
-                            }
-                        }
-
-                        conn.commit();
-                        String currentUserId = UserSession.getCurrentUser() != null ? UserSession.getCurrentUser().getId() : "ADMIN";
-                        AuditLogger.log(currentUserId, "UPDATE_LOAN_STATUS", "Cập nhật phiếu " + ticketId + " sang trạng thái: " + newStatusCode);
-                    } catch (Exception ex) {
-                        conn.rollback();
-                        throw ex;
-                    }
-                }
+                String currentUserId = UserSession.getCurrentUser() != null ? UserSession.getCurrentUser().getId() : "ADMIN";
+                reportPort.updateLoanStatus(ticketId, newStatusCode, currentUserId);
                 return null;
             }
 

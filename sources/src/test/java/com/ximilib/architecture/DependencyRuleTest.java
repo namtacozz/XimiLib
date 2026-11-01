@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  *    com.ximilib.infrastructure, com.ximilib.presentation, com.ximilib.gui.
  * 2. application không import: javax.swing, java.sql, com.ximilib.infrastructure,
  *    com.ximilib.presentation, com.ximilib.gui.
- * 3. presentation và gui không import: java.sql, com.ximilib.infrastructure.persistence.
+ * 3. presentation và gui không import: java.sql, com.ximilib.infrastructure.persistence, com.ximilib.infrastructure.security.
  * 4. Không được tồn tại package com.ximilib.gui và com.ximilib.models (được ghi nhận trong baseline).
  * <p>
  * Cơ chế Baseline (arch-baseline.txt):
@@ -67,7 +67,8 @@ public class DependencyRuleTest {
 
     private static final List<String> PRESENTATION_FORBIDDEN = List.of(
             "java.sql",
-            "com.ximilib.infrastructure.persistence"
+            "com.ximilib.infrastructure.persistence",
+            "com.ximilib.infrastructure.security"
     );
 
     private static final Set<String> FORBIDDEN_PACKAGES = Set.of(

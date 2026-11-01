@@ -4,7 +4,6 @@ import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.view.LoginForm;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UserSession;
-import com.ximilib.infrastructure.security.SecurityUtil;
 import com.ximilib.domain.model.User;
 import com.ximilib.presentation.util.UiModalHelper;
 import java.awt.*;
@@ -341,7 +340,7 @@ public class UserProfileModalPanel extends GlassPaneChild {
             return;
         }
 
-        boolean isCurrentMatch = SecurityUtil.checkPassword(currentPass, currentUser.getPassword());
+        boolean isCurrentMatch = AppContainer.getInstance().getPasswordHasher().matches(currentPass, currentUser.getPassword());
         if (!isCurrentMatch) {
             UiModalHelper.showToastError(this, "Mật khẩu hiện tại không chính xác! Vui lòng thử lại.");
             return;
@@ -359,7 +358,7 @@ public class UserProfileModalPanel extends GlassPaneChild {
 
         try {
             AppContainer.getInstance().getAuthenticationService().resetUserPassword(currentUser.getId(), newPass);
-            currentUser.setPassword(SecurityUtil.hashPassword(newPass));
+            currentUser.setPassword(AppContainer.getInstance().getPasswordHasher().hash(newPass));
             UiModalHelper.showToastSuccess(this, "Đổi mật khẩu thành công! Hãy ghi nhớ mật khẩu mới.");
             txtCurrentPass.setText("");
             txtNewPass.setText("");

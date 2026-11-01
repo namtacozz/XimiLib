@@ -1,20 +1,17 @@
 package com.ximilib.presentation.view;
 
+import com.ximilib.application.port.FeedbackPort;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.infrastructure.logging.AuditLogger;
-import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
 import com.ximilib.presentation.util.UiModalHelper;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.List;
 
 /**
  * FeedbackManagementView: Màn hình Góp Ý & Phản Hồi Dịch Vụ Thư Viện (F-10).
@@ -24,7 +21,7 @@ import java.sql.SQLException;
  */
 public class FeedbackManagementView extends JPanel {
 
-    private final DatabaseConnectionManager connectionManager;
+    private final FeedbackPort feedbackPort;
     private final boolean isReader;
 
     // Components cho Reader
@@ -36,12 +33,12 @@ public class FeedbackManagementView extends JPanel {
     private JTable feedbackTable;
 
     public FeedbackManagementView() {
-        this(AppContainer.getInstance().getConnectionManager(),
+        this(AppContainer.getInstance().getFeedbackPort(),
             UserSession.getCurrentUser() != null && UserSession.getCurrentUser().getRole().contains("Độc Giả"));
     }
 
-    public FeedbackManagementView(DatabaseConnectionManager connectionManager, boolean isReader) {
-        this.connectionManager = (connectionManager != null) ? connectionManager : AppContainer.getInstance().getConnectionManager();
+    public FeedbackManagementView(FeedbackPort feedbackPort, boolean isReader) {
+        this.feedbackPort = (feedbackPort != null) ? feedbackPort : AppContainer.getInstance().getFeedbackPort();
         this.isReader = isReader;
 
         setOpaque(false);
@@ -49,6 +46,11 @@ public class FeedbackManagementView extends JPanel {
         setBorder(new EmptyBorder(20, 28, 28, 28));
 
         initUI();
+    }
+
+    @Deprecated
+    public FeedbackManagementView(Object legacyConnectionManager, boolean isReader) {
+        this(AppContainer.getInstance().getFeedbackPort(), isReader);
     }
 
     private void initUI() {
@@ -192,15 +194,8 @@ public class FeedbackManagementView extends JPanel {
 
         new SwingWorker<Void, Void>() {
             @Override
-            protected Void doInBackground() throws SQLException {
-                String sql = "INSERT INTO gopy (id_nguoidung, tieude, noidung, ngaytao, trangthai) VALUES (?, ?, ?, NOW(), 'CHO_TIEP_NHAN')";
-                try (Connection conn = connectionManager.getConnection();
-                     PreparedStatement ps = conn.prepareStatement(sql)) {
-                    ps.setString(1, userId);
-                    ps.setString(2, title);
-                    ps.setString(3, content);
-                    ps.executeUpdate();
-                }
+            protected Void doInBackground() {
+                feedbackPort.submitFeedback(userId, title, content);
                 return null;
             }
 
@@ -214,34 +209,21 @@ public class FeedbackManagementView extends JPanel {
     }
 
     private void loadFeedbacksAsync() {
-        new SwingWorker<Void, Object[]>() {
+        new SwingWorker<List<Object[]>, Void>() {
             @Override
-            protected Void doInBackground() throws SQLException {
-                String sql = """
-                    SELECT g.id, COALESCE(u.Hoten, 'Ẩn danh'), g.tieude, g.noidung, g.ngaytao,
-                           CASE g.trangthai WHEN 'CHO_TIEP_NHAN' THEN 'Chờ tiếp nhận' ELSE 'Đã xử lý' END
-                    FROM gopy g
-                    LEFT JOIN nguoidung u ON g.id_nguoidung = u.ID
-                    ORDER BY g.ngaytao DESC
-                """;
-                try (Connection conn = connectionManager.getConnection();
-                     PreparedStatement ps = conn.prepareStatement(sql);
-                     ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        publish(new Object[]{
-                            rs.getInt(1), rs.getString(2), rs.getString(3),
-                            rs.getString(4), rs.getString(5), rs.getString(6)
-                        });
-                    }
-                }
-                return null;
+            protected List<Object[]> doInBackground() {
+                return feedbackPort.getAllFeedbacks();
             }
 
             @Override
-            protected void process(java.util.List<Object[]> chunks) {
-                tableModel.setRowCount(0);
-                for (Object[] r : chunks) {
-                    tableModel.addRow(r);
+            protected void done() {
+                try {
+                    List<Object[]> rows = get();
+                    tableModel.setRowCount(0);
+                    for (Object[] r : rows) {
+                        tableModel.addRow(r);
+                    }
+                } catch (Exception ignored) {
                 }
             }
         }.execute();
@@ -257,13 +239,8 @@ public class FeedbackManagementView extends JPanel {
         int id = (Integer) tableModel.getValueAt(row, 0);
         new SwingWorker<Void, Void>() {
             @Override
-            protected Void doInBackground() throws SQLException {
-                String sql = "UPDATE gopy SET trangthai = 'DA_XU_LY' WHERE id = ?";
-                try (Connection conn = connectionManager.getConnection();
-                     PreparedStatement ps = conn.prepareStatement(sql)) {
-                    ps.setInt(1, id);
-                    ps.executeUpdate();
-                }
+            protected Void doInBackground() {
+                feedbackPort.markAsProcessed(id);
                 return null;
             }
 
