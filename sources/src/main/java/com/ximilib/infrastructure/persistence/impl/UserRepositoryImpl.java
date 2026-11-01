@@ -132,6 +132,17 @@ public class UserRepositoryImpl implements UserRepository, UserQueryPort {
 
     @Override
     public void registerReader(User user, String cardNumber, LocalDate issueDate, LocalDate expiryDate) {
+        registerReader(null, user, cardNumber, issueDate, expiryDate);
+    }
+
+    @Override
+    public void registerReader(com.ximilib.domain.repository.TransactionContext tx, User user, String cardNumber, LocalDate issueDate, LocalDate expiryDate) {
+        if (tx == null) {
+            new com.ximilib.infrastructure.persistence.connection.JdbcTransactionCoordinator(connectionManager)
+                    .executeVoid(ctx -> registerReader(ctx, user, cardNumber, issueDate, expiryDate));
+            return;
+        }
+
         String insertUserSql = """
             INSERT INTO nguoidung (ID, Tendangnhap, Matkhau, Hoten, Email, Sdt, Mavaitro, Trangthai, Ngaysinh, Diachi, Cccd, solansai)
             VALUES (?, ?, ?, ?, ?, ?, 'READER', 1, ?, ?, ?, 0)
@@ -141,40 +152,31 @@ public class UserRepositoryImpl implements UserRepository, UserQueryPort {
             VALUES (?, ?, ?, ?, 1)
         """;
 
-        try (Connection conn = connectionManager.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                try (PreparedStatement psUser = conn.prepareStatement(insertUserSql)) {
-                    psUser.setString(1, user.getId());
-                    psUser.setString(2, user.getUsername());
-                    psUser.setString(3, user.getPassword());
-                    psUser.setString(4, user.getFullName());
-                    psUser.setString(5, user.getEmail());
-                    psUser.setString(6, user.getPhone());
-                    if (user.getBirthDate() != null) {
-                        psUser.setDate(7, Date.valueOf(user.getBirthDate()));
-                    } else {
-                        psUser.setNull(7, Types.DATE);
-                    }
-                    psUser.setString(8, user.getAddress());
-                    psUser.setString(9, user.getCccd());
-                    psUser.executeUpdate();
+        Connection conn = ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection();
+        try {
+            try (PreparedStatement psUser = conn.prepareStatement(insertUserSql)) {
+                psUser.setString(1, user.getId());
+                psUser.setString(2, user.getUsername());
+                psUser.setString(3, user.getPassword());
+                psUser.setString(4, user.getFullName());
+                psUser.setString(5, user.getEmail());
+                psUser.setString(6, user.getPhone());
+                if (user.getBirthDate() != null) {
+                    psUser.setDate(7, Date.valueOf(user.getBirthDate()));
+                } else {
+                    psUser.setNull(7, Types.DATE);
                 }
+                psUser.setString(8, user.getAddress());
+                psUser.setString(9, user.getCccd());
+                psUser.executeUpdate();
+            }
 
-                try (PreparedStatement psCard = conn.prepareStatement(insertCardSql)) {
-                    psCard.setString(1, cardNumber);
-                    psCard.setString(2, user.getId());
-                    psCard.setDate(3, Date.valueOf(issueDate));
-                    psCard.setDate(4, Date.valueOf(expiryDate));
-                    psCard.executeUpdate();
-                }
-
-                conn.commit();
-            } catch (SQLException ex) {
-                conn.rollback();
-                throw ex;
-            } finally {
-                conn.setAutoCommit(true);
+            try (PreparedStatement psCard = conn.prepareStatement(insertCardSql)) {
+                psCard.setString(1, cardNumber);
+                psCard.setString(2, user.getId());
+                psCard.setDate(3, Date.valueOf(issueDate));
+                psCard.setDate(4, Date.valueOf(expiryDate));
+                psCard.executeUpdate();
             }
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi lưu đăng ký tài khoản bạn đọc: " + e.getMessage(), e);

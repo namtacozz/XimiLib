@@ -17,6 +17,10 @@ public interface BookRepository {
 
     int softDeleteBatch(List<String> bookIds);
 
+    default int softDeleteBatch(TransactionContext tx, List<String> bookIds) {
+        return softDeleteBatch(bookIds);
+    }
+
     int countTotalBooks();
 
     void restoreBook(String bookId);

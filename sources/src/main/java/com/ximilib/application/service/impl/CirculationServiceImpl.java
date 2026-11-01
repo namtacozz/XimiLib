@@ -32,23 +32,31 @@ public class CirculationServiceImpl implements CirculationService {
     private final CirculationRepository circulationRepository;
     private final CirculationQueryPort circulationQueryPort;
     private final FineCalculationService fineCalculationService;
+    private final com.ximilib.application.port.TransactionCoordinator transactionCoordinator;
 
     public CirculationServiceImpl(CirculationRepository repository) {
-        this(repository, (repository instanceof CirculationQueryPort cqp) ? cqp : null, new FineCalculationService());
+        this(repository, (repository instanceof CirculationQueryPort cqp) ? cqp : null, new FineCalculationService(), null);
     }
 
     public CirculationServiceImpl(CirculationRepository repository, CirculationQueryPort queryPort) {
-        this(repository, queryPort, new FineCalculationService());
+        this(repository, queryPort, new FineCalculationService(), null);
     }
 
     public CirculationServiceImpl(CirculationRepository repository, FineCalculationService fineCalculationService) {
-        this(repository, (repository instanceof CirculationQueryPort cqp) ? cqp : null, fineCalculationService);
+        this(repository, (repository instanceof CirculationQueryPort cqp) ? cqp : null, fineCalculationService, null);
     }
 
     public CirculationServiceImpl(CirculationRepository repository, CirculationQueryPort queryPort, FineCalculationService fineCalculationService) {
+        this(repository, queryPort, fineCalculationService, null);
+    }
+
+    public CirculationServiceImpl(CirculationRepository repository, CirculationQueryPort queryPort,
+                                  FineCalculationService fineCalculationService,
+                                  com.ximilib.application.port.TransactionCoordinator transactionCoordinator) {
         this.circulationRepository = Objects.requireNonNull(repository, "circulationRepository không được null");
         this.circulationQueryPort = (queryPort != null) ? queryPort : ((repository instanceof CirculationQueryPort cqp) ? cqp : null);
         this.fineCalculationService = (fineCalculationService != null) ? fineCalculationService : new FineCalculationService();
+        this.transactionCoordinator = transactionCoordinator;
     }
 
     private CirculationRepository getRepo() {
@@ -101,7 +109,13 @@ public class CirculationServiceImpl implements CirculationService {
         }
 
         String ticketId = repo.generateNextTicketId();
-        repo.createBorrowTicket(ticketId, card.userId(), card.cardNumber(), loanType, borrowDate, dueDate, copyBarcodes, notes);
+        if (transactionCoordinator != null) {
+            transactionCoordinator.executeVoid(tx -> {
+                repo.createBorrowTicket(tx, ticketId, card.userId(), card.cardNumber(), loanType, borrowDate, dueDate, copyBarcodes, notes);
+            });
+        } else {
+            repo.createBorrowTicket(ticketId, card.userId(), card.cardNumber(), loanType, borrowDate, dueDate, copyBarcodes, notes);
+        }
 
         // Thông báo đồng bộ giao diện
         DomainEventPublisher.publish(new BookStockChangedEvent("LOAN", "LOAN_CREATED"));
@@ -144,8 +158,15 @@ public class CirculationServiceImpl implements CirculationService {
             repo.createFine(fineId, detail.userId(), detail.detailId(), reason, totalFine, "Phạt tại quầy khi trả sách");
         }
 
-        repo.returnCopy(detail.detailId(), detail.ticketId(), detail.copyId(), now, returnCondition, totalFine);
-        repo.closeTicketIfAllReturned(detail.ticketId());
+        if (transactionCoordinator != null) {
+            transactionCoordinator.executeVoid(tx -> {
+                repo.returnCopy(tx, detail.detailId(), detail.ticketId(), detail.copyId(), now, returnCondition, totalFine);
+                repo.closeTicketIfAllReturned(tx, detail.ticketId());
+            });
+        } else {
+            repo.returnCopy(detail.detailId(), detail.ticketId(), detail.copyId(), now, returnCondition, totalFine);
+            repo.closeTicketIfAllReturned(detail.ticketId());
+        }
 
         DomainEventPublisher.publish(new BookStockChangedEvent("RETURN", "BOOK_RETURNED"));
 
@@ -167,13 +188,20 @@ public class CirculationServiceImpl implements CirculationService {
             detail.coverPrice(), detail.dueDate(), now, true, false
         );
 
-        // Chuyển trạng thái phiếu mượn sang CHO_XU_LY_BOI_THUONG (4) theo SRS UC-9 & R-10
-        repo.updateTicketStatus(detail.ticketId(), LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode());
-        repo.markCopyLost(detail.copyId());
-
         String fineId = repo.generateNextFineId();
-        repo.createFine(fineId, detail.userId(), detail.detailId(), "Bồi thường mất sách: " + detail.bookTitle(),
-            breakdown.getTotalAmount(), "200% giá bìa + 20.000đ phí + phạt quá hạn");
+        if (transactionCoordinator != null) {
+            transactionCoordinator.executeVoid(tx -> {
+                repo.updateTicketStatus(detail.ticketId(), LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode());
+                repo.markCopyLost(detail.copyId());
+                repo.createFine(tx, fineId, detail.userId(), detail.detailId(), "Bồi thường mất sách: " + detail.bookTitle(),
+                    breakdown.getTotalAmount(), "200% giá bìa + 20.000đ phí + phạt quá hạn");
+            });
+        } else {
+            repo.updateTicketStatus(detail.ticketId(), LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode());
+            repo.markCopyLost(detail.copyId());
+            repo.createFine(fineId, detail.userId(), detail.detailId(), "Bồi thường mất sách: " + detail.bookTitle(),
+                breakdown.getTotalAmount(), "200% giá bìa + 20.000đ phí + phạt quá hạn");
+        }
 
         DomainEventPublisher.publish(new BookStockChangedEvent("LOSS", "BOOK_LOST"));
 
@@ -217,7 +245,13 @@ public class CirculationServiceImpl implements CirculationService {
             throw new IllegalArgumentException("Mã phiếu phạt không hợp lệ.");
         }
         // Đóng bồi hoàn và chính thức chuyển trạng thái phiếu mượn sang DA_MAT (5) (SRS UC-9, R-10)
-        getRepo().payFineAndCloseLoss(fineTicketId.trim(), paymentMethod);
+        if (transactionCoordinator != null) {
+            transactionCoordinator.executeVoid(tx -> {
+                getRepo().payFineAndCloseLoss(tx, fineTicketId.trim(), paymentMethod);
+            });
+        } else {
+            getRepo().payFineAndCloseLoss(fineTicketId.trim(), paymentMethod);
+        }
         DomainEventPublisher.publish(new BookStockChangedEvent("FINE", "FINE_PAID"));
     }
 
@@ -251,7 +285,13 @@ public class CirculationServiceImpl implements CirculationService {
 
         // BR-03: Gia hạn thêm 7 ngày
         LocalDateTime newDueDate = ticket.getDueDate().plusDays(LibraryPolicy.RENEW_DAYS);
-        repo.extendDueDate(borrowTicketId.trim(), newDueDate, reason);
+        if (transactionCoordinator != null) {
+            transactionCoordinator.executeVoid(tx -> {
+                repo.extendDueDate(tx, borrowTicketId.trim(), newDueDate, reason);
+            });
+        } else {
+            repo.extendDueDate(borrowTicketId.trim(), newDueDate, reason);
+        }
     }
 
     @Override

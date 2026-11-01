@@ -125,4 +125,45 @@ class FineCalculationServiceTest {
         assertEquals(new BigDecimal("0.00"), fineCalculationService.calculateOverdueFine(0, 3));
         assertEquals(new BigDecimal("0.00"), fineCalculationService.calculateOverdueFine(3, 0));
     }
+
+    @Test
+    @DisplayName("Ca biên: Ngày trễ = 0 khi trả trong ngày trước giờ hẹn")
+    void testOverdueZeroSameDayBeforeDue() {
+        LocalDateTime dueDate = LocalDateTime.of(2026, 11, 1, 17, 0, 0);
+        LocalDateTime actualDate = LocalDateTime.of(2026, 11, 1, 16, 30, 0);
+
+        int days = fineCalculationService.calculateOverdueDays(dueDate, actualDate);
+        assertEquals(0, days);
+        assertEquals(new BigDecimal("0.00"), fineCalculationService.calculateOverdueFine(days));
+    }
+
+    @Test
+    @DisplayName("Ca biên: Trễ qua nửa đêm tính theo mốc 00:00 (từ 23:59:59 sang 00:00:01 tính đúng 1 ngày trễ)")
+    void testOverdueCrossingMidnightBoundary() {
+        LocalDateTime dueDate = LocalDateTime.of(2026, 11, 1, 23, 59, 59);
+        LocalDateTime actualDate = LocalDateTime.of(2026, 11, 2, 0, 0, 1);
+
+        int days = fineCalculationService.calculateOverdueDays(dueDate, actualDate);
+        assertEquals(1, days, "Qua nửa đêm sang ngày hôm sau phải tính là 1 ngày trễ hạn");
+        assertEquals(new BigDecimal("2000.00"), fineCalculationService.calculateOverdueFine(days));
+    }
+
+    @Test
+    @DisplayName("Ca biên: Giá bìa lẻ và làm tròn HALF_UP khi tính đền bù 200%")
+    void testOddCoverPriceAndRoundingHalfUp() {
+        // Giá bìa lẻ: 75.333,33 VNĐ -> 200% = 150.666,66 VNĐ
+        BigDecimal oddPrice1 = new BigDecimal("75333.33");
+        BigDecimal lossAmount1 = fineCalculationService.calculateBookLossAmount(oddPrice1);
+        assertEquals(new BigDecimal("150666.66"), lossAmount1);
+
+        // Giá bìa có 3 chữ số thập phân cần làm tròn HALF_UP: 85.555,555 -> 85.555,56 -> 200% = 171.111,12
+        BigDecimal oddPrice2 = new BigDecimal("85555.555");
+        FineCalculationService.CompensationBreakdown breakdown = fineCalculationService.calculateCompensation(
+                oddPrice2, LocalDateTime.now().plusDays(1), LocalDateTime.now(), true, false
+        );
+        assertEquals(new BigDecimal("85555.56"), breakdown.getCoverPrice());
+        assertEquals(new BigDecimal("171111.12"), breakdown.getBookLossAmount());
+        assertEquals(new BigDecimal("20000.00"), breakdown.getTechFee());
+        assertEquals(new BigDecimal("191111.12"), breakdown.getTotalAmount());
+    }
 }
