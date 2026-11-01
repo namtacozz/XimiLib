@@ -76,36 +76,53 @@ XimiLib/                                        # [ROOT] Thư mục gốc dự �
 - **Apache Maven:** Phiên bản **3.8+** (nếu build từ mã nguồn).
 - **Hệ quản trị CSDL:** **MySQL 8.0+** (kết nối cổng mặc định `3306`).
 
-### 2. Khởi tạo Cơ sở Dữ liệu
-Mở MySQL Workbench hoặc terminal dòng lệnh và thực thi script:
-```sql
-SOURCE db/schema.sql;
-```
+### 2. Cấu hình Kết nối CSDL
+Hệ thống sử dụng cơ chế nạp cấu hình ưu tiên biến môi trường, sau đó đọc file cục bộ:
+1. Sao chép file cấu hình mẫu:
+   ```bash
+   cp config/db.properties.example config/db.properties
+   ```
+2. Điền thông tin kết nối CSDL và khóa mã hóa vào `config/db.properties`:
+   - `db.host=localhost`
+   - `db.port=3306`
+   - `db.name=ximilib_db`
+   - `db.user=ximilib_app`
+   - `db.password=<mat_khau_cua_ban>`
+   - `security.aes.key=<khoa_aes_256>`
+   *(Hoặc truyền qua biến môi trường: `XIMILIB_DB_HOST`, `XIMILIB_DB_PORT`, `XIMILIB_DB_NAME`, `XIMILIB_DB_USER`, `XIMILIB_DB_PASS`, `XIMILIB_AES_KEY`).*
 
-### 3. Đóng gói Ứng dụng (Build)
-Chạy script tự động hóa:
-```cmd
-scripts\build.bat
-```
-*Hoặc sử dụng Maven trực tiếp:*
-```cmd
-mvn clean package -f sources/pom.xml -DskipTests
-```
-File JAR thực thi sẽ tự động được tạo trực tiếp vào `dist/XimiLib.jar`.
-
-### 4. Khởi chạy Ứng dụng (Run)
-- **Cách 1:** Click đúp trực tiếp vào file **`run.bat`** ở thư mục gốc.
-- **Cách 2:** Chạy lệnh qua script tự động:
-  ```cmd
-  scripts\run.bat
+### 3. Khởi tạo Cơ sở Dữ liệu & Migration
+- **Cách 1 (Khuyên dùng - Tự động hoàn toàn qua cờ `--init-db`):**
+  Chạy lệnh khởi tạo headless để hệ thống tự động kiểm tra CSDL, nạp schema và thực thi chuỗi migration V1 -> V2 -> V3 -> V4:
+  ```bash
+  java -jar dist/XimiLib.jar --init-db
   ```
-- **Cách 3:** Chạy qua dòng lệnh Java:
-  ```cmd
+- **Cách 2 (Thủ công qua MySQL Client):**
+  ```bash
+  mysql -u root -p ximilib_db < db/schema.sql
+  mysql -u root -p ximilib_db < db/migrations/V2__srs_schema_updates.sql
+  mysql -u root -p ximilib_db < db/migrations/V3__enforce_bcrypt_passwords.sql
+  mysql -u root -p ximilib_db < db/migrations/V4__report_and_search_indexes.sql
+  mysql -u root -p ximilib_db < db/seed/seed_books.sql
+  ```
+
+### 4. Đóng gói Ứng dụng (Build)
+Chạy script tự động hóa:
+- **Windows:** `scripts\build.bat`
+- **Linux / macOS:** `./scripts/build.sh` (hoặc `mvn clean package -f sources/pom.xml -DskipTests`)
+
+File JAR thực thi sẽ tự động được tạo tại `dist/XimiLib.jar`.
+
+### 5. Khởi chạy Ứng dụng (Run)
+- **Windows:** Click đúp `run.bat` hoặc chạy `scripts\run.bat`.
+- **Linux / macOS:** `./run.sh` hoặc `./scripts/run.sh`.
+- **Dòng lệnh Java:**
+  ```bash
   java -jar dist/XimiLib.jar
   ```
 
-### 5. Chạy Kiểm Thử Tự Động (Test)
-```cmd
+### 6. Chạy Kiểm Thử Tự Động (Test)
+```bash
 mvn test -f sources/pom.xml
 ```
 

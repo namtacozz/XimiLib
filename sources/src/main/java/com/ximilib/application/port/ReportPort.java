@@ -42,6 +42,19 @@ public interface ReportPort {
     List<Object[]> getTopBooksReport();
 
     /**
+     * Dữ liệu thống kê theo mốc thời gian (lượt mượn sách và doanh thu phạt) phục vụ biểu đồ Dashboard (UC-7).
+     */
+    record DailyMetric(String dateLabel, int borrowCount, BigDecimal fineRevenue) {}
+
+    /**
+     * Lấy dữ liệu thống kê xu hướng lượt mượn và doanh thu phạt trong N ngày gần nhất.
+     *
+     * @param days Số ngày cần lấy (ví dụ: 7 hoặc 30 ngày)
+     * @return Danh sách các mốc thống kê theo ngày tăng dần
+     */
+    List<DailyMetric> getBorrowAndFineTrend(int days);
+
+    /**
      * Cập nhật trạng thái phiếu mượn kèm transaction đồng bộ trạng thái cuốn sách và ghi audit log.
      *
      * @param ticketId      Mã phiếu mượn

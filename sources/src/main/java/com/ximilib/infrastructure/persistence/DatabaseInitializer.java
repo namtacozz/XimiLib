@@ -36,6 +36,7 @@ public class DatabaseInitializer {
     private static final String V1_PATH = "db/migrations/V1__initial_schema.sql";
     private static final String V2_PATH = "db/migrations/V2__srs_schema_updates.sql";
     private static final String V3_PATH = "db/migrations/V3__enforce_bcrypt_passwords.sql";
+    private static final String V4_PATH = "db/migrations/V4__report_and_search_indexes.sql";
 
     private static final DateTimeFormatter LOG_TS_FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss");
@@ -85,14 +86,16 @@ public class DatabaseInitializer {
             // Xác định danh sách script cần chạy
             List<String> scriptsToRun = new ArrayList<>();
             if (tableCount == 0) {
-                log("[INFO] CSDL trống, chạy V1 → V2 → V3.", log);
+                log("[INFO] CSDL trống, chạy V1 → V2 → V3 → V4.", log);
                 scriptsToRun.add(V1_PATH);
                 scriptsToRun.add(V2_PATH);
                 scriptsToRun.add(V3_PATH);
+                scriptsToRun.add(V4_PATH);
             } else {
-                log("[WARNING] CSDL có " + tableCount + " bảng (không đủ 20). Bỏ qua V1, chạy V2 → V3.", log);
+                log("[WARNING] CSDL có " + tableCount + " bảng (không đủ 20). Bỏ qua V1, chạy V2 → V3 → V4.", log);
                 scriptsToRun.add(V2_PATH);
                 scriptsToRun.add(V3_PATH);
+                scriptsToRun.add(V4_PATH);
             }
 
             // Chạy từng script trên một connection riêng

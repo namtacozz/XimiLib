@@ -10,7 +10,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * ReportRepositoryImpl: Triển khai ReportPort bằng JDBC PreparedStatement kết nối MySQL.
@@ -170,6 +172,58 @@ public class ReportRepositoryImpl implements ReportPort {
             System.err.println("Lỗi truy vấn top sách: " + e.getMessage());
         }
         return rows;
+    }
+
+    @Override
+    public List<ReportPort.DailyMetric> getBorrowAndFineTrend(int days) {
+        int nDays = (days > 0) ? days : 7;
+        java.time.LocalDate startDate = java.time.LocalDate.now().minusDays(nDays - 1);
+
+        Map<java.time.LocalDate, Integer> borrowMap = new HashMap<>();
+        String borrowSql = "SELECT DATE(Ngaymuon) AS bdate, COUNT(*) AS cnt "
+                         + "FROM phieumuon WHERE Ngaymuon >= ? GROUP BY DATE(Ngaymuon)";
+        try (Connection conn = connectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(borrowSql)) {
+            ps.setDate(1, java.sql.Date.valueOf(startDate));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    java.sql.Date d = rs.getDate("bdate");
+                    if (d != null) {
+                        borrowMap.put(d.toLocalDate(), rs.getInt("cnt"));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi truy vấn thống kê lượt mượn: " + e.getMessage());
+        }
+
+        Map<java.time.LocalDate, BigDecimal> fineMap = new HashMap<>();
+        String fineSql = "SELECT DATE(Ngaythanhtoan) AS fdate, SUM(Sotien) AS total "
+                       + "FROM thanhtoan WHERE Trangthai = 1 AND Ngaythanhtoan >= ? GROUP BY DATE(Ngaythanhtoan)";
+        try (Connection conn = connectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(fineSql)) {
+            ps.setDate(1, java.sql.Date.valueOf(startDate));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    java.sql.Date d = rs.getDate("fdate");
+                    if (d != null) {
+                        fineMap.put(d.toLocalDate(), rs.getBigDecimal("total"));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi truy vấn thống kê doanh thu phạt: " + e.getMessage());
+        }
+
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM");
+        List<ReportPort.DailyMetric> result = new ArrayList<>();
+        for (int i = 0; i < nDays; i++) {
+            java.time.LocalDate date = startDate.plusDays(i);
+            int borrows = borrowMap.getOrDefault(date, 0);
+            BigDecimal fine = fineMap.getOrDefault(date, BigDecimal.ZERO);
+            result.add(new ReportPort.DailyMetric(date.format(fmt), borrows, fine));
+        }
+        return result;
     }
 
     @Override
