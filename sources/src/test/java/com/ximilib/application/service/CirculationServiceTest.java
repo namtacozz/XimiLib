@@ -116,6 +116,36 @@ class CirculationServiceTest {
         assertTrue(ex.getMessage().contains("tối đa 1 lần"));
     }
 
+    @Test
+    @DisplayName("calculateCompensation: Xem trước tính tiền bồi thường mất sách trễ 5 ngày")
+    void testCalculateCompensationPreviewLostOverdue() {
+        repository.addActiveLoan("BK003-C01", LocalDateTime.now().minusDays(5), new BigDecimal("100000.00"));
+
+        CompensationResultDto calc = circulationService.calculateCompensation("BK003-C01", true, false);
+
+        assertNotNull(calc);
+        assertEquals(5, calc.getOverdueDays());
+        assertEquals(new BigDecimal("10000.00"), calc.getOverdueFine());
+        assertEquals(new BigDecimal("200000.00"), calc.getBookLossAmount());
+        assertEquals(new BigDecimal("20000.00"), calc.getTechFee());
+        assertEquals(new BigDecimal("230000.00"), calc.getTotalAmount());
+    }
+
+    @Test
+    @DisplayName("calculateCompensation: Xem trước trả sách đúng hạn")
+    void testCalculateCompensationPreviewOnTime() {
+        repository.addActiveLoan("BK004-C01", LocalDateTime.now().plusDays(3), new BigDecimal("70000.00"));
+
+        CompensationResultDto calc = circulationService.calculateCompensation("BK004-C01", false, false);
+
+        assertNotNull(calc);
+        assertEquals(0, calc.getOverdueDays());
+        assertEquals(new BigDecimal("0.00"), calc.getOverdueFine());
+        assertEquals(new BigDecimal("0.00"), calc.getBookLossAmount());
+        assertEquals(new BigDecimal("0.00"), calc.getTechFee());
+        assertEquals(new BigDecimal("0.00"), calc.getTotalAmount());
+    }
+
     private static class StubCirculationRepository implements CirculationRepository, CirculationQueryPort {
         private boolean hasUnpaidFine = false;
         private int activeHomeLoansCount = 0;

@@ -19,6 +19,17 @@ public interface CirculationService {
 
     CompensationResultDto reportLoss(String copyBarcode);
 
+    /**
+     * Tính toán trước nghĩa vụ tài chính (tiền phạt trễ hạn, bồi thường mất sách hoặc phí kỹ thuật)
+     * cho cuốn sách đang mượn theo quy định BR-06 và BR-08.
+     *
+     * @param copyBarcode Mã vạch cuốn sách
+     * @param isLost      Cờ đánh dấu báo mất sách
+     * @param isDamaged   Cờ đánh dấu sách hỏng nhẹ / rách bìa
+     * @return Kết quả tính toán nghĩa vụ tài chính (CompensationResultDto)
+     */
+    CompensationResultDto calculateCompensation(String copyBarcode, boolean isLost, boolean isDamaged);
+
     void payFine(String fineTicketId, String paymentMethod);
 
     void renewLoan(String borrowTicketId, String reason);
