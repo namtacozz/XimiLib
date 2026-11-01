@@ -3,7 +3,7 @@
 -- Dự án: XimiLib (PBL) - Chuẩn hóa UTF8MB4
 -- ============================================================================
 
-USE `ximilib_db`;
+-- Migration thực thi trên CSDL hiện hành của kết nối JDBC
 
 -- 1. Cập nhật bảng `nguoidung` (C4, C5, C13)
 -- Thêm thông tin định danh độc giả (Ngày sinh, Địa chỉ, CCCD mã hóa AES-256),

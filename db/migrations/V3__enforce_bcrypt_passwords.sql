@@ -4,7 +4,7 @@
 -- Xử lý: Cập nhật các tài khoản đang lưu mật khẩu chuỗi trần hoặc hash không hợp lệ
 -- ============================================================================
 
-USE `ximilib_db`;
+-- Migration thực thi trên CSDL hiện hành của kết nối JDBC
 
 -- 1. Cập nhật tài khoản admin với hash BCrypt chuẩn của 'admin123' nếu đang mang hash giả hoặc chuỗi trần
 UPDATE `nguoidung`

@@ -8,7 +8,7 @@
 -- ========================================================
 
 CREATE DATABASE IF NOT EXISTS `ximilib_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `ximilib_db`;
+-- Lưu ý: Thực thi DDL trên CSDL hiện hành (không hardcode USE ximilib_db để hỗ trợ đa môi trường)
 
 -- Tắt tạm thời kiểm tra khóa ngoại để khởi tạo an toàn
 SET FOREIGN_KEY_CHECKS = 0;
