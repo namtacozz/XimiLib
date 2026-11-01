@@ -13,4 +13,4 @@
 # Application Layer Violations (Luật: application không import javax.swing, java.sql, com.ximilib.infrastructure, com.ximilib.presentation, com.ximilib.gui)
 # (Đã giải quyết 100% - Không còn vi phạm)
 
-# Presentation & GUI Layer Violations (Luật: presentation và gui không import java.sql, com.ximilib.infrastructure.persistence, com.ximilib.infrastructure.security)
+# Presentation Layer Violations (Luật: presentation không import java.sql, com.ximilib.infrastructure.persistence, com.ximilib.infrastructure.security)

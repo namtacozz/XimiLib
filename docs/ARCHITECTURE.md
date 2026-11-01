@@ -403,7 +403,7 @@ try {
 - **Chuẩn hóa Ngày Giờ:** 100% trường nhập ngày tháng phải gắn `UiModalHelper.createDatePicker(editor, isRange)`, trả về `java.time.LocalDate` chuẩn `dd/MM/yyyy`. Cấm dùng `JTextField` chuỗi tự do để tránh lỗi parse.
 
 ### 7.6 Quy chuẩn Bảng màu Thương hiệu Tập trung (Pastel Pink Design System)
-Toàn bộ mã màu giao diện được quản lý tập trung duy nhất tại `com.ximilib.gui.util.UITheme`, FlatLaf khởi tạo accentColor `@accentColor = #DB2777`. Mọi view chỉ tham chiếu token, tuyệt đối không hard-code mã hex:
+Toàn bộ mã màu giao diện được quản lý tập trung duy nhất tại `com.ximilib.presentation.util.UITheme`, FlatLaf khởi tạo accentColor `@accentColor = #DB2777`. Mọi view chỉ tham chiếu token, tuyệt đối không hard-code mã hex:
 | Token | Hex | Vị trí áp dụng |
 |---|---|---|
 | `primary` | `#DB2777` | Nút chính ("Thêm Sách", "ĐĂNG NHẬP"), trang phân trang hiện tại, viền focus, link nhấn, checkbox tick |
