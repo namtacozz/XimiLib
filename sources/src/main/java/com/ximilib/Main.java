@@ -1,14 +1,22 @@
 package com.ximilib;
 
+import com.ximilib.infrastructure.config.AppContainer;
+import com.ximilib.infrastructure.persistence.DatabaseInitializer;
 import com.ximilib.presentation.view.LoginForm;
 import com.ximilib.presentation.util.UITheme;
 import java.awt.Rectangle;
+import java.util.Arrays;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 /**
  * Main: Điểm khởi chạy của ứng dụng Quản Lý Thư Viện XimiLib.
  * Tác giả: Phan Vũ Xuân Kiên (GUI / DB)
+ *
+ * <p>Cờ dòng lệnh:
+ * <ul>
+ *   <li>{@code --init-db}: Chạy migration V1–V3 rồi thoát, không mở giao diện.</li>
+ * </ul>
  */
 public class Main {
 
@@ -25,6 +33,23 @@ public class Main {
         System.out.println("  XimiLib - HỆ THỐNG QUẢN LÝ THƯ VIỆN HIỆN ĐẠI");
         System.out.println("  Giao diện đồ họa chuẩn phong cách LibRack");
         System.out.println("=================================================");
+
+        // Kiểm tra cờ --init-db: chạy migration rồi thoát, không mở giao diện Swing
+        if (Arrays.asList(args).contains("--init-db")) {
+            System.out.println("[INFO] Chế độ khởi tạo CSDL (--init-db). Đang chạy migration...");
+            try {
+                AppContainer container = AppContainer.getInstance();
+                DatabaseInitializer initializer = new DatabaseInitializer(container.getConnectionManager());
+                initializer.initialize();
+                System.out.println("[OK] Khởi tạo CSDL hoàn tất.");
+            } catch (Exception e) {
+                System.err.println("[LỖI] Khởi tạo CSDL thất bại: " + e.getMessage());
+                e.printStackTrace();
+                System.exit(1);
+            }
+            System.exit(0);
+            return;
+        }
 
         // Thiết lập phong cách phẳng hiện đại FlatLaf
         UITheme.setupLookAndFeel();
