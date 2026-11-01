@@ -25,16 +25,44 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 
 ## 2. Tiêu chuẩn Hoàn thành (Definition of Done - DoD)
 Đã đạt **100% 6 tiêu chí DoD**:
-1. **Kiến trúc:** Tuân thủ Clean Architecture 4 tầng, Pure DI tại `AppContainer`, không có bất kỳ import ngược nào giữa các tầng.
-2. **Kiểm thử tự động:** **54/54 test cases JUnit 5 đạt 100% PASS** (Unit tests + Integration tests MySQL thật).
-3. **An toàn dữ liệu:** 100% `PreparedStatement`, mật khẩu băm BCrypt, tiền tệ dùng `BigDecimal`, khóa bi quan `SELECT ... FOR UPDATE`.
+1. **Kiến trúc:** Tuân thủ Clean Architecture 4 tầng, Pure DI tại `AppContainer`, không có bất kỳ import ngược nào giữa các tầng (`DependencyRuleTest` xanh 100%).
+2. **Kiểm thử tự động:** **98 test cases JUnit 5 (93 PASS, 5 skipped MySQL IT)** bao gồm Unit tests các tầng và Integration tests kết nối, giao dịch, leak detection.
+3. **An toàn dữ liệu:** 100% `PreparedStatement`, mật khẩu băm BCrypt, tiền tệ dùng `BigDecimal`, khóa bi quan `SELECT ... FOR UPDATE`, quản lý transaction tập trung ở tầng Application.
 4. **Không chặn giao diện:** Mọi truy vấn DB và I/O đều chạy trên `SwingWorker` ngoài EDT; giao diện cập nhật an toàn trên EDT. Khởi động nguội < 1 giây.
-5. **Đóng gói & Chạy thử:** Lệnh `mvn clean package` xuất ra file `dist/XimiLib.jar` độc lập (16.1 MB) chạy trực tiếp bằng `run.bat`.
+5. **Đóng gói & Chạy thử:** Lệnh `mvn clean package` xuất ra file `dist/XimiLib.jar` độc lập chạy trực tiếp bằng `run.bat` / `run.sh` và hỗ trợ cờ headless `--init-db`.
 6. **Tài liệu:** Đầy đủ bộ tài liệu SSOT trong `/docs` (`AGENTS.md`, `ARCHITECTURE.md`, `DATABASE_SCHEMA.md`, `BUSINESS_RULES.md`, `PROJECT_STATUS.md`, `VAN_DAP.md`).
 
 ---
 
 ## 3. Nhật ký Thay đổi Dự án (Changelog)
+
+### [Sprint 17 — Hoàn thiện Kiến trúc Kết nối HikariCP, Transaction Coordinator, Quản lý Kệ/Khu vực, Biểu đồ Xu hướng & Xuất Báo cáo Excel POI] - 2026-11-01
+#### Added
+- **Task T02 (HikariCP Connection Pool & Quản lý Cấu hình DB)**:
+  * Khởi tạo `DatabaseConnectionManager` với HikariCP theo mô hình lazy thread-safe initialization, cấu hình connection pool tối ưu (`maximumPoolSize`, `minimumIdle`, `maxLifetime`, `leakDetectionThreshold`).
+  * `DatabaseConfig`: Ưu tiên nạp biến môi trường `XIMILIB_DB_*`, sau đó đọc từ `config/db.properties`. Cung cấp file mẫu `config/db.properties.example` và thông báo lỗi tiếng Việt tường minh khi thiếu thông tin kết nối. Loại bỏ 100% mật khẩu cứng mặc định.
+  * Cấu hình khóa AES (`SecurityUtil.DEFAULT_AES_KEY`) qua biến `XIMILIB_AES_KEY` hoặc `security.aes.key`, không fallback chuỗi cứng.
+  * `TransactionManager`: Đóng gói cơ chế thực thi giao dịch an toàn với `TransactionCallback` và `VoidTransactionCallback`.
+  * `DatabaseInitializer`: Tự động nạp schema và thực thi chuỗi migration V1 -> V2 -> V3 -> V4 khi khởi tạo; hỗ trợ cờ dòng lệnh headless `--init-db` trong `Main.java` tiện lợi cho môi trường CI/CD và máy dev mới.
+  * `DBConnectionLeakIT`: Kiểm thử tích hợp xác nhận 23 bảng, 221 cuốn sách và đảm bảo giải phóng connection 100% về pool.
+- **Task T03 (Quản lý Khu vực & Kệ sách - Storage Subsystem)**:
+  * Domain: Mô hình `Zone`, `Shelf`, ngoại lệ miền `BookException`, `CopyException`, repository interfaces `ZoneRepository`, `ShelfRepository`.
+  * Application: Cung cấp `ZoneDto`, `ShelfDto`, `StorageQueryPort`, `StorageService`, `StorageServiceImpl` với các kiểm tra nghiệp vụ chặt chẽ (chặn xóa khu vực nếu còn kệ, chặn xóa kệ nếu còn cuốn sách).
+  * Infrastructure: Hiện thực `ZoneRepositoryImpl`, `ShelfRepositoryImpl` qua JDBC PreparedStatement và đăng ký DI tại `AppContainer`.
+  * Tests: Bộ unit tests `StorageServiceTest` (8 tests) và IT `StorageRepositoryIT`.
+- **Task T01 (Phân định Ranh giới Transaction Boundary)**:
+  * Định nghĩa `TransactionContext` (Domain marker interface) và `TransactionCoordinator` (Application port), triển khai `JdbcTransactionCoordinator` tại Infrastructure persistence connection.
+  * Loại bỏ hoàn toàn `setAutoCommit`, `commit`, `rollback` khỏi các Repository (`CirculationRepositoryImpl`, `BookRepositoryImpl`, `UserRepositoryImpl`). Service chịu trách nhiệm điều phối transaction theo đúng Clean Architecture.
+  * Bổ sung kiểm thử ca biên phạt `FineCalculationServiceTest` (ngày trễ = 0, trễ qua nửa đêm 00:00:01, giá lẻ làm tròn `HALF_UP`) và IT tranh chấp mượn đồng thời `CirculationConcurrencyIT`.
+- **Task T03 (Dashboard Charts & Xuất Báo cáo Excel POI)**:
+  * **Migration V4 (`db/migrations/V4__report_and_search_indexes.sql`)**: Thiết lập 4 chỉ mục hot queries: `idx_cuonsach_status_book`, `idx_phieumuon_overdue`, `idx_phieumuon_date`, `idx_thanhtoan_date`.
+  * **Application Port `ReportExporter` & DTO `DailyMetric`**: Hỗ trợ trích xuất số liệu xu hướng mượn và doanh thu phạt theo thời gian (`getBorrowAndFineTrend`).
+  * **`ExcelReportExporter`**: Sử dụng thư viện `org.apache.poi:poi-ooxml:5.2.5` xuất báo cáo ra file Excel `.xlsx` chuẩn giao diện chuyên nghiệp (header nền màu thương hiệu, định dạng số tiền VND và ngày tháng, tự động căn chỉnh độ rộng cột).
+  * **`TrendChartPanel`**: Vẽ biểu đồ kết hợp trực tiếp bằng Java2D phẳng bo góc (cột thể hiện lượt mượn sách, đường cam hổ phách thể hiện xu hướng tiền phạt) tích hợp trên `ReportsDashboardView` với nút "Xuất Excel (.xlsx)" chạy ngoài EDT bằng `SwingWorker`.
+  * Tests: `ExcelReportExporterTest` (2 tests POI kiểm tra định dạng và dữ liệu đọc lại), `ReportTrendAggregationTest` (1 test).
+#### Note
+- *Quy tắc Soft-delete*: Soft-delete cho `theloai` CHƯA làm vì bảng `theloai` trong CSDL chưa có cột `IsDeleted`, đang chờ nhóm quyết định ở Open Issue `[OPEN-DB-03]`. Tương tự, xóa khu vực (`khuvuc`) và kệ (`kesach`) áp dụng kiểm tra toàn vẹn dữ liệu trước khi xóa trực tiếp (`DELETE`).
+
 
 ### [Sprint 16 — Hoàn thiện Bố cục Responsive Dashboard, Tối ưu Tốc độ Tải Bìa & Khắc phục Lỗi Giao diện] - 2026-10-27
 #### Added

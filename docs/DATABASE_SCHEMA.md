@@ -298,14 +298,19 @@ VALUES (...);
 COMMIT;
 ```
 
-## 7. Đề xuất Chỉ mục Tối ưu Truy vấn Nóng (Hot Query Indexes)
-Để đảm bảo tốc độ phản hồi < 500ms dưới tải cao, các chỉ mục sau được thiết lập:
-1. `idx_sach_search`: Bảng `sach(Tensach, Isbn, Matheloai)` hỗ trợ tìm kiếm tổ hợp siêu tốc.
-2. `idx_cuonsach_status_book`: Bảng `cuonsach(Masach, Trangthaisach)` tăng tốc tối đa câu lệnh `SELECT ... FOR UPDATE` khi tìm cuốn khả dụng.
-3. `idx_phieumuon_overdue`: Bảng `phieumuon(Trangthai, Ngaytra)` hỗ trợ batch job quét phiếu trễ hạn lúc 00:00.
-4. `idx_datcho_expiring`: Bảng `datcho(Trangthai, Ngayhethan)` tối ưu hóa job quét tự động hủy lượt đặt trước quá 24h.
-5. `idx_cuonsach_sync`: Bảng `cuonsach(updated_at)` phục vụ Observer polling scheduler quét bản ghi mới sửa đổi.
+## 7. Đề xuất & Thiết lập Chỉ mục Tối ưu Truy vấn Nóng (Hot Query Indexes)
+Để đảm bảo tốc độ phản hồi < 500ms dưới tải cao, các chỉ mục chính thức đã được thiết lập qua **Migration V4** (`db/migrations/V4__report_and_search_indexes.sql`):
+1. `idx_cuonsach_status_book`: Bảng `cuonsach(Masach, Trangthaisach)` tăng tốc đếm tồn kho sách khả dụng và câu lệnh khóa bi quan `SELECT ... FOR UPDATE` (R-05).
+2. `idx_phieumuon_overdue`: Bảng `phieumuon(Trangthai, Hantranhan)` hỗ trợ truy vấn báo cáo độc giả quá hạn và batch job quét phiếu trễ hạn lúc 00:00 (BR-06, UC-7).
+3. `idx_phieumuon_date`: Bảng `phieumuon(Ngaymuon)` hỗ trợ truy vấn tổng hợp số liệu biểu đồ xu hướng mượn sách 7 ngày/30 ngày gần nhất trên Dashboard (UC-7).
+4. `idx_thanhtoan_date`: Bảng `thanhtoan(Ngaythanhtoan)` hỗ trợ truy vấn tổng hợp biểu đồ doanh thu tiền phạt theo ngày/tháng trên Dashboard (UC-7, F-05).
+
+Các chỉ mục đề xuất tiếp theo:
+5. `idx_sach_search`: Bảng `sach(Tensach, Isbn, Matheloai)` hỗ trợ tìm kiếm tổ hợp siêu tốc.
+6. `idx_datcho_expiring`: Bảng `datcho(Trangthai, Ngayhethan)` tối ưu hóa job quét tự động hủy lượt đặt trước quá 24h.
+7. `idx_cuonsach_sync`: Bảng `cuonsach(updated_at)` phục vụ Observer polling scheduler quét bản ghi mới sửa đổi.
 
 ## 8. Open Issues (Vấn đề Mở)
 - `[OPEN-DB-01]`: Bảng `phieumuon` có trường `Ngaytra` kiểu `DATE`, trong khi bảng `chitietphieumuon` có `Ngaytra` kiểu `DATETIME`. Cần thống nhất quy ước: `phieumuon.Ngaytra` là hạn trả hợp đồng (dueDate), còn `chitietphieumuon.Ngaytra` là thời điểm thực trả (returnedAt).
 - `[OPEN-DB-02]`: Bảng `thethuvien` hiện đang dùng `Mathe` làm PK dạng `VARCHAR(50)`. Cần đảm bảo hệ thống sinh chuỗi mã thẻ có định dạng chuẩn (ví dụ `LIB-YYYY-XXXXX`) để dễ in mã vạch/thẻ vật lý.
+- `[OPEN-DB-03]`: Soft-delete cho `theloai` CHƯA làm vì `theloai` chưa có cột `IsDeleted`, đang chờ nhóm quyết định. Các thao tác xóa phân loại/khu vực/kệ hiện tại thực hiện kiểm tra ràng buộc toàn vẹn dữ liệu (chặn nếu còn sách/kệ liên kết) trước khi xóa trực tiếp.
