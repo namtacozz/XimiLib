@@ -1,0 +1,24 @@
+# ==============================================================================
+# XimiLib - Mẫu Cấu Hình Cơ Sở Dữ Liệu & Bảo Mật (db.properties.example)
+# Sao chép file này thành config/db.properties và điền giá trị thực tế của bạn.
+# TUYỆT ĐỐI KHÔNG commit file config/db.properties (đã nằm trong .gitignore).
+# ==============================================================================
+
+# Thông tin kết nối MySQL
+db.host=localhost
+db.port=3306
+db.name=ximilib_db
+db.user=CHANGE_ME
+db.password=CHANGE_ME
+
+# Khóa đối xứng mã hóa thông tin nhạy cảm CCCD (AES-256)
+security.aes.key=CHANGE_ME
+
+# Cấu hình Connection Pool (HikariCP)
+db.pool.name=XimiLib-HikariPool
+db.pool.max-size=10
+db.pool.min-idle=2
+db.pool.connection-timeout=5000
+db.pool.idle-timeout=60000
+db.pool.max-lifetime=1800000
+db.pool.leak-detection-threshold=5000

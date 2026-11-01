@@ -8,6 +8,7 @@ import com.ximilib.application.service.impl.AuthenticationServiceImpl;
 import com.ximilib.domain.repository.UserRepository;
 import com.ximilib.infrastructure.security.SecurityUtil;
 import com.ximilib.domain.model.User;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,9 +28,15 @@ class AuthenticationServiceTest {
 
     @BeforeEach
     void setUp() {
+        SecurityUtil.setTestAesKey("UnitTestingAesSecretKeyForSecurityUtil2026");
         passwordHasher = new SecurityUtil();
         userRepository = new StubUserRepository(passwordHasher);
         authService = new AuthenticationServiceImpl(userRepository, passwordHasher);
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityUtil.clearTestAesKey();
     }
 
     @Test

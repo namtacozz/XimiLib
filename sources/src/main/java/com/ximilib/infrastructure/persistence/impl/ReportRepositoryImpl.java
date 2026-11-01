@@ -228,6 +228,8 @@ public class ReportRepositoryImpl implements ReportPort {
             } catch (Exception ex) {
                 conn.rollback();
                 throw ex;
+            } finally {
+                conn.setAutoCommit(true);
             }
         }
     }
