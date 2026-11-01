@@ -37,9 +37,11 @@ public class ReportsDashboardView extends JPanel {
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
 
     private JComboBox<String> cmbReportType;
+    private final com.ximilib.application.port.ReportExporter reportExporter;
     private JTable reportTable;
     private DefaultTableModel tableModel;
     private JButton btnUpdateStatus;
+    private com.ximilib.presentation.component.TrendChartPanel trendChartPanel;
 
     // KPI Labels
     private JLabel lblTotalBooksVal;
@@ -48,11 +50,16 @@ public class ReportsDashboardView extends JPanel {
     private JLabel lblTotalFinesVal;
 
     public ReportsDashboardView() {
-        this(AppContainer.getInstance().getReportPort());
+        this(AppContainer.getInstance().getReportPort(), AppContainer.getInstance().getReportExporter());
     }
 
     public ReportsDashboardView(ReportPort reportPort) {
+        this(reportPort, AppContainer.getInstance().getReportExporter());
+    }
+
+    public ReportsDashboardView(ReportPort reportPort, com.ximilib.application.port.ReportExporter reportExporter) {
         this.reportPort = (reportPort != null) ? reportPort : AppContainer.getInstance().getReportPort();
+        this.reportExporter = (reportExporter != null) ? reportExporter : AppContainer.getInstance().getReportExporter();
 
         setOpaque(false);
         setLayout(new BorderLayout());
@@ -60,6 +67,7 @@ public class ReportsDashboardView extends JPanel {
 
         initUI();
         loadKpisAsync();
+        loadChartAsync();
         loadReportDataAsync();
     }
 
@@ -103,7 +111,11 @@ public class ReportsDashboardView extends JPanel {
         kpiPanel.add(createMiniKpiCard("Tiền phạt đã thu", lblTotalFinesVal, new Color(16, 185, 129)));
 
         topPanel.add(kpiPanel);
-        topPanel.add(Box.createVerticalStrut(18));
+        topPanel.add(Box.createVerticalStrut(14));
+
+        trendChartPanel = new com.ximilib.presentation.component.TrendChartPanel();
+        topPanel.add(trendChartPanel);
+        topPanel.add(Box.createVerticalStrut(14));
 
         // 3. Thanh điều khiển Bộ lọc & Hành động
         JPanel filterBar = new JPanel(new BorderLayout(12, 0));
@@ -130,6 +142,7 @@ public class ReportsDashboardView extends JPanel {
         btnRefresh.setPreferredSize(new Dimension(90, 36));
         btnRefresh.addActionListener(e -> {
             loadKpisAsync();
+            loadChartAsync();
             loadReportDataAsync();
         });
 
@@ -151,12 +164,17 @@ public class ReportsDashboardView extends JPanel {
         btnExport.setPreferredSize(new Dimension(140, 36));
         btnExport.addActionListener(e -> exportToCsv());
 
+        JButton btnExportXlsx = UITheme.createPillButton("Xuất Excel (.xlsx)", UITheme.PRIMARY, Color.WHITE);
+        btnExportXlsx.setPreferredSize(new Dimension(145, 36));
+        btnExportXlsx.addActionListener(e -> exportToXlsx());
+
         JButton btnPrint = UITheme.createPillButton("In Báo Cáo", new Color(107, 114, 128), Color.WHITE);
         btnPrint.setPreferredSize(new Dimension(110, 36));
         btnPrint.addActionListener(e -> printReport());
 
         rightActions.add(btnUpdateStatus);
         rightActions.add(btnExport);
+        rightActions.add(btnExportXlsx);
         rightActions.add(btnPrint);
 
         filterBar.add(leftFilter, BorderLayout.WEST);
@@ -224,6 +242,26 @@ public class ReportsDashboardView extends JPanel {
                     lblActiveLoansVal.setText(String.format("%,d", kpi.activeLoans()));
                     lblOverdueVal.setText(String.format("%,d", kpi.overdueLoans()));
                     lblTotalFinesVal.setText(currencyFormat.format(kpi.totalFines() != null ? kpi.totalFines() : BigDecimal.ZERO));
+                } catch (Exception ignored) {
+                }
+            }
+        }.execute();
+    }
+
+    private void loadChartAsync() {
+        new SwingWorker<java.util.List<ReportPort.DailyMetric>, Void>() {
+            @Override
+            protected java.util.List<ReportPort.DailyMetric> doInBackground() {
+                return reportPort.getBorrowAndFineTrend(7);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    java.util.List<ReportPort.DailyMetric> metrics = get();
+                    if (trendChartPanel != null) {
+                        trendChartPanel.setMetrics(metrics);
+                    }
                 } catch (Exception ignored) {
                 }
             }
@@ -329,6 +367,69 @@ public class ReportsDashboardView extends JPanel {
             } catch (Exception e) {
                 UiModalHelper.showToastError(this, "Lỗi khi xuất file: " + e.getMessage());
             }
+        }
+    }
+
+    private void exportToXlsx() {
+        if (reportTable.getRowCount() == 0) {
+            UiModalHelper.showToastWarning(this, "Không có dữ liệu báo cáo để xuất!");
+            return;
+        }
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Lưu file báo cáo Excel (.xlsx)");
+        fileChooser.setSelectedFile(new File("BaoCao_" + System.currentTimeMillis() + ".xlsx"));
+
+        int result = fileChooser.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selected = fileChooser.getSelectedFile();
+            if (!selected.getName().toLowerCase().endsWith(".xlsx")) {
+                selected = new File(selected.getAbsolutePath() + ".xlsx");
+            }
+            final File targetFile = selected;
+
+            int colCount = reportTable.getColumnCount();
+            int rowCount = reportTable.getRowCount();
+            String[] headers = new String[colCount];
+            for (int c = 0; c < colCount; c++) {
+                headers[c] = reportTable.getColumnName(c);
+            }
+            java.util.List<Object[]> rows = new java.util.ArrayList<>(rowCount);
+            for (int r = 0; r < rowCount; r++) {
+                Object[] row = new Object[colCount];
+                for (int c = 0; c < colCount; c++) {
+                    row[c] = reportTable.getValueAt(r, c);
+                }
+                rows.add(row);
+            }
+
+            String title = (String) cmbReportType.getSelectedItem();
+            if (title != null && title.length() > 30) {
+                title = title.substring(0, 30);
+            }
+            final String sheetTitle = (title != null && !title.isBlank()) ? title : "BaoCao";
+
+            new SwingWorker<Void, Void>() {
+                @Override
+                protected Void doInBackground() throws Exception {
+                    try (FileOutputStream fos = new FileOutputStream(targetFile)) {
+                        reportExporter.exportToExcel(fos, sheetTitle, headers, rows);
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        get();
+                        String currentUserId = UserSession.getCurrentUser() != null ? UserSession.getCurrentUser().getId() : "ADMIN";
+                        AuditLogger.log(currentUserId, "EXPORT_REPORT_XLSX", "Xuất file Excel .xlsx: " + targetFile.getName());
+                        UiModalHelper.showToastSuccess(ReportsDashboardView.this, "Xuất báo cáo Excel .xlsx thành công: " + targetFile.getName());
+                    } catch (Exception ex) {
+                        UiModalHelper.showToastError(ReportsDashboardView.this, "Lỗi khi xuất file Excel: " + ex.getMessage());
+                    }
+                }
+            }.execute();
         }
     }
 
