@@ -23,7 +23,7 @@
 - **Kiến trúc áp dụng:** **Clean Architecture 4 tầng** (`Presentation` $\rightarrow$ `Application` $\rightarrow$ `Domain` $\leftarrow$ `Infrastructure`).
 - **Quy tắc phụ thuộc (Dependency Inversion Principle - DIP):** 
   - Các tầng bên ngoài phụ thuộc vào tầng bên trong.
-  - Tầng Domain (ở trung tâm) không phụ thuộc vào bất kỳ thư viện bên ngoài hay cơ sở dữ liệu nào (`javax.swing`, `java.sql`, HikariCP, v.v.). Tầng Domain chỉ chứa Entities, Value Objects, Domain Events và Repository Interfaces.
+  - Tầng Domain (ở trung tâm) không phụ thuộc vào bất kỳ thư viện bên ngoài hay cơ sở dữ liệu nào (`javax.swing`, `java.sql`, v.v.). Tầng Domain chỉ chứa Entities, Value Objects, Domain Events và Repository Interfaces.
   - Tầng Presentation chỉ giao tiếp với Application qua Service Interfaces và DTO (Data Transfer Object), **tuyệt đối không bao giờ gọi trực tiếp DAO hay SQL** (R-01).
 
 ```mermaid

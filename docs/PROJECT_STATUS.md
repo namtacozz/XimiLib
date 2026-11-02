@@ -36,15 +36,15 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 
 ## 3. Nhật ký Thay đổi Dự án (Changelog)
 
-### [Sprint 17 — Hoàn thiện Kiến trúc Kết nối HikariCP, Transaction Coordinator, Quản lý Kệ/Khu vực, Biểu đồ Xu hướng & Xuất Báo cáo Excel POI] - 2026-11-01
+### [Sprint 17 — Hoàn thiện Kiến trúc Kết nối JDBC thuần (DriverManager), Transaction Coordinator, Quản lý Kệ/Khu vực, Biểu đồ Xu hướng & Xuất Báo cáo Excel POI] - 2026-11-01
 #### Added
-- **Task T02 (HikariCP Connection Pool & Quản lý Cấu hình DB)**:
-  * Khởi tạo `DatabaseConnectionManager` với HikariCP theo mô hình lazy thread-safe initialization, cấu hình connection pool tối ưu (`maximumPoolSize`, `minimumIdle`, `maxLifetime`, `leakDetectionThreshold`).
+- **Task T02 (Kết nối JDBC thuần DriverManager & Quản lý Cấu hình DB)**:
+  * Khởi tạo `DatabaseConnectionManager` với `java.sql.DriverManager` trực tiếp (không pool, không shutdown hook, không double-checked locking). URL nạp UTF-8 và múi giờ Asia/Ho_Chi_Minh.
   * `DatabaseConfig`: Ưu tiên nạp biến môi trường `XIMILIB_DB_*`, sau đó đọc từ `config/db.properties`. Cung cấp file mẫu `config/db.properties.example` và thông báo lỗi tiếng Việt tường minh khi thiếu thông tin kết nối. Loại bỏ 100% mật khẩu cứng mặc định.
   * Cấu hình khóa AES (`SecurityUtil.DEFAULT_AES_KEY`) qua biến `XIMILIB_AES_KEY` hoặc `security.aes.key`, không fallback chuỗi cứng.
   * `TransactionManager`: Đóng gói cơ chế thực thi giao dịch an toàn với `TransactionCallback` và `VoidTransactionCallback`.
   * `DatabaseInitializer`: Tự động nạp schema và thực thi chuỗi migration V1 -> V2 -> V3 -> V4 khi khởi tạo; hỗ trợ cờ dòng lệnh headless `--init-db` trong `Main.java` tiện lợi cho môi trường CI/CD và máy dev mới.
-  * `DBConnectionLeakIT`: Kiểm thử tích hợp xác nhận 23 bảng, 221 cuốn sách và đảm bảo giải phóng connection 100% về pool.
+  * `DBConnectionLeakIT`: Kiểm thử tích hợp xác nhận 23 bảng, 221 cuốn sách và đảm bảo giải phóng connection 100% sau N=100 lần truy vấn (kiểm tra `Threads_connected`).
 - **Task T03 (Quản lý Khu vực & Kệ sách - Storage Subsystem)**:
   * Domain: Mô hình `Zone`, `Shelf`, ngoại lệ miền `BookException`, `CopyException`, repository interfaces `ZoneRepository`, `ShelfRepository`.
   * Application: Cung cấp `ZoneDto`, `ShelfDto`, `StorageQueryPort`, `StorageService`, `StorageServiceImpl` với các kiểm tra nghiệp vụ chặt chẽ (chặn xóa khu vực nếu còn kệ, chặn xóa kệ nếu còn cuốn sách).

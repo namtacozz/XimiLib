@@ -24,10 +24,10 @@ sources/src/main/java/com/ximilib/
 │   └── port/                               # Interfaces giao tiếp cổng thanh toán ngoại vi (PaymentGateway)
 │                                           # [ĐẶT]: Outbound ports; [CẤM]: Mã triển khai thư viện bên ngoài
 ├── infrastructure/                         # Triển khai kỹ thuật cụ thể (Database, External APIs, Config)
-│   ├── persistence/                        # Triển khai Repository bằng Pure JDBC + HikariCP
+│   ├── persistence/                        # Triển khai Repository bằng JDBC thuần (DriverManager)
 │   │   ├── impl/                           # BookRepositoryImpl, LoanRepositoryImpl (Thực thi interface từ domain)
 │   │   ├── mapper/                         # ResultSetMapper biến đổi dòng SQL thành Domain Entity
-│   │   └── connection/                     # DatabaseConnectionManager quản lý HikariDataSource và Transaction Context
+│   │   └── connection/                     # DatabaseConnectionManager quản lý kết nối JDBC thuần (DriverManager) và Transaction Context
 │   ├── gateway/                            # Triển khai cổng thanh toán SePay VietQR (SePayPaymentGateway)
 │   │                                       # [ĐẶT]: HTTP Client gọi API SePay; [CẤM]: Chứa logic nghiệp vụ mượn trả
 │   └── config/                             # Composition Root, DI Container thủ công, đồng bộ nền
@@ -47,11 +47,12 @@ Các tầng bên trong không được phép biết bất kỳ thông tin nào v
 |---|---|---|
 | **Domain** | Thư viện Java Core chuẩn (`java.time`, `java.math`, `java.util`) | Application, Infrastructure, Presentation, `java.sql.*`, `javax.swing.*` |
 | **Application** | Domain, Java Core | Infrastructure, Presentation, `javax.swing.*`, `java.sql.*` |
-| **Infrastructure** | Domain, Application (các ports), thư viện bên thứ 3 (HikariCP, BCrypt, HTTP Client) | Presentation, Swing UI classes |
+| **Infrastructure** | Domain, Application (các ports), thư viện bên thứ 3 (BCrypt, HTTP Client) | Presentation, Swing UI classes |
 | **Presentation** | Application (Services, DTOs), Domain (Enums, Value Objects công khai), Swing/FlatLaf | Infrastructure (Repositories Impl, JDBC Connection), `java.sql.*` |
 
 ## 3. Repository Pattern
 - **Quy ước:** Interface đặt tại `com.ximilib.domain.repository`, lớp triển khai thực tế bằng JDBC đặt tại `com.ximilib.infrastructure.persistence.impl`.
+- **Chiến lược Quản lý Kết nối CSDL:** Hệ thống sử dụng **JDBC thuần (DriverManager)** (`java.sql.DriverManager.getConnection`) thay vì Connection Pool phức tạp. Đây là lựa chọn có chủ đích cho quy mô PBL3 (vài máy trạm, mỗi truy vấn mở và đóng một kết nối độc lập qua cú pháp `try-with-resources`). Cơ chế này giúp mã nguồn đơn giản, loại bỏ rủi ro rò rỉ hay timeout pool trong môi trường ứng dụng desktop đồ án.
 - **Ví dụ mẫu chuẩn (`BookRepository`):**
 
 ```java

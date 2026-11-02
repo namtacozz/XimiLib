@@ -26,7 +26,7 @@ Theo phân tích hiện trạng và tính khả thi trong phạm vi đồ án De
 
 | Mục trong SRS | Cách thực hiện trong Dự án XimiLib | Lý do kỹ thuật / Phạm vi PBL |
 |---|---|---|
-| **UC-1: Lưu và gửi JWT Token** | Quản lý bằng `UserSession` an toàn luồng trong tiến trình JVM; không tạo token JWT. | Ứng dụng Desktop kết nối trực tiếp CSDL MySQL tập trung qua JDBC/HikariCP, không có tầng API Gateway / Microservice làm bên nhận và xác thực token JWT. |
+| **UC-1: Lưu và gửi JWT Token** | Quản lý bằng `UserSession` an toàn luồng trong tiến trình JVM; không tạo token JWT. | Ứng dụng Desktop kết nối trực tiếp CSDL MySQL tập trung qua JDBC thuần (DriverManager), không có tầng API Gateway / Microservice làm bên nhận và xác thực token JWT. |
 | **§3.3.1: 5.000 user đồng thời, 95% request API < 500ms; §3.3.4: Horizontal Autoscaling; §3.3.3: Uptime 99.9%, MTTR < 30 phút** | Không áp dụng các tiêu chuẩn phân tán đám mây. Thay thế bằng: Tối ưu chỉ mục (Indexes) trên MySQL, phân trang phía server (LIMIT/OFFSET), kiểm soát kết nối qua Connection Pool, thử nghiệm đồng thời 5–10 máy trạm trong mạng LAN. | Hệ thống là đồ án Desktop Client-Server tập trung, không triển khai Kubernetes/Cloud Cluster. |
 | **UC-5: "Ứng dụng di động (Mobile App)"** | Triển khai giao diện dành cho Độc giả trên cùng ứng dụng Desktop FlatLaf, phân quyền qua vai trò `READER`. | Nền tảng dự án đã chốt là Java Swing Desktop đa nền tảng. |
 | **§3.3.2: Mã hóa AES-256 các trường nhạy cảm** | Áp dụng mã hóa AES-256 cho trường `Cccd` (Số CMND/CCCD) trong bảng `nguoidung`; tìm kiếm trùng bằng giá trị mã hóa cố định. Mật khẩu dùng BCrypt. | CCCD là trường thông tin nhạy cảm duy nhất về danh tính công dân trong lược đồ CSDL. |
