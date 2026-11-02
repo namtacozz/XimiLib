@@ -405,29 +405,33 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
         String checkSql = "SELECT COUNT(*) FROM chitietphieumuon WHERE Maphieumuon = ? AND Ngaytra IS NULL";
         String closeSql = "UPDATE phieumuon SET Trangthai = 2, Ngaytra = ? WHERE Maphieumuon = ?";
 
-        Connection conn = (tx != null)
-                ? ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection()
-                : null;
-        boolean ownConn = (conn == null);
-        try {
-            if (ownConn) conn = connectionManager.getConnection();
-            try (PreparedStatement psCheck = conn.prepareStatement(checkSql)) {
-                psCheck.setString(1, ticketId);
-                try (ResultSet rs = psCheck.executeQuery()) {
-                    if (rs.next() && rs.getInt(1) == 0) {
-                        try (PreparedStatement psClose = conn.prepareStatement(closeSql)) {
-                            psClose.setDate(1, Date.valueOf(LocalDate.now()));
-                            psClose.setString(2, ticketId);
-                            psClose.executeUpdate();
-                        }
+        if (tx == null) {
+            try (Connection conn = connectionManager.getConnection()) {
+                doCloseTicketIfAllReturned(conn, ticketId, checkSql, closeSql);
+            } catch (SQLException e) {
+                throw new RuntimeException("Lỗi đóng phiếu mượn: " + e.getMessage(), e);
+            }
+        } else {
+            Connection conn = ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection();
+            try {
+                doCloseTicketIfAllReturned(conn, ticketId, checkSql, closeSql);
+            } catch (SQLException e) {
+                throw new RuntimeException("Lỗi đóng phiếu mượn: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    private void doCloseTicketIfAllReturned(Connection conn, String ticketId, String checkSql, String closeSql) throws SQLException {
+        try (PreparedStatement psCheck = conn.prepareStatement(checkSql)) {
+            psCheck.setString(1, ticketId);
+            try (ResultSet rs = psCheck.executeQuery()) {
+                if (rs.next() && rs.getInt(1) == 0) {
+                    try (PreparedStatement psClose = conn.prepareStatement(closeSql)) {
+                        psClose.setDate(1, Date.valueOf(LocalDate.now()));
+                        psClose.setString(2, ticketId);
+                        psClose.executeUpdate();
                     }
                 }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Lỗi đóng phiếu mượn: " + e.getMessage(), e);
-        } finally {
-            if (ownConn && conn != null) {
-                try { conn.close(); } catch (SQLException ex) { /* ignore */ }
             }
         }
     }
@@ -443,28 +447,31 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
             INSERT INTO phieuphat (Maphieuphat, ID, Machitiet, Lydophat, Sotienphat, Ngayphat, Trangthai, Ghichuphat)
             VALUES (?, ?, ?, ?, ?, NOW(), 0, ?)
         """;
-        Connection conn = (tx != null)
-                ? ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection()
-                : null;
-        boolean ownConn = (conn == null);
-        try {
-            if (ownConn) conn = connectionManager.getConnection();
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, fineId);
-                ps.setString(2, userId);
-                ps.setString(3, detailId);
-                ps.setString(4, reason);
-                ps.setBigDecimal(5, amount);
-                ps.setString(6, notes != null ? notes : "");
-                ps.executeUpdate();
+        if (tx == null) {
+            try (Connection conn = connectionManager.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                doInsertFine(ps, fineId, userId, detailId, reason, amount, notes);
+            } catch (SQLException e) {
+                throw new RuntimeException("Lỗi tạo phiếu phạt: " + e.getMessage(), e);
             }
-        } catch (SQLException e) {
-            throw new RuntimeException("Lỗi tạo phiếu phạt: " + e.getMessage(), e);
-        } finally {
-            if (ownConn && conn != null) {
-                try { conn.close(); } catch (SQLException ex) { /* ignore */ }
+        } else {
+            Connection conn = ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                doInsertFine(ps, fineId, userId, detailId, reason, amount, notes);
+            } catch (SQLException e) {
+                throw new RuntimeException("Lỗi tạo phiếu phạt: " + e.getMessage(), e);
             }
         }
+    }
+
+    private void doInsertFine(PreparedStatement ps, String fineId, String userId, String detailId, String reason, BigDecimal amount, String notes) throws SQLException {
+        ps.setString(1, fineId);
+        ps.setString(2, userId);
+        ps.setString(3, detailId);
+        ps.setString(4, reason);
+        ps.setBigDecimal(5, amount);
+        ps.setString(6, notes != null ? notes : "");
+        ps.executeUpdate();
     }
 
     @Override
