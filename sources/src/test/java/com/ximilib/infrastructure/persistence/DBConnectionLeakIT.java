@@ -1,7 +1,6 @@
 package com.ximilib.infrastructure.persistence;
 
 import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
-import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
@@ -71,10 +70,13 @@ public class DBConnectionLeakIT {
     }
 
     @Test
-    @DisplayName("IT-DB-03: Không rò rỉ connection sau khi dùng try-with-resources N lần")
+    @DisplayName("IT-DB-03: Không rò rỉ connection sau khi dùng try-with-resources N=100 lần (đo Threads_connected)")
     void testNoConnectionLeak() throws SQLException {
         assumeTrue(dbAvailable, "Bỏ qua: Không có kết nối MySQL");
-        int n = 10;
+
+        int initialThreadsConnected = getThreadsConnected();
+
+        int n = 100;
         for (int i = 0; i < n; i++) {
             try (Connection conn = manager.getConnection();
                  PreparedStatement ps = conn.prepareStatement("SELECT 1");
@@ -82,11 +84,21 @@ public class DBConnectionLeakIT {
                 Assertions.assertTrue(rs.next());
             }
         }
-        // Sau khi đóng hết connection, active connections phải = 0
-        HikariDataSource ds = manager.getDataSource();
-        Assertions.assertNotNull(ds);
-        int active = ds.getHikariPoolMXBean().getActiveConnections();
-        Assertions.assertEquals(0, active,
-                "Rò rỉ connection: còn " + active + " connection chưa đóng");
+
+        int afterThreadsConnected = getThreadsConnected();
+        Assertions.assertEquals(initialThreadsConnected, afterThreadsConnected,
+                "Rò rỉ connection: Threads_connected tăng từ " + initialThreadsConnected + " lên " + afterThreadsConnected);
+    }
+
+    private int getThreadsConnected() throws SQLException {
+        String sql = "SHOW STATUS LIKE 'Threads_connected'";
+        try (Connection conn = manager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return Integer.parseInt(rs.getString(2));
+            }
+        }
+        return -1;
     }
 }
