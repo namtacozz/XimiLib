@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * Kiểm tra các quy tắc phụ thuộc kiến trúc (Dependency Rules) của XimiLib bằng JUnit 5 thuần.
  * <p>
  * Các quy tắc kiến trúc theo AGENTS.md và ARCHITECTURE.md:
- * 1. domain không import: javax.swing, java.sql, com.zaxxer, com.ximilib.application,
+ * 1. domain không import: javax.swing, java.sql, com.ximilib.application,
  *    com.ximilib.infrastructure, com.ximilib.presentation, com.ximilib.gui.
  * 2. application không import: javax.swing, java.sql, com.ximilib.infrastructure,
  *    com.ximilib.presentation, com.ximilib.gui.
@@ -50,7 +50,6 @@ public class DependencyRuleTest {
     private static final List<String> DOMAIN_FORBIDDEN = List.of(
             "javax.swing",
             "java.sql",
-            "com.zaxxer",
             "com.ximilib.application",
             "com.ximilib.infrastructure",
             "com.ximilib.presentation",

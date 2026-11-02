@@ -54,22 +54,4 @@ class DatabaseConnectionManagerTest {
                 "Thông báo ngoại lệ phải được dịch sang tiếng Việt thân thiện: " + ex.getMessage());
         brokenManager.close();
     }
-
-    @Test
-    @DisplayName("TC-DB-03: Cấu hình Connection Pool mặc định đúng thông số thiết kế")
-    void testPoolConfigurationDefaults() {
-        DatabaseConfig config = new DatabaseConfig.Builder()
-                .poolName("TestPool")
-                .maxPoolSize(15)
-                .minIdle(3)
-                .connectionTimeout(3000L)
-                .leakDetectionThreshold(4000L)
-                .build();
-
-        assertEquals("TestPool", config.getPoolName());
-        assertEquals(15, config.getMaxPoolSize());
-        assertEquals(3, config.getMinIdle());
-        assertEquals(3000L, config.getConnectionTimeout());
-        assertEquals(4000L, config.getLeakDetectionThreshold());
-    }
 }

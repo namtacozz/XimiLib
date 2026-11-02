@@ -1,34 +1,27 @@
 package com.ximilib.infrastructure.persistence.connection;
 
 import com.ximilib.infrastructure.config.DatabaseConfig;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- * DatabaseConnectionManager: Quản lý kết nối JDBC tập trung qua HikariCP Connection Pool (R-01, R-07, R-08).
- * - Sử dụng HikariDataSource với cơ chế khởi tạo Lazy Thread-Safe (Double-Checked Locking).
- * - Thiết lập đầy đủ: poolName, maximumPoolSize, minimumIdle, maxLifetime, leakDetectionThreshold, shutdown hook.
- * - Bọc ngoại lệ SQLException khi kết nối thành thông báo thân thiện, không lộ thông tin kỹ thuật nhạy cảm.
- * - Giữ nguyên API getConnection() cũ để các Repository không bị ảnh hưởng.
+ * DatabaseConnectionManager: Quản lý kết nối JDBC thuần (java.sql.DriverManager) tập trung (R-01, R-07, R-08).
+ * - Sử dụng DriverManager.getConnection(url, user, password), không pool, không shutdown hook, không double-checked locking.
+ * - Lựa chọn có chủ đích cho quy mô PBL3 (vài máy trạm, mỗi truy vấn mở và đóng một kết nối độc lập).
+ * - Bọc ngoại lệ SQLException khi kết nối thành thông báo thân thiện, không lộ thông tin kỹ thuật nhạy cảm hay chuỗi kết nối.
+ * - Giữ nguyên tên lớp và API public Connection getConnection() throws SQLException để Repository không phải sửa.
  */
 public class DatabaseConnectionManager implements AutoCloseable {
-
-    private static volatile HikariDataSource sharedDataSource;
-    private static final Object LOCK = new Object();
-    private static volatile boolean shutdownHookRegistered = false;
 
     private final boolean isCustom;
     private final String customUrl;
     private final String customUser;
     private final String customPassword;
-    private volatile HikariDataSource customDataSource;
 
     /**
      * Khởi tạo mặc định: Sử dụng cấu hình nạp từ biến môi trường hoặc config/db.properties.
-     * Chia sẻ chung một pool kết nối HikariDataSource singleton cho toàn bộ ứng dụng.
      */
     public DatabaseConnectionManager() {
         this.isCustom = false;
@@ -48,120 +41,40 @@ public class DatabaseConnectionManager implements AutoCloseable {
     }
 
     /**
-     * Lấy kết nối JDBC từ Connection Pool.
+     * Lấy kết nối JDBC thuần từ DriverManager.
      * Nếu gặp lỗi kết nối (timeout, link failure, sai thông tin), ngoại lệ được bọc thành
      * thông báo tiếng Việt thân thiện, che giấu chi tiết nhạy cảm.
      */
     public Connection getConnection() throws SQLException {
+        String url;
+        String user;
+        String password;
+        if (isCustom) {
+            url = customUrl;
+            user = customUser != null ? customUser : "";
+            password = customPassword != null ? customPassword : "";
+        } else {
+            DatabaseConfig config = DatabaseConfig.getInstance();
+            url = config.getJdbcUrl();
+            user = config.getUser();
+            password = config.getPassword();
+        }
+
         try {
-            HikariDataSource ds = getDataSource();
-            return ds.getConnection();
+            return DriverManager.getConnection(url, user, password);
         } catch (SQLException e) {
             throw wrapConnectionException(e);
-        } catch (Exception e) {
-            throw wrapConnectionException(e);
-        }
-    }
-
-    /**
-     * Lấy DataSource quản lý pool kết nối (hỗ trợ kiểm tra trạng thái pool hoặc đóng kết nối).
-     */
-    public HikariDataSource getDataSource() {
-        if (isCustom) {
-            if (customDataSource == null || customDataSource.isClosed()) {
-                synchronized (this) {
-                    if (customDataSource == null || customDataSource.isClosed()) {
-                        customDataSource = createCustomDataSource(customUrl, customUser, customPassword);
-                    }
-                }
-            }
-            return customDataSource;
-        }
-        return getSharedDataSource();
-    }
-
-    public static HikariDataSource getSharedDataSource() {
-        if (sharedDataSource == null || sharedDataSource.isClosed()) {
-            synchronized (LOCK) {
-                if (sharedDataSource == null || sharedDataSource.isClosed()) {
-                    DatabaseConfig config = DatabaseConfig.getInstance();
-                    sharedDataSource = createDataSource(config);
-                    registerShutdownHook(sharedDataSource);
-                }
-            }
-        }
-        return sharedDataSource;
-    }
-
-    private static HikariDataSource createDataSource(DatabaseConfig dbConfig) {
-        HikariConfig config = new HikariConfig();
-        config.setPoolName(dbConfig.getPoolName());
-        config.setJdbcUrl(dbConfig.getJdbcUrl());
-        config.setUsername(dbConfig.getUser());
-        config.setPassword(dbConfig.getPassword());
-
-        config.setMaximumPoolSize(dbConfig.getMaxPoolSize());
-        config.setMinimumIdle(dbConfig.getMinIdle());
-        config.setConnectionTimeout(dbConfig.getConnectionTimeout());
-        config.setIdleTimeout(dbConfig.getIdleTimeout());
-        config.setMaxLifetime(dbConfig.getMaxLifetime());
-        config.setLeakDetectionThreshold(dbConfig.getLeakDetectionThreshold());
-
-        // Tối ưu hiệu năng MySQL Driver
-        config.addDataSourceProperty("cachePrepStmts", "true");
-        config.addDataSourceProperty("prepStmtCacheSize", "250");
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        config.addDataSourceProperty("useServerPrepStmts", "true");
-
-        return new HikariDataSource(config);
-    }
-
-    private static HikariDataSource createCustomDataSource(String url, String user, String password) {
-        HikariConfig config = new HikariConfig();
-        config.setPoolName("XimiLib-CustomPool-" + (System.currentTimeMillis() % 10000));
-        config.setJdbcUrl(url);
-        config.setUsername(user != null ? user : "");
-        config.setPassword(password != null ? password : "");
-        config.setMaximumPoolSize(2);
-        config.setMinimumIdle(1);
-        config.setConnectionTimeout(1000L);
-        config.setInitializationFailTimeout(1000L);
-        return new HikariDataSource(config);
-    }
-
-    private static void registerShutdownHook(HikariDataSource ds) {
-        if (!shutdownHookRegistered) {
-            synchronized (LOCK) {
-                if (!shutdownHookRegistered) {
-                    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                        shutdownSharedPool();
-                    }, "XimiLib-HikariShutdownHook"));
-                    shutdownHookRegistered = true;
-                }
-            }
-        }
-    }
-
-    public static void shutdownSharedPool() {
-        synchronized (LOCK) {
-            if (sharedDataSource != null && !sharedDataSource.isClosed()) {
-                sharedDataSource.close();
-                sharedDataSource = null;
-            }
         }
     }
 
     @Override
     public void close() {
-        if (isCustom && customDataSource != null && !customDataSource.isClosed()) {
-            customDataSource.close();
-            customDataSource = null;
-        }
+        // Pure JDBC không giữ pool kết nối, mỗi kết nối được đóng độc lập bởi caller
     }
 
     /**
-     * Đóng pool kết nối (tương đương {@link #close()}).
-     * Dùng cho Integration Test khi cần đóng manager sau mỗi test class.
+     * Đóng tài nguyên (tương đương {@link #close()}).
+     * Giữ nguyên để tương thích ngược với các Integration Tests.
      */
     public void shutdown() {
         close();
@@ -191,8 +104,6 @@ public class DatabaseConnectionManager implements AutoCloseable {
         if (originalMsg.contains("communications link failure")
                 || originalMsg.contains("connection refused")
                 || originalMsg.contains("connectexception")
-                || originalMsg.contains("connection is not available")
-                || originalMsg.contains("poolinitializationexception")
                 || originalMsg.contains("timed out")) {
             friendly = "Không thể kết nối đến máy chủ CSDL MySQL. Vui lòng kiểm tra lại dịch vụ MySQL và cấu hình mạng.";
         } else if (originalMsg.contains("access denied for user")) {

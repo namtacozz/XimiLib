@@ -79,13 +79,6 @@
             <version>8.3.0</version>
         </dependency>
 
-        <!-- HikariCP High-Performance JDBC Connection Pool (R-01, AGENTS.md §1) -->
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>5.1.0</version>
-        </dependency>
-
         <!-- JUnit 5 for Unit Testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

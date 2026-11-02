@@ -24,14 +24,6 @@ public class DatabaseConfig {
     private final String password;
     private final String aesKey;
 
-    private final String poolName;
-    private final int maxPoolSize;
-    private final int minIdle;
-    private final long connectionTimeout;
-    private final long idleTimeout;
-    private final long maxLifetime;
-    private final long leakDetectionThreshold;
-
     private static volatile DatabaseConfig instance;
     private static final Object lock = new Object();
 
@@ -59,13 +51,6 @@ public class DatabaseConfig {
         this.user = builder.user;
         this.password = builder.password;
         this.aesKey = builder.aesKey;
-        this.poolName = builder.poolName;
-        this.maxPoolSize = builder.maxPoolSize;
-        this.minIdle = builder.minIdle;
-        this.connectionTimeout = builder.connectionTimeout;
-        this.idleTimeout = builder.idleTimeout;
-        this.maxLifetime = builder.maxLifetime;
-        this.leakDetectionThreshold = builder.leakDetectionThreshold;
     }
 
     public static DatabaseConfig load() {
@@ -89,28 +74,13 @@ public class DatabaseConfig {
             aes = fileProps.getProperty("security.aes.key");
         }
 
-        String poolName = getEnvOrProp("XIMILIB_DB_POOL_NAME", fileProps, "db.pool.name", "XimiLib-HikariPool");
-        int maxPoolSize = parseInt(getEnvOrProp("XIMILIB_DB_MAX_POOL", fileProps, "db.pool.max-size", "10"), 10);
-        int minIdle = parseInt(getEnvOrProp("XIMILIB_DB_MIN_IDLE", fileProps, "db.pool.min-idle", "2"), 2);
-        long connTimeout = parseLong(getEnvOrProp("XIMILIB_DB_CONN_TIMEOUT", fileProps, "db.pool.connection-timeout", "5000"), 5000L);
-        long idleTimeout = parseLong(getEnvOrProp("XIMILIB_DB_IDLE_TIMEOUT", fileProps, "db.pool.idle-timeout", "60000"), 60000L);
-        long maxLifetime = parseLong(getEnvOrProp("XIMILIB_DB_MAX_LIFETIME", fileProps, "db.pool.max-lifetime", "1800000"), 1800000L);
-        long leakThreshold = parseLong(getEnvOrProp("XIMILIB_DB_LEAK_THRESHOLD", fileProps, "db.pool.leak-detection-threshold", "5000"), 5000L);
-
         Builder builder = new Builder()
                 .host(host)
                 .port(port)
                 .dbName(dbName)
                 .user(user)
                 .password(pass)
-                .aesKey(aes)
-                .poolName(poolName)
-                .maxPoolSize(maxPoolSize)
-                .minIdle(minIdle)
-                .connectionTimeout(connTimeout)
-                .idleTimeout(idleTimeout)
-                .maxLifetime(maxLifetime)
-                .leakDetectionThreshold(leakThreshold);
+                .aesKey(aes);
 
         return new DatabaseConfig(builder);
     }
@@ -156,22 +126,6 @@ public class DatabaseConfig {
         return defaultValue;
     }
 
-    private static int parseInt(String val, int defaultVal) {
-        try {
-            return Integer.parseInt(val);
-        } catch (Exception e) {
-            return defaultVal;
-        }
-    }
-
-    private static long parseLong(String val, long defaultVal) {
-        try {
-            return Long.parseLong(val);
-        } catch (Exception e) {
-            return defaultVal;
-        }
-    }
-
     public String getHost() { return host; }
     public String getPort() { return port; }
     public String getDbName() { return dbName; }
@@ -199,16 +153,8 @@ public class DatabaseConfig {
 
     public String getJdbcUrl() {
         return "jdbc:mysql://" + host + ":" + port + "/" + dbName
-                + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8";
+                + "?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Ho_Chi_Minh";
     }
-
-    public String getPoolName() { return poolName; }
-    public int getMaxPoolSize() { return maxPoolSize; }
-    public int getMinIdle() { return minIdle; }
-    public long getConnectionTimeout() { return connectionTimeout; }
-    public long getIdleTimeout() { return idleTimeout; }
-    public long getMaxLifetime() { return maxLifetime; }
-    public long getLeakDetectionThreshold() { return leakDetectionThreshold; }
 
     public static class Builder {
         private String host = "localhost";
@@ -217,13 +163,6 @@ public class DatabaseConfig {
         private String user;
         private String password;
         private String aesKey;
-        private String poolName = "XimiLib-HikariPool";
-        private int maxPoolSize = 10;
-        private int minIdle = 2;
-        private long connectionTimeout = 5000L;
-        private long idleTimeout = 60000L;
-        private long maxLifetime = 1800000L;
-        private long leakDetectionThreshold = 5000L;
 
         public Builder host(String host) { this.host = host; return this; }
         public Builder port(String port) { this.port = port; return this; }
@@ -231,13 +170,6 @@ public class DatabaseConfig {
         public Builder user(String user) { this.user = user; return this; }
         public Builder password(String password) { this.password = password; return this; }
         public Builder aesKey(String aesKey) { this.aesKey = aesKey; return this; }
-        public Builder poolName(String poolName) { this.poolName = poolName; return this; }
-        public Builder maxPoolSize(int maxPoolSize) { this.maxPoolSize = maxPoolSize; return this; }
-        public Builder minIdle(int minIdle) { this.minIdle = minIdle; return this; }
-        public Builder connectionTimeout(long connectionTimeout) { this.connectionTimeout = connectionTimeout; return this; }
-        public Builder idleTimeout(long idleTimeout) { this.idleTimeout = idleTimeout; return this; }
-        public Builder maxLifetime(long maxLifetime) { this.maxLifetime = maxLifetime; return this; }
-        public Builder leakDetectionThreshold(long leakDetectionThreshold) { this.leakDetectionThreshold = leakDetectionThreshold; return this; }
 
         public DatabaseConfig build() { return new DatabaseConfig(this); }
     }
