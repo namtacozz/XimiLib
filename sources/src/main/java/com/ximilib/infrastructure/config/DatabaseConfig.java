@@ -67,6 +67,9 @@ public class DatabaseConfig {
         }
         if (pass == null || pass.trim().isEmpty()) {
             pass = fileProps.getProperty("db.password");
+            if (pass != null) {
+                pass = pass.trim();
+            }
         }
 
         String aes = System.getenv("XIMILIB_AES_KEY");
@@ -134,6 +137,9 @@ public class DatabaseConfig {
         if (user == null || user.trim().isEmpty()) {
             throw new IllegalStateException("Thiếu cấu hình tài khoản kết nối CSDL! Vui lòng thiết lập biến môi trường XIMILIB_DB_USER hoặc khai báo 'db.user' trong file config/db.properties.");
         }
+        if ("CHANGE_ME".equalsIgnoreCase(user.trim())) {
+            throw new IllegalStateException("Cấu hình tài khoản CSDL 'db.user' chưa được thay đổi (vẫn là CHANGE_ME)! Vui lòng cập nhật thông tin trong file config/db.properties hoặc chạy scripts/setup.");
+        }
         return user.trim();
     }
 
@@ -141,12 +147,18 @@ public class DatabaseConfig {
         if (password == null) {
             throw new IllegalStateException("Thiếu cấu hình mật khẩu kết nối CSDL! Vui lòng thiết lập biến môi trường XIMILIB_DB_PASS (hoặc MYSQL_PWD) hoặc khai báo 'db.password' trong file config/db.properties.");
         }
+        if ("CHANGE_ME".equalsIgnoreCase(password.trim())) {
+            throw new IllegalStateException("Cấu hình mật khẩu CSDL 'db.password' chưa được thay đổi (vẫn là CHANGE_ME)! Vui lòng cập nhật mật khẩu thực tế trong file config/db.properties hoặc chạy scripts/setup.");
+        }
         return password;
     }
 
     public String getAesKey() {
         if (aesKey == null || aesKey.trim().isEmpty()) {
             throw new IllegalStateException("Thiếu cấu hình khóa mã hóa AES! Vui lòng thiết lập biến môi trường XIMILIB_AES_KEY hoặc khai báo 'security.aes.key' trong file config/db.properties.");
+        }
+        if ("CHANGE_ME".equalsIgnoreCase(aesKey.trim())) {
+            throw new IllegalStateException("Cấu hình khóa mã hóa AES 'security.aes.key' chưa được thay đổi (vẫn là CHANGE_ME)! Vui lòng cập nhật khóa AES trong file config/db.properties hoặc chạy scripts/setup.");
         }
         return aesKey.trim();
     }

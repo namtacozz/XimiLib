@@ -90,7 +90,50 @@ public class DatabaseConnectionManager implements AutoCloseable {
         return DatabaseConfig.getInstance().getUser();
     }
 
-    private SQLException wrapConnectionException(Exception e) {
+    public static SQLException wrapConnectionException(Exception e) {
+        if (e instanceof SQLException sqlEx) {
+            int errorCode = sqlEx.getErrorCode();
+            String friendly;
+            switch (errorCode) {
+                case 1045 ->
+                    friendly = "Xác thực cơ sở dữ liệu thất bại: Tên người dùng hoặc mật khẩu CSDL không chính xác.";
+                case 1044 ->
+                    friendly = "Tài khoản CSDL không có quyền truy cập cơ sở dữ liệu thư viện. Vui lòng cấp quyền (GRANT) cho tài khoản.";
+                case 1049 ->
+                    friendly = "Không tìm thấy cơ sở dữ liệu trên máy chủ MySQL. Vui lòng kiểm tra lại cấu hình tên CSDL hoặc khởi tạo database.";
+                default -> {
+                    String msg = getExceptionMessage(sqlEx);
+                    if (msg.contains("communications link failure")
+                            || msg.contains("connection refused")
+                            || msg.contains("connectexception")
+                            || msg.contains("timed out")
+                            || "08S01".equals(sqlEx.getSQLState())
+                            || "08001".equals(sqlEx.getSQLState())) {
+                        friendly = "Không thể kết nối đến máy chủ CSDL MySQL. Vui lòng kiểm tra lại dịch vụ MySQL (đã bật chưa) và cấu hình mạng.";
+                    } else if (errorCode == 1040 || msg.contains("too many connections")) {
+                        friendly = "Máy chủ CSDL quá tải: Số lượng kết nối vượt quá giới hạn của MySQL.";
+                    } else {
+                        friendly = "Lỗi kết nối cơ sở dữ liệu: Không thể khởi tạo phiên làm việc với MySQL.";
+                    }
+                }
+            }
+            return new SQLException(friendly, sqlEx.getSQLState(), sqlEx.getErrorCode(), sqlEx);
+        }
+
+        String msg = getExceptionMessage(e);
+        String friendly;
+        if (msg.contains("communications link failure")
+                || msg.contains("connection refused")
+                || msg.contains("connectexception")
+                || msg.contains("timed out")) {
+            friendly = "Không thể kết nối đến máy chủ CSDL MySQL. Vui lòng kiểm tra lại dịch vụ MySQL (đã bật chưa) và cấu hình mạng.";
+        } else {
+            friendly = "Lỗi kết nối cơ sở dữ liệu: Không thể khởi tạo phiên làm việc với MySQL.";
+        }
+        return new SQLException(friendly, e);
+    }
+
+    private static String getExceptionMessage(Throwable e) {
         StringBuilder msgBuilder = new StringBuilder(e.getMessage() != null ? e.getMessage().toLowerCase() : "");
         Throwable cause = e.getCause();
         while (cause != null) {
@@ -99,25 +142,6 @@ public class DatabaseConnectionManager implements AutoCloseable {
             }
             cause = cause.getCause();
         }
-        String originalMsg = msgBuilder.toString();
-        String friendly;
-        if (originalMsg.contains("communications link failure")
-                || originalMsg.contains("connection refused")
-                || originalMsg.contains("connectexception")
-                || originalMsg.contains("timed out")) {
-            friendly = "Không thể kết nối đến máy chủ CSDL MySQL. Vui lòng kiểm tra lại dịch vụ MySQL và cấu hình mạng.";
-        } else if (originalMsg.contains("access denied for user")) {
-            friendly = "Xác thực cơ sở dữ liệu thất bại: Tên người dùng hoặc mật khẩu CSDL không chính xác.";
-        } else if (originalMsg.contains("unknown database")) {
-            friendly = "Không tìm thấy cơ sở dữ liệu trên máy chủ MySQL. Vui lòng kiểm tra lại cấu hình.";
-        } else if (originalMsg.contains("too many connections")) {
-            friendly = "Máy chủ CSDL quá tải: Số lượng kết nối vượt quá giới hạn của MySQL.";
-        } else {
-            friendly = "Lỗi kết nối cơ sở dữ liệu: Không thể khởi tạo phiên làm việc với MySQL.";
-        }
-        if (e instanceof SQLException sqlEx) {
-            return new SQLException(friendly, sqlEx.getSQLState(), sqlEx.getErrorCode(), sqlEx);
-        }
-        return new SQLException(friendly, e);
+        return msgBuilder.toString();
     }
 }

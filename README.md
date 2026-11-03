@@ -2,7 +2,7 @@
 
 > **Đồ án PBL3:** Hệ thống Quản lý Thư viện Desktop đa nền tảng (Windows / macOS / Linux)  
 > **Khoa Công nghệ Thông tin — Trường Đại học Bách Khoa, Đại học Đà Nẵng**  
-> **Phiên bản:** `1.0.0` | **Nền tảng:** `Java 17 (Swing FlatLaf)` + `MySQL 8.0+`
+> **Phiên bản:** `1.0.0` | **Nền tảng:** `Java 17 (Swing FlatLaf)` + `MySQL 8.0+` (JDBC thuần `DriverManager`)
 
 ---
 
@@ -16,6 +16,92 @@
 
 ---
 
+## 🚀 Chạy trên máy mới (Dành cho thành viên clone lần đầu)
+
+> [!NOTE] Lưu ý quan trọng
+> Bản đóng gói `dist/XimiLib.jar` không nằm trong Git (được loại trừ bởi `.gitignore`). Khi clone dự án về máy tính mới, bạn chỉ cần thực hiện thiết lập tự động hoặc thủ công theo hướng dẫn dưới đây để sẵn sàng chạy.
+
+### 1. Yêu cầu Tiên quyết
+- **Java Development Kit (JDK):** Phiên bản **Java 17** trở lên.
+- **Apache Maven:** Phiên bản **3.8+**.
+- **Hệ quản trị CSDL:** **MySQL 8.0+** đang hoạt động (cổng mặc định `3306`).
+
+### 2. Thiết lập & Khởi chạy tự động (Khuyên dùng)
+Hệ thống cung cấp script thiết lập toàn diện, an toàn và có tính chất **idempotent** (chạy lại nhiều lần không hỏng dữ liệu):
+
+```bash
+# Bước 1: Clone kho mã nguồn về máy
+git clone <URL_REPO>
+cd XimiLib
+
+# Bước 2: Chạy script thiết lập môi trường CSDL tự động
+# Trên Linux / macOS:
+./scripts/setup.sh
+
+# Trên Windows (cmd / powershell):
+scripts\setup.bat
+
+# Bước 3: Khởi chạy ứng dụng (tự động biên dịch và tạo dist/XimiLib.jar nếu chưa có)
+# Trên Linux / macOS:
+./run.sh
+# hoặc: ./scripts/run.sh
+
+# Trên Windows:
+run.bat
+# hoặc: scripts\run.bat
+```
+
+*Script `setup` sẽ tự động kiểm tra JDK 17+, MySQL client, hỏi mật khẩu root MySQL ẩn danh, tạo cơ sở dữ liệu `ximilib_db`, cấp quyền tài khoản `ximilib_app`, nạp chuỗi migrations V1 -> V2 -> V3 -> V4, nạp 221 đầu sách mẫu và tạo sẵn file `config/db.properties` từ bản demo.*
+
+### 3. Danh sách tài khoản thử nghiệm (Demo Accounts)
+Mật khẩu đã được mã hóa bằng chuẩn BCrypt trong cơ sở dữ liệu mẫu:
+
+| Tài khoản | Mật khẩu | Vai trò | Quyền hạn chính |
+|---|---|---|---|
+| `admin` | `admin123` | **Admin** (Quản trị viên) | Toàn quyền hệ thống, cấu hình tham số, quản lý người dùng, xem báo cáo |
+| `kien.phan` | `123456` | **Thủ thư** (Librarian) | Quản lý kho sách, lập phiếu mượn/trả, gia hạn, xử lý bồi thường phạt |
+| `nam.le` | `123456` | **Thủ thư** (Librarian) | Quản lý kho sách, lập phiếu mượn/trả, gia hạn, xử lý bồi thường phạt |
+| `sinhvien` | `123456` | **Độc giả** (Reader) | Tra cứu sách, xem lịch sử mượn trả cá nhân, xuất thẻ thư viện QR |
+
+### 4. Quy trình thiết lập thủ công thay thế (Manual Setup)
+Nếu bạn muốn tự thiết lập từng bước thay vì dùng script:
+1. **Sao chép cấu hình:**
+   ```bash
+   cp config/db.properties.demo config/db.properties
+   ```
+2. **Tạo CSDL và cấp quyền:**
+   ```sql
+   CREATE DATABASE IF NOT EXISTS ximilib_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   CREATE USER IF NOT EXISTS 'ximilib_app'@'localhost' IDENTIFIED BY 'ximilib_demo_123';
+   GRANT ALL PRIVILEGES ON ximilib_db.* TO 'ximilib_app'@'localhost';
+   FLUSH PRIVILEGES;
+   ```
+3. **Nạp migrations và dữ liệu mẫu theo thứ tự (không chạy đồng thời schema.sql và V1):**
+   ```bash
+   mysql -u ximilib_app -p ximilib_db < db/migrations/V1__initial_schema.sql
+   mysql -u ximilib_app -p ximilib_db < db/migrations/V2__srs_schema_updates.sql
+   mysql -u ximilib_app -p ximilib_db < db/migrations/V3__enforce_bcrypt_passwords.sql
+   mysql -u ximilib_app -p ximilib_db < db/migrations/V4__report_and_search_indexes.sql
+   mysql -u ximilib_app -p ximilib_db < db/seed/seed_books.sql
+   ```
+4. **Đóng gói và khởi chạy:**
+   ```bash
+   mvn clean package -f sources/pom.xml -DskipTests
+   java -jar dist/XimiLib.jar
+   ```
+
+### 5. Xử lý các sự cố thường gặp (Troubleshooting)
+- **Lỗi xác thực CSDL (Mã 1045):** Tên người dùng hoặc mật khẩu không chính xác trong `config/db.properties`. Kiểm tra lại khóa `db.user` và `db.password`.
+- **Lỗi thiếu quyền truy cập CSDL (Mã 1044):** Tài khoản người dùng chưa được cấp quyền thao tác trên CSDL `ximilib_db`. Chạy lệnh `GRANT ALL PRIVILEGES ON ximilib_db.* TO 'ximilib_app'@'localhost'; FLUSH PRIVILEGES;` bằng tài khoản root.
+- **Lỗi không tìm thấy CSDL (Mã 1049):** CSDL `ximilib_db` chưa được tạo. Hãy chạy script `./scripts/setup.sh` hoặc `CREATE DATABASE ximilib_db;`.
+- **Lỗi máy chủ MySQL chưa chạy / Connection refused:** Dịch vụ MySQL chưa hoạt động trên máy (Linux: `sudo systemctl start mysql`; Windows: bật service `MySQL80` trong Services) hoặc sai cổng (mặc định 3306).
+- **Lỗi chạy sai thư mục làm việc:** Luôn thực hiện chạy lệnh từ thư mục gốc của repository `XimiLib/`, tránh chạy từ thư mục con để ứng dụng tìm đúng file cấu hình `config/db.properties`.
+
+> [!WARNING] Cảnh báo Bảo mật
+> File `config/db.properties.demo` chứa mật khẩu demo và khóa bí mật AES mẫu phục vụ chạy thử nghiệm cục bộ cho đồ án PBL3. **Trước khi chuyển kho lưu trữ sang chế độ công khai (Public)**, bắt buộc phải thay đổi toàn bộ thông tin đăng nhập, mật khẩu, khóa bảo mật và đảm bảo file `config/db.properties` thật luôn nằm trong `.gitignore`.
+
+---
+
 ## 📁 Cấu Trúc Cây Thư Mục Dự Án (Enterprise Java & AI-First Layout)
 
 ```text
@@ -26,7 +112,12 @@ XimiLib/                                        # [ROOT] Thư mục gốc dự �
 ├── .gitignore                                  # Danh sách loại trừ file build, log và backup
 ├── README.md                                   # Tài liệu giới thiệu và hướng dẫn tổng quan dự án
 ├── AGENTS.md                                   # Điểm vào Single Source of Truth (SSOT) cho AI Coder
-├── run.bat                                     # Shortcut khởi chạy ứng dụng nhanh tại Root
+├── run.sh / run.bat                            # Shortcut khởi chạy ứng dụng nhanh tại Root
+│
+├── config/                                     # CẤU HÌNH HỆ THỐNG
+│   ├── db.properties.example                   # File mẫu cấu hình rỗng
+│   ├── db.properties.demo                      # File mẫu cấu hình chạy demo local đồ án PBL3
+│   └── db.properties                           # File cấu hình thực tế tại máy (bị .gitignore bỏ qua)
 │
 ├── docs/                                       # TÀI LIỆU KỸ THUẬT SSOT (LIVING DOCUMENTATION)
 │   ├── ARCHITECTURE.md                         # Clean Architecture, DI Wiring, Observer đa máy, SePay
@@ -41,8 +132,8 @@ XimiLib/                                        # [ROOT] Thư mục gốc dự �
 │
 ├── db/                                         # QUẢN TRỊ CƠ SỞ DỮ LIỆU MYSQL 8.0+
 │   ├── schema.sql                              # Script DDL 20 bảng, khóa ngoại và chỉ mục chính thức
-│   ├── migrations/                             # Các bản migration phiên bản hóa (V1, V2, V3)
-│   └── seed/                                   # Dữ liệu mẫu (sách, bản sao, phiếu mượn demo)
+│   ├── migrations/                             # Các bản migration phiên bản hóa (V1, V2, V3, V4)
+│   └── seed/                                   # Dữ liệu mẫu (221 đầu sách, bản sao, phiếu mượn demo)
 │
 ├── assets/                                     # TÀI NGUYÊN HÌNH ẢNH & MOCKUP
 │   ├── librack_exact_dashboard.jpg             # Ảnh mẫu thiết kế giao diện Dashboard
@@ -56,74 +147,16 @@ XimiLib/                                        # [ROOT] Thư mục gốc dự �
 │       ├── main/resources/                     # Cấu hình runtime và tài nguyên đóng gói trong JAR
 │       └── test/java/com/ximilib/              # Unit tests (JUnit 5 + Mockito)
 │
-├── scripts/                                    # CÔNG CỤ TỰ ĐỘNG HÓA BUILD & RUN
-│   ├── build.bat                               # Lệnh build Maven & tự động xuất file JAR ra dist/
-│   └── run.bat                                 # Kịch bản chạy ứng dụng từ dist/XimiLib.jar
+├── scripts/                                    # CÔNG CỤ TỰ ĐỘNG HÓA BUILD, SETUP & RUN
+│   ├── setup.sh / setup.bat                    # Script thiết lập tự động môi trường CSDL local
+│   ├── build.sh / build.bat                    # Lệnh build Maven & tự động xuất file JAR ra dist/
+│   └── run.sh / run.bat                        # Kịch bản chạy ứng dụng từ dist/XimiLib.jar
 │
-├── dist/                                       # BẢN PHÁT HÀNH ĐÓNG GÓI (DISTRIBUTION)
-│   └── XimiLib.jar                             # File thực thi Java độc lập (Fat JAR kèm dependencies)
+├── dist/                                       # BẢN PHÁT HÀNH ĐÓNG GÓI (DISTRIBUTION - Không commit vào Git)
+│   └── XimiLib.jar                             # File thực thi Java độc lập (Fat JAR sinh ra khi build)
 │
 └── logs/                                       # NHẬT KÝ HOẠT ĐỘNG HỆ THỐNG
     └── .gitkeep                                # Giữ thư mục logs trong Git
-```
-
----
-
-## ⚡ Hướng Dẫn Cài Đặt & Khởi Chạy Nhanh (Quick Start)
-
-### 1. Yêu cầu Tiên quyết
-- **Java Development Kit (JDK):** Phiên bản **Java 17** trở lên.
-- **Apache Maven:** Phiên bản **3.8+** (nếu build từ mã nguồn).
-- **Hệ quản trị CSDL:** **MySQL 8.0+** (kết nối cổng mặc định `3306`).
-
-### 2. Cấu hình Kết nối CSDL
-Hệ thống sử dụng cơ chế nạp cấu hình ưu tiên biến môi trường, sau đó đọc file cục bộ:
-1. Sao chép file cấu hình mẫu:
-   ```bash
-   cp config/db.properties.example config/db.properties
-   ```
-2. Điền thông tin kết nối CSDL và khóa mã hóa vào `config/db.properties`:
-   - `db.host=localhost`
-   - `db.port=3306`
-   - `db.name=ximilib_db`
-   - `db.user=ximilib_app`
-   - `db.password=<mat_khau_cua_ban>`
-   - `security.aes.key=<khoa_aes_256>`
-   *(Hoặc truyền qua biến môi trường: `XIMILIB_DB_HOST`, `XIMILIB_DB_PORT`, `XIMILIB_DB_NAME`, `XIMILIB_DB_USER`, `XIMILIB_DB_PASS`, `XIMILIB_AES_KEY`).*
-
-### 3. Khởi tạo Cơ sở Dữ liệu & Migration
-- **Cách 1 (Khuyên dùng - Tự động hoàn toàn qua cờ `--init-db`):**
-  Chạy lệnh khởi tạo headless để hệ thống tự động kiểm tra CSDL, nạp schema và thực thi chuỗi migration V1 -> V2 -> V3 -> V4:
-  ```bash
-  java -jar dist/XimiLib.jar --init-db
-  ```
-- **Cách 2 (Thủ công qua MySQL Client):**
-  ```bash
-  mysql -u root -p ximilib_db < db/schema.sql
-  mysql -u root -p ximilib_db < db/migrations/V2__srs_schema_updates.sql
-  mysql -u root -p ximilib_db < db/migrations/V3__enforce_bcrypt_passwords.sql
-  mysql -u root -p ximilib_db < db/migrations/V4__report_and_search_indexes.sql
-  mysql -u root -p ximilib_db < db/seed/seed_books.sql
-  ```
-
-### 4. Đóng gói Ứng dụng (Build)
-Chạy script tự động hóa:
-- **Windows:** `scripts\build.bat`
-- **Linux / macOS:** `./scripts/build.sh` (hoặc `mvn clean package -f sources/pom.xml -DskipTests`)
-
-File JAR thực thi sẽ tự động được tạo tại `dist/XimiLib.jar`.
-
-### 5. Khởi chạy Ứng dụng (Run)
-- **Windows:** Click đúp `run.bat` hoặc chạy `scripts\run.bat`.
-- **Linux / macOS:** `./run.sh` hoặc `./scripts/run.sh`.
-- **Dòng lệnh Java:**
-  ```bash
-  java -jar dist/XimiLib.jar
-  ```
-
-### 6. Chạy Kiểm Thử Tự Động (Test)
-```bash
-mvn test -f sources/pom.xml
 ```
 
 ---
@@ -132,9 +165,9 @@ mvn test -f sources/pom.xml
 
 Toàn bộ quy chuẩn phát triển và ràng buộc kiến trúc được quy định tập trung:
 
-- **Hướng dẫn cho AI Agent:** [AGENTS.md](file:///f:/AppMaking/XimiLib/AGENTS.md) — Điểm vào bắt buộc cho AI Coder, 10 điều răn bất khả xâm phạm.
-- **Kiến trúc phần mềm:** [docs/ARCHITECTURE.md](file:///f:/AppMaking/XimiLib/docs/ARCHITECTURE.md) — Clean Architecture, Pure DI Container, SePay Gateway, Observer đa máy.
-- **Lược đồ cơ sở dữ liệu:** [docs/DATABASE_SCHEMA.md](file:///f:/AppMaking/XimiLib/docs/DATABASE_SCHEMA.md) — Ma trận 20 bảng, Mermaid ERD, Từ điển dữ liệu, Khóa bi quan.
-- **Quy tắc nghiệp vụ:** [docs/BUSINESS_RULES.md](file:///f:/AppMaking/XimiLib/docs/BUSINESS_RULES.md) — FSM Phiếu mượn/Cuốn sách, Công thức phạt & bồi thường (BR-01..BR-09).
-- **Tiến độ dự án:** [docs/PROJECT_STATUS.md](file:///f:/AppMaking/XimiLib/docs/PROJECT_STATUS.md) — Ma trận tính năng F-01..F-11, DoD, Nhật ký Sprint Week 10.
-- **Công cụ PBL Workspace:** Mở trực tiếp [docs/academic/pbl_workspace.html](file:///f:/AppMaking/XimiLib/docs/academic/pbl_workspace.html) trên trình duyệt để quản lý tiến độ nhóm và sơ đồ thực thể tương tác.
+- **Hướng dẫn cho AI Agent:** [AGENTS.md](AGENTS.md) — Điểm vào bắt buộc cho AI Coder, 12 điều răn bất khả xâm phạm.
+- **Kiến trúc phần mềm:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Clean Architecture, Pure DI Container, SePay Gateway, Observer đa máy.
+- **Lược đồ cơ sở dữ liệu:** [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) — Ma trận 20 bảng, Mermaid ERD, Từ điển dữ liệu, Khóa bi quan.
+- **Quy tắc nghiệp vụ:** [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md) — Máy trạng thái FSM Phiếu mượn/Cuốn sách, Công thức phạt & bồi thường (BR-01..BR-09).
+- **Tiến độ dự án:** [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) — Ma trận tính năng F-01..F-11, DoD, Nhật ký Sprint Week 10.
+- **Công cụ PBL Workspace:** Mở trực tiếp [docs/academic/pbl_workspace.html](docs/academic/pbl_workspace.html) trên trình duyệt để quản lý tiến độ nhóm và sơ đồ thực thể tương tác.
