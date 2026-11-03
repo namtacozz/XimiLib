@@ -41,11 +41,11 @@ public class KpiCard extends JPanel {
         this.clickAction = onClick;
 
         setOpaque(false);
-        setLayout(new BorderLayout(14, 0));
-        setPreferredSize(new Dimension(220, 88));
-        setMinimumSize(new Dimension(170, 88));
-        setMaximumSize(new Dimension(Integer.MAX_VALUE, 88));
-        setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
+        setLayout(new BorderLayout(12, 0));
+        setPreferredSize(new Dimension(220, 72));
+        setMinimumSize(new Dimension(160, 68));
+        setMaximumSize(new Dimension(Integer.MAX_VALUE, 74));
+        setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
         setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // 1. Icon tròn 36px bên trái
@@ -95,8 +95,8 @@ public class KpiCard extends JPanel {
                 g2.dispose();
             }
         };
-        iconCircle.setPreferredSize(new Dimension(36, 36));
-        iconCircle.setMaximumSize(new Dimension(36, 36));
+        iconCircle.setPreferredSize(new Dimension(32, 32));
+        iconCircle.setMaximumSize(new Dimension(32, 32));
         iconCircle.setOpaque(false);
 
         JPanel leftWrapper = new JPanel(new GridBagLayout());
@@ -109,7 +109,7 @@ public class KpiCard extends JPanel {
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
 
         lblValue = new JLabel(value);
-        lblValue.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblValue.setFont(new Font("Segoe UI", Font.BOLD, 20));
         lblValue.setForeground(getValueTextColor());
 
         lblLabel = new JLabel(label);
@@ -117,7 +117,7 @@ public class KpiCard extends JPanel {
         lblLabel.setForeground(UITheme.TEXT_MUTED);
 
         lblSub = new JLabel(subText != null ? subText : "");
-        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 10));
         lblSub.setForeground(UITheme.PRIMARY);
         lblSub.setVisible(subText != null && !subText.isBlank());
 

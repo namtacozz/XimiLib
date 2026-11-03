@@ -118,10 +118,10 @@ public class ReportsDashboardView extends JPanel {
         topPanel.add(Box.createVerticalStrut(14));
 
         // 3. Thanh điều khiển Bộ lọc & Hành động
-        JPanel filterBar = new JPanel(new BorderLayout(12, 0));
+        JPanel filterBar = new JPanel(new BorderLayout(10, 0));
         filterBar.setOpaque(false);
 
-        JPanel leftFilter = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        JPanel leftFilter = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         leftFilter.setOpaque(false);
 
         JLabel lblSelect = new JLabel("Loại báo cáo:");
@@ -135,11 +135,13 @@ public class ReportsDashboardView extends JPanel {
             "4. Top 10 đầu sách mượn nhiều nhất"
         });
         cmbReportType.setFont(UITheme.FONT_REGULAR);
-        cmbReportType.setPreferredSize(new Dimension(280, 36));
+        cmbReportType.setPreferredSize(new Dimension(230, 36));
         cmbReportType.addActionListener(e -> loadReportDataAsync());
 
         JButton btnRefresh = UITheme.createPillButton("Làm mới", UITheme.BG_LIGHT, UITheme.TEXT_MAIN);
-        btnRefresh.setPreferredSize(new Dimension(90, 36));
+        btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnRefresh.setMargin(new Insets(2, 8, 2, 8));
+        btnRefresh.setPreferredSize(new Dimension(92, 36));
         btnRefresh.addActionListener(e -> {
             loadKpisAsync();
             loadChartAsync();
@@ -151,29 +153,29 @@ public class ReportsDashboardView extends JPanel {
         leftFilter.add(btnRefresh);
 
         // Nút xuất báo cáo Excel & In & Cập nhật trạng thái
-        JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         rightActions.setOpaque(false);
 
-        btnUpdateStatus = UITheme.createPillButton("Cập nhật trạng thái", UITheme.PRIMARY, Color.WHITE);
-        btnUpdateStatus.setPreferredSize(new Dimension(150, 36));
+        btnUpdateStatus = UITheme.createPillButton("Cập nhật trạng thái", UITheme.TINT, UITheme.ON_TINT);
+        btnUpdateStatus.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnUpdateStatus.setMargin(new Insets(2, 10, 2, 10));
+        btnUpdateStatus.setPreferredSize(new Dimension(162, 36));
         btnUpdateStatus.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnUpdateStatus.setEnabled(false);
         btnUpdateStatus.addActionListener(e -> showUpdateStatusDialog());
 
-        JButton btnExport = UITheme.createPillButton("Xuất Excel (.csv)", UITheme.TINT, UITheme.ON_TINT);
-        btnExport.setPreferredSize(new Dimension(140, 36));
-        btnExport.addActionListener(e -> exportToCsv());
-
         JButton btnExportXlsx = UITheme.createPillButton("Xuất Excel (.xlsx)", UITheme.PRIMARY, Color.WHITE);
-        btnExportXlsx.setPreferredSize(new Dimension(145, 36));
+        btnExportXlsx.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnExportXlsx.setMargin(new Insets(2, 10, 2, 10));
+        btnExportXlsx.setPreferredSize(new Dimension(150, 36));
         btnExportXlsx.addActionListener(e -> exportToXlsx());
 
         JButton btnPrint = UITheme.createPillButton("In Báo Cáo", new Color(107, 114, 128), Color.WHITE);
+        btnPrint.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnPrint.setMargin(new Insets(2, 8, 2, 8));
         btnPrint.setPreferredSize(new Dimension(110, 36));
         btnPrint.addActionListener(e -> printReport());
 
         rightActions.add(btnUpdateStatus);
-        rightActions.add(btnExport);
         rightActions.add(btnExportXlsx);
         rightActions.add(btnPrint);
 
@@ -193,12 +195,6 @@ public class ReportsDashboardView extends JPanel {
         reportTable.getTableHeader().setBackground(UITheme.BG_LIGHT);
         reportTable.setSelectionBackground(UITheme.PASTEL);
         reportTable.setSelectionForeground(UITheme.ON_PASTEL);
-
-        reportTable.getSelectionModel().addListSelectionListener(e -> {
-            boolean isLoanReport = (cmbReportType.getSelectedIndex() == 0);
-            boolean hasSelection = (reportTable.getSelectedRow() >= 0);
-            btnUpdateStatus.setEnabled(isLoanReport && hasSelection);
-        });
 
         JScrollPane scrollPane = new JScrollPane(reportTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(UITheme.CARD_BORDER, 1, true));
@@ -271,7 +267,6 @@ public class ReportsDashboardView extends JPanel {
     private void loadReportDataAsync() {
         int selectedIndex = cmbReportType.getSelectedIndex();
         btnUpdateStatus.setVisible(selectedIndex == 0);
-        btnUpdateStatus.setEnabled(false);
 
         new SwingWorker<DefaultTableModel, Void>() {
             @Override
@@ -433,10 +428,58 @@ public class ReportsDashboardView extends JPanel {
         }
     }
 
+    private static class StatusOption {
+        final int code;
+        final String label;
+        final Color dotColor;
+        final String note;
+
+        StatusOption(int code, String label, Color dotColor, String note) {
+            this.code = code;
+            this.label = label;
+            this.dotColor = dotColor;
+            this.note = note;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
+    private static Icon createDotIcon(Color color, int diameter) {
+        return new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(color);
+                int cy = y + (getIconHeight() - diameter) / 2;
+                g2.fillOval(x + 2, cy, diameter, diameter);
+                g2.dispose();
+            }
+
+            @Override
+            public int getIconWidth() {
+                return diameter + 8;
+            }
+
+            @Override
+            public int getIconHeight() {
+                return 18;
+            }
+        };
+    }
+
     private void showUpdateStatusDialog() {
+        if (cmbReportType.getSelectedIndex() != 0) {
+            UiModalHelper.showToastWarning(this, "Chức năng cập nhật trạng thái chỉ áp dụng cho Báo cáo lượt mượn/trả!");
+            return;
+        }
+
         int row = reportTable.getSelectedRow();
         if (row < 0) {
-            UiModalHelper.showToastWarning(this, "Vui lòng chọn một phiếu mượn từ danh sách!");
+            UiModalHelper.showToastWarning(this, "Vui lòng bấm chọn một phiếu mượn trên bảng trước khi cập nhật trạng thái!");
             return;
         }
 
@@ -444,41 +487,175 @@ public class ReportsDashboardView extends JPanel {
         String readerName = String.valueOf(reportTable.getValueAt(row, 1));
         String currentStatus = String.valueOf(reportTable.getValueAt(row, 6));
 
-        String[] statuses = {
-            "0 - Chờ duyệt / Chờ nhận sách",
-            "1 - Đang mượn",
-            "2 - Đã trả (Hoàn tất)",
-            "3 - Quá hạn",
-            "4 - Chờ xử lý bồi thường",
-            "5 - Đã mất / Đã đền bù",
-            "6 - Đã hủy phiếu"
+        StatusOption[] options = {
+            new StatusOption(0, "Chờ duyệt / Chờ nhận sách", new Color(249, 115, 22), "Phiếu đang chờ bạn đọc đến thư viện để nhận sách."),
+            new StatusOption(1, "Đang mượn", new Color(59, 130, 246), "Sách đang được bạn đọc mượn sử dụng hợp lệ."),
+            new StatusOption(2, "Đã trả (Hoàn tất)", new Color(16, 185, 129), "Xác nhận độc giả đã hoàn trả đầy đủ sách về kho."),
+            new StatusOption(3, "Quá hạn", new Color(239, 68, 68), "Phiếu mượn đã vượt quá thời hạn trả quy định."),
+            new StatusOption(4, "Chờ xử lý bồi thường", new Color(217, 119, 6), "Sách bị mất/hỏng. Chuyển sang quy trình đền bù (BR-08)."),
+            new StatusOption(5, "Đã mất / Bồi hoàn xong", new Color(107, 114, 128), "Độc giả đã hoàn tất nộp tiền bồi hoàn sách mất."),
+            new StatusOption(6, "Đã hủy phiếu", new Color(148, 163, 184), "Phiếu mượn bị hủy do quá hạn nhận hoặc độc giả hủy.")
         };
 
-        JComboBox<String> cmbStatus = new JComboBox<>(statuses);
-        cmbStatus.setFont(UITheme.FONT_REGULAR);
-        cmbStatus.setPreferredSize(new Dimension(300, 36));
-
-        // Chọn index mặc định dựa theo trạng thái hiện tại
-        for (int i = 0; i < statuses.length; i++) {
-            if (statuses[i].contains(currentStatus)) {
-                cmbStatus.setSelectedIndex(i);
+        int defaultIndex = 1;
+        for (int i = 0; i < options.length; i++) {
+            if (options[i].label.toLowerCase().contains(currentStatus.toLowerCase()) || currentStatus.toLowerCase().contains(options[i].label.toLowerCase())) {
+                defaultIndex = i;
                 break;
             }
         }
 
-        JPanel panel = new JPanel(new GridLayout(3, 1, 0, 8));
-        panel.setOpaque(false);
-        panel.setPreferredSize(new Dimension(340, 110));
+        // Màu sắc cho Huy hiệu trạng thái hiện tại
+        Color curBg = UITheme.TINT;
+        Color curFg = UITheme.PRIMARY;
+        if (currentStatus.contains("Đang mượn")) {
+            curBg = new Color(224, 231, 255);
+            curFg = new Color(67, 56, 202);
+        } else if (currentStatus.contains("Đã trả") || currentStatus.contains("Hoàn tất")) {
+            curBg = new Color(220, 252, 231);
+            curFg = new Color(21, 128, 61);
+        } else if (currentStatus.contains("Quá hạn")) {
+            curBg = new Color(254, 243, 199);
+            curFg = new Color(180, 83, 9);
+        } else if (currentStatus.contains("bồi thường") || currentStatus.contains("mất")) {
+            curBg = new Color(254, 226, 226);
+            curFg = new Color(185, 28, 28);
+        }
 
-        JLabel lblInfo = new JLabel("<html>Phiếu mượn: <b>" + ticketId + "</b> - Bạn đọc: <b>" + readerName + "</b></html>");
-        lblInfo.setFont(UITheme.FONT_SMALL);
+        final Color finalCurBg = curBg;
+        final Color finalCurFg = curFg;
+
+        // 1. Thẻ tóm tắt thông tin phiếu (Summary Info Card)
+        JPanel cardInfo = new JPanel(new BorderLayout(8, 6)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(248, 250, 252));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.setColor(new Color(226, 232, 240));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        cardInfo.setOpaque(false);
+        cardInfo.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
+
+        JPanel lineTop = new JPanel(new BorderLayout());
+        lineTop.setOpaque(false);
+
+        JLabel lblTicket = new JLabel("Mã phiếu: " + ticketId);
+        lblTicket.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblTicket.setForeground(UITheme.TEXT_MAIN);
+
+        JLabel lblBadge = new JLabel(currentStatus) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(finalCurBg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), getHeight(), getHeight());
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        lblBadge.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblBadge.setForeground(finalCurFg);
+        lblBadge.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 10));
+
+        lineTop.add(lblTicket, BorderLayout.WEST);
+        lineTop.add(lblBadge, BorderLayout.EAST);
+
+        JLabel lblReader = new JLabel("Bạn đọc:  " + readerName);
+        lblReader.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblReader.setForeground(UITheme.TEXT_MUTED);
+
+        cardInfo.add(lineTop, BorderLayout.NORTH);
+        cardInfo.add(lblReader, BorderLayout.SOUTH);
+
+        // 2. ComboBox chọn trạng thái mới với Vector Bullet Dot
+        JComboBox<StatusOption> cmbStatus = new JComboBox<>(options);
+        cmbStatus.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cmbStatus.setPreferredSize(new Dimension(390, 38));
+        cmbStatus.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
+        cmbStatus.setSelectedIndex(defaultIndex);
+        cmbStatus.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                lbl.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+                lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                if (value instanceof StatusOption opt) {
+                    lbl.setText(opt.label);
+                    lbl.setIcon(createDotIcon(opt.dotColor, 9));
+                }
+                return lbl;
+            }
+        });
+
+        // 3. Hộp thông điệp nghiệp vụ động (Dynamic Note Card)
+        JPanel pnlNote = new JPanel(new BorderLayout(8, 0)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.setColor(new Color(0, 0, 0, 20));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        pnlNote.setOpaque(false);
+        pnlNote.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        pnlNote.setBackground(new Color(241, 245, 249));
+
+        JLabel lblNote = new JLabel("• " + options[defaultIndex].note);
+        lblNote.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblNote.setForeground(new Color(51, 65, 85));
+        pnlNote.add(lblNote, BorderLayout.CENTER);
+
+        cmbStatus.addActionListener(e -> {
+            StatusOption selected = (StatusOption) cmbStatus.getSelectedItem();
+            if (selected != null) {
+                if (selected.code == 4 || selected.code == 3) {
+                    pnlNote.setBackground(new Color(254, 243, 199));
+                    lblNote.setForeground(new Color(146, 64, 14));
+                    lblNote.setText("• Lưu ý: " + selected.note);
+                } else {
+                    pnlNote.setBackground(new Color(241, 245, 249));
+                    lblNote.setForeground(new Color(51, 65, 85));
+                    lblNote.setText("• " + selected.note);
+                }
+                pnlNote.repaint();
+            }
+        });
+
+        // Bố cục tổng thể của modal
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setOpaque(false);
+        panel.setPreferredSize(new Dimension(400, 185));
+
+        cardInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(cardInfo);
+        panel.add(Box.createVerticalStrut(12));
 
         JLabel lblPrompt = new JLabel("Chọn trạng thái mới cần cập nhật:");
-        lblPrompt.setFont(UITheme.FONT_BOLD);
-
-        panel.add(lblInfo);
+        lblPrompt.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblPrompt.setForeground(UITheme.TEXT_MAIN);
+        lblPrompt.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(lblPrompt);
+        panel.add(Box.createVerticalStrut(6));
+
+        cmbStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(cmbStatus);
+        panel.add(Box.createVerticalStrut(10));
+
+        pnlNote.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(pnlNote);
 
         UiModalHelper.showCustomModal(
             this,
@@ -489,7 +666,8 @@ public class ReportsDashboardView extends JPanel {
             (controller, action) -> {
                 if (action == raven.modal.component.SimpleModalBorder.OK_OPTION) {
                     controller.close();
-                    int selectedStatusCode = cmbStatus.getSelectedIndex();
+                    StatusOption selected = (StatusOption) cmbStatus.getSelectedItem();
+                    int selectedStatusCode = (selected != null) ? selected.code : cmbStatus.getSelectedIndex();
                     updateLoanStatusAsync(ticketId, selectedStatusCode);
                 } else if (action == raven.modal.component.SimpleModalBorder.CANCEL_OPTION || action == raven.modal.component.SimpleModalBorder.CLOSE_OPTION) {
                     controller.close();

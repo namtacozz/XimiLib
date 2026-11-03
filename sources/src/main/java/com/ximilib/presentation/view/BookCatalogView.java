@@ -91,7 +91,6 @@ public class BookCatalogView extends JPanel {
     private JPanel createHeaderSection() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
-        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPanel titleBox = new JPanel();
         titleBox.setOpaque(false);
@@ -100,28 +99,16 @@ public class BookCatalogView extends JPanel {
         JLabel lblTitle = new JLabel("Kho sách");
         lblTitle.setFont(UITheme.FONT_TITLE_LARGE);
         lblTitle.setForeground(UITheme.TEXT_MAIN);
+        lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel breadcrumbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 4));
-        breadcrumbPanel.setOpaque(false);
-
-        JLabel lblHome = new JLabel("Trang chủ ");
-        lblHome.setFont(UITheme.FONT_SMALL);
-        lblHome.setForeground(UITheme.TEXT_MUTED);
-
-        JLabel lblSep = new JLabel(" /  ");
-        lblSep.setFont(UITheme.FONT_SMALL);
-        lblSep.setForeground(UITheme.CARD_BORDER);
-
-        JLabel lblCurrent = new JLabel("Kho sách");
-        lblCurrent.setFont(UITheme.FONT_BOLD);
-        lblCurrent.setForeground(UITheme.TEXT_MAIN);
-
-        breadcrumbPanel.add(lblHome);
-        breadcrumbPanel.add(lblSep);
-        breadcrumbPanel.add(lblCurrent);
+        JLabel lblSub = new JLabel("Danh mục các đầu sách trong thư viện, quản lý số lượng tồn và tình trạng khả dụng");
+        lblSub.setFont(UITheme.FONT_SMALL);
+        lblSub.setForeground(UITheme.TEXT_MUTED);
+        lblSub.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         titleBox.add(lblTitle);
-        titleBox.add(breadcrumbPanel);
+        titleBox.add(Box.createVerticalStrut(4));
+        titleBox.add(lblSub);
 
         panel.add(titleBox, BorderLayout.WEST);
 

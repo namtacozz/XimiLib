@@ -76,7 +76,7 @@ public class BookDetailModalPanel extends JPanel {
         lblCategory.setFont(UITheme.FONT_SMALL);
         lblCategory.setForeground(UITheme.TEXT_MUTED);
 
-        lblRatingAverage = new JLabel("Đánh giá: ⭐ Đang tải điểm...");
+        lblRatingAverage = new JLabel("Đánh giá: ★ Đang tải điểm...");
         lblRatingAverage.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblRatingAverage.setForeground(new Color(217, 119, 6)); // Amber color
 
@@ -129,7 +129,7 @@ public class BookDetailModalPanel extends JPanel {
 
         if (book.getAvailableCopies() > 0) {
             panel.add(Box.createVerticalStrut(14));
-            JButton btnBorrow = UITheme.createPillButton("📖 Đăng Ký Mượn Cuốn Này (App)", UITheme.PRIMARY, Color.WHITE);
+            JButton btnBorrow = UITheme.createPillButton("Đăng Ký Mượn Cuốn Này (App)", UITheme.PRIMARY, Color.WHITE);
             btnBorrow.setFont(UITheme.FONT_BOLD);
             btnBorrow.setAlignmentX(Component.LEFT_ALIGNMENT);
             btnBorrow.setPreferredSize(new Dimension(280, 38));
@@ -174,7 +174,7 @@ public class BookDetailModalPanel extends JPanel {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                setText(value + " ⭐");
+                setText(value + " ★");
                 return this;
             }
         });
@@ -234,7 +234,7 @@ public class BookDetailModalPanel extends JPanel {
             protected void done() {
                 try {
                     BookCommentPort.BookCommentData data = get();
-                    lblRatingAverage.setText(String.format("Đánh giá: ⭐ %.1f / 5.0 (%d lượt nhận xét)", data.getAverageRating(), data.getTotalReviews()));
+                    lblRatingAverage.setText(String.format("Đánh giá: ★ %.1f / 5.0 (%d lượt nhận xét)", data.getAverageRating(), data.getTotalReviews()));
 
                     commentsListPanel.removeAll();
                     if (data.getComments().isEmpty()) {
@@ -268,7 +268,7 @@ public class BookDetailModalPanel extends JPanel {
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
 
-        JLabel lblName = new JLabel(item.author() + " - " + "⭐".repeat(Math.max(1, item.stars())));
+        JLabel lblName = new JLabel(item.author() + " - " + "★".repeat(Math.max(1, item.stars())));
         lblName.setFont(UITheme.FONT_BOLD);
         lblName.setForeground(UITheme.TEXT_MAIN);
 

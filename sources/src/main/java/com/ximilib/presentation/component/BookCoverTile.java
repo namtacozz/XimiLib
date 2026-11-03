@@ -23,8 +23,8 @@ import javax.swing.*;
  */
 public class BookCoverTile extends JPanel {
 
-    private static final int COVER_WIDTH = 110;
-    private static final int COVER_HEIGHT = 165;
+    private static final int COVER_WIDTH = 112;
+    private static final int COVER_HEIGHT = 168;
 
     // Cache thumbnail đã scale (220x330 - 2x retina) để tối ưu tốc độ load ảnh và tiết kiệm bộ nhớ
     private static final java.util.Map<String, BufferedImage> THUMBNAIL_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
@@ -52,24 +52,33 @@ public class BookCoverTile extends JPanel {
 
     private final NewBookTileDto book;
     private final Consumer<NewBookTileDto> onSelect;
+    private final Consumer<NewBookTileDto> onBorrow;
     private BufferedImage loadedCover = null;
     private boolean isHover = false;
+    private JPanel coverPanel;
+    private JPanel overlayPanel;
 
     public BookCoverTile(String coverPath, String title, String author, int availableCopies, Runnable onSelect) {
         this(new NewBookTileDto("", title, author, coverPath, availableCopies), dto -> {
             if (onSelect != null) onSelect.run();
-        });
+        }, null);
     }
 
     public BookCoverTile(NewBookTileDto book, Consumer<NewBookTileDto> onSelect) {
+        this(book, onSelect, null);
+    }
+
+    public BookCoverTile(NewBookTileDto book, Consumer<NewBookTileDto> onSelect, Consumer<NewBookTileDto> onBorrow) {
         this.book = book;
         this.onSelect = onSelect;
+        this.onBorrow = onBorrow;
 
         setOpaque(false);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setPreferredSize(new Dimension(COVER_WIDTH + 14, 240));
-        setMaximumSize(new Dimension(COVER_WIDTH + 14, 240));
-        setBorder(BorderFactory.createEmptyBorder(4, 4, 6, 4));
+        setPreferredSize(new Dimension(COVER_WIDTH + 14, 218));
+        setMaximumSize(new Dimension(COVER_WIDTH + 14, 218));
+        setMinimumSize(new Dimension(COVER_WIDTH + 14, 218));
+        setBorder(BorderFactory.createEmptyBorder(2, 4, 4, 4));
         setCursor(new Cursor(Cursor.HAND_CURSOR));
         setToolTipText(book.title() + " — " + book.author());
 
@@ -78,8 +87,8 @@ public class BookCoverTile extends JPanel {
     }
 
     private void initUI() {
-        // 1. Khung bìa sách 110x165 tỉ lệ 2:3
-        JPanel coverPanel = new JPanel() {
+        // 1. Khung bìa sách 112x168 tỉ lệ 2:3
+        coverPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -118,8 +127,8 @@ public class BookCoverTile extends JPanel {
                 g2.setStroke(new BasicStroke(isHover ? 1.6f : 1.0f));
                 g2.drawRoundRect(0, 0, w - 1, h - 1, 8, 8);
 
-                // Nếu hết sách: Pill "Hết sách" ở góc dưới
-                if (book.availableCopies() <= 0) {
+                // Nếu hết sách: Pill "Hết sách" ở góc dưới (ẩn khi đang hiện lớp phủ hover)
+                if (book.availableCopies() <= 0 && !isHover) {
                     int pillH = 18;
                     int pillW = 62;
                     int pillX = (w - pillW) / 2;
@@ -136,60 +145,155 @@ public class BookCoverTile extends JPanel {
                 g2.dispose();
             }
         };
+        coverPanel.setLayout(new GridBagLayout());
         coverPanel.setPreferredSize(new Dimension(COVER_WIDTH, COVER_HEIGHT));
         coverPanel.setMaximumSize(new Dimension(COVER_WIDTH, COVER_HEIGHT));
         coverPanel.setMinimumSize(new Dimension(COVER_WIDTH, COVER_HEIGHT));
         coverPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // 2. Tên sách (tối đa 2 dòng)
-        JLabel lblTitle = new JLabel("<html><body style='width: 105px; font-weight: bold; line-height: 1.2;'>"
-            + escapeHtml(book.title()) + "</body></html>");
+        // Lớp phủ mờ (Dark overlay) khi hover với 2 nút nhanh
+        overlayPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(15, 23, 42, 195)); // Deep dark glass overlay 76%
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        overlayPanel.setOpaque(false);
+        overlayPanel.setPreferredSize(new Dimension(COVER_WIDTH, COVER_HEIGHT));
+        overlayPanel.setMaximumSize(new Dimension(COVER_WIDTH, COVER_HEIGHT));
+        overlayPanel.setMinimumSize(new Dimension(COVER_WIDTH, COVER_HEIGHT));
+        overlayPanel.setLayout(new GridBagLayout());
+        overlayPanel.setVisible(false);
+
+        JPanel btnGroup = new JPanel();
+        btnGroup.setLayout(new BoxLayout(btnGroup, BoxLayout.Y_AXIS));
+        btnGroup.setOpaque(false);
+
+        JButton btnDetail = UITheme.createPillButton("Xem chi tiết", Color.WHITE, UITheme.TEXT_MAIN);
+        btnDetail.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btnDetail.setPreferredSize(new Dimension(96, 26));
+        btnDetail.setMinimumSize(new Dimension(96, 26));
+        btnDetail.setMaximumSize(new Dimension(96, 26));
+        btnDetail.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnDetail.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnDetail.addActionListener(e -> {
+            if (onSelect != null) onSelect.accept(book);
+        });
+
+        JButton btnBorrow = UITheme.createPillButton("Mượn sách", UITheme.PRIMARY, Color.WHITE);
+        btnBorrow.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btnBorrow.setPreferredSize(new Dimension(96, 26));
+        btnBorrow.setMinimumSize(new Dimension(96, 26));
+        btnBorrow.setMaximumSize(new Dimension(96, 26));
+        btnBorrow.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnBorrow.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnBorrow.addActionListener(e -> {
+            if (onBorrow != null) {
+                onBorrow.accept(book);
+            } else if (onSelect != null) {
+                onSelect.accept(book);
+            }
+        });
+
+        btnGroup.add(btnDetail);
+        btnGroup.add(Box.createVerticalStrut(10));
+        btnGroup.add(btnBorrow);
+        overlayPanel.add(btnGroup);
+
+        coverPanel.add(overlayPanel);
+
+        // 2. Tên sách: ĐÚNG 1 HÀNG DUY NHẤT, cắt "…" nếu dài
+        String rawTitle = book.title() != null ? book.title().trim() : "";
+        String displayTitle = rawTitle;
+        if (displayTitle.length() > 17) {
+            displayTitle = displayTitle.substring(0, 15) + "…";
+        }
+        JLabel lblTitle = new JLabel(displayTitle, SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblTitle.setForeground(UITheme.TEXT_MAIN);
         lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblTitle.setToolTipText(rawTitle);
 
-        // 3. Tác giả (12px textMuted, 1 dòng cắt gọn)
-        String authorText = book.author() != null ? book.author() : "Chưa rõ";
-        if (authorText.length() > 18) {
-            authorText = authorText.substring(0, 16) + "…";
+        // 3. Tác giả: ĐÚNG 1 HÀNG DUY NHẤT
+        String authorText = book.author() != null ? book.author().trim() : "Chưa rõ";
+        if (authorText.length() > 20) {
+            authorText = authorText.substring(0, 18) + "…";
         }
-        JLabel lblAuthor = new JLabel(authorText);
-        lblAuthor.setFont(UITheme.FONT_BADGE);
+        JLabel lblAuthor = new JLabel(authorText, SwingConstants.CENTER);
+        lblAuthor.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         lblAuthor.setForeground(UITheme.TEXT_MUTED);
         lblAuthor.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblAuthor.setToolTipText(authorText);
 
         add(coverPanel);
-        add(Box.createVerticalStrut(6));
+        add(Box.createVerticalStrut(5));
         add(lblTitle);
         add(Box.createVerticalStrut(2));
         add(lblAuthor);
 
-        // Sự kiện click mở chi tiết
-        MouseAdapter clickAdapter = new MouseAdapter() {
+        // Xử lý sự kiện Hover và Click đồng bộ không giật lag
+        MouseAdapter hoverAdapter = new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                setHoverState(true);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), BookCoverTile.this);
+                if (!contains(p)) {
+                    setHoverState(false);
+                }
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), BookCoverTile.this);
+                if (contains(p) && !isHover) {
+                    setHoverState(true);
+                }
+            }
+
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e) && onSelect != null) {
                     onSelect.accept(book);
                 }
             }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                isHover = true;
-                coverPanel.repaint();
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                isHover = false;
-                coverPanel.repaint();
-            }
         };
 
-        addMouseListener(clickAdapter);
-        coverPanel.addMouseListener(clickAdapter);
-        lblTitle.addMouseListener(clickAdapter);
-        lblAuthor.addMouseListener(clickAdapter);
+        addMouseListener(hoverAdapter);
+        addMouseMotionListener(hoverAdapter);
+
+        coverPanel.addMouseListener(hoverAdapter);
+        coverPanel.addMouseMotionListener(hoverAdapter);
+
+        overlayPanel.addMouseListener(hoverAdapter);
+        overlayPanel.addMouseMotionListener(hoverAdapter);
+
+        btnGroup.addMouseListener(hoverAdapter);
+        btnGroup.addMouseMotionListener(hoverAdapter);
+
+        lblTitle.addMouseListener(hoverAdapter);
+        lblAuthor.addMouseListener(hoverAdapter);
+    }
+
+    private void setHoverState(boolean hover) {
+        if (this.isHover != hover) {
+            this.isHover = hover;
+            if (overlayPanel != null) {
+                overlayPanel.setVisible(hover);
+            }
+            if (coverPanel != null) {
+                coverPanel.repaint();
+            }
+            repaint();
+        }
     }
 
     private void loadCoverImageAsync() {
