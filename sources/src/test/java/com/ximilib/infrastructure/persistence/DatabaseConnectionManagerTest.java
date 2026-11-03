@@ -54,4 +54,49 @@ class DatabaseConnectionManagerTest {
                 "Thông báo ngoại lệ phải được dịch sang tiếng Việt thân thiện: " + ex.getMessage());
         brokenManager.close();
     }
+
+    @Test
+    @DisplayName("TC-DB-03: Báo lỗi tiếng Việt rõ ràng khi giá trị cấu hình vẫn là CHANGE_ME")
+    void testChangeMePlaceholderThrowsDescriptiveException() {
+        DatabaseConfig configChangeMeUser = new DatabaseConfig.Builder()
+                .user("CHANGE_ME")
+                .password("valid_pass")
+                .aesKey("valid_aes_key")
+                .build();
+        IllegalStateException exUser = assertThrows(IllegalStateException.class, configChangeMeUser::getUser);
+        assertTrue(exUser.getMessage().contains("CHANGE_ME"), "Phải báo rõ CHANGE_ME chưa được thay đổi: " + exUser.getMessage());
+
+        DatabaseConfig configChangeMePass = new DatabaseConfig.Builder()
+                .user("ximilib_app")
+                .password("CHANGE_ME")
+                .aesKey("valid_aes_key")
+                .build();
+        IllegalStateException exPass = assertThrows(IllegalStateException.class, configChangeMePass::getPassword);
+        assertTrue(exPass.getMessage().contains("CHANGE_ME"), "Phải báo rõ CHANGE_ME chưa được thay đổi: " + exPass.getMessage());
+
+        DatabaseConfig configChangeMeAes = new DatabaseConfig.Builder()
+                .user("ximilib_app")
+                .password("valid_pass")
+                .aesKey("CHANGE_ME")
+                .build();
+        IllegalStateException exAes = assertThrows(IllegalStateException.class, configChangeMeAes::getAesKey);
+        assertTrue(exAes.getMessage().contains("CHANGE_ME"), "Phải báo rõ CHANGE_ME chưa được thay đổi: " + exAes.getMessage());
+    }
+
+    @Test
+    @DisplayName("TC-DB-04: Tự động trim() mật khẩu khi nạp từ file properties")
+    void testPasswordTrimmingFromFileProps() throws Exception {
+        java.io.File tempFile = java.io.File.createTempFile("db-test-trim-", ".properties");
+        try {
+            java.nio.file.Files.writeString(tempFile.toPath(), "db.user=ximilib_app\ndb.password=  my_secret_pass  \nsecurity.aes.key=12345678901234567890123456789012\n");
+            System.setProperty("ximilib.config.path", tempFile.getAbsolutePath());
+            DatabaseConfig.resetInstance();
+            DatabaseConfig loaded = DatabaseConfig.load();
+            assertEquals("my_secret_pass", loaded.getPassword(), "Mật khẩu đọc từ file phải được trim() khoảng trắng đầu/cuối");
+        } finally {
+            System.clearProperty("ximilib.config.path");
+            DatabaseConfig.resetInstance();
+            tempFile.delete();
+        }
+    }
 }
