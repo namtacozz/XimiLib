@@ -12,12 +12,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/**
- * AppLogo: Cung cấp Logo ứng dụng XimiLib từ tài nguyên chuẩn logo.png / logo_*.png / logo.svg.
- * - Cung cấp Icon sắc nét chuẩn màu hồng pastel có kênh alpha trong suốt.
- * - Cung cấp danh sách Image đa độ phân giải cho thanh tác vụ (Taskbar) và thanh tiêu đề OS.
- * - Tự động đệm (cache) bộ nhớ, nạp an toàn từ classpath.
- */
 public final class AppLogo {
 
     private static final String SVG_PATH = "images/logo/logo.svg";
@@ -29,9 +23,6 @@ public final class AppLogo {
 
     private AppLogo() {}
 
-    /**
-     * Lấy icon hiển thị trên các thành phần Swing (JLabel, JButton...).
-     */
     public static Icon getIcon(int size) {
         return ICON_CACHE.computeIfAbsent(size, s -> {
             Image img = getImage(s);
@@ -45,9 +36,6 @@ public final class AppLogo {
         });
     }
 
-    /**
-     * Lấy Image độ phân giải cụ thể.
-     */
     public static Image getImage(int size) {
         String specificPath = PNG_PATH_BASE + "_" + size + ".png";
         try (InputStream is = AppLogo.class.getResourceAsStream(specificPath)) {
@@ -56,7 +44,6 @@ public final class AppLogo {
             }
         } catch (Exception ignored) {}
 
-        // Fallback về logo.png gốc và scale chất lượng cao
         try (InputStream is = AppLogo.class.getResourceAsStream(PNG_PATH_BASE + ".png")) {
             if (is != null) {
                 BufferedImage master = ImageIO.read(is);
@@ -64,7 +51,6 @@ public final class AppLogo {
             }
         } catch (Exception ignored) {}
 
-        // Fallback thư mục dự án khi chạy test/dev
         try {
             File f = new File("sources/src/main/resources" + PNG_PATH_BASE + "_" + size + ".png");
             if (f.exists()) {
@@ -91,9 +77,6 @@ public final class AppLogo {
         return scaled;
     }
 
-    /**
-     * Lấy danh sách ảnh đa kích thước cho cửa sổ ứng dụng (Taskbar & Titlebar).
-     */
     public static synchronized List<Image> getAppWindowImages() {
         if (windowImagesCache != null) {
             return windowImagesCache;
@@ -109,9 +92,6 @@ public final class AppLogo {
         return list;
     }
 
-    /**
-     * Gán bộ icon đa độ phân giải cho JFrame hoặc JDialog.
-     */
     public static void applyWindowIcons(Window window) {
         if (window == null) return;
         List<Image> icons = getAppWindowImages();

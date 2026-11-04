@@ -1,4 +1,4 @@
-# Version: 1.2 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: ../AGENTS.md, DATABASE_SCHEMA.md, BUSINESS_RULES.md, PROJECT_STATUS.md, TRACEABILITY.md
+# Version: 1.3 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: ../AGENTS.md, DATABASE_SCHEMA.md, BUSINESS_RULES.md, PROJECT_STATUS.md, TRACEABILITY.md
 
 # ARCHITECTURE.md — Kiến trúc Hệ thống XimiLib (Clean Architecture)
 
@@ -419,7 +419,9 @@ Cơ chế này đảm bảo:
 - Cấm in log mật khẩu, mã OTP hoặc token cá nhân dạng bản rõ.
 
 ### 7.5 Kiến trúc Giao diện In-App Modal Overlay (DJ-Raven Suite)
-- **Cơ chế Overlay:** Toàn bộ popup, dialog và form nghiệp vụ được vẽ trực tiếp trên `JRootPane` / `GlassPane` (thông qua `raven.modal` và `raven.popup`), triệt tiêu 100% `JOptionPane` và `JDialog` của hệ điều hành. Điều này loại bỏ hoàn toàn việc cấp phát OS window peer, giảm tối đa xung đột z-order trên Windows DWM, duy trì mức RAM < 300MB và thời gian Cold Start < 3.0s theo chỉ tiêu SRS.
+- **Cơ chế Overlay:** Toàn bộ popup, dialog và form nghiệp vụ được vẽ trực tiếp trên `JRootPane` / `GlassPane` (thông qua `raven.modal` và `raven.popup`), triệt tiêu 100% `JOptionPane` và `JDialog` của hệ điều hành. Điều này loại bỏ hoàn toàn việc cấp phát OS window peer, giảm tối đa xung đột z-order trên Windows DWM, duy trì mức RAM < 300MB và thời gian Cold Start < 1.6s theo chỉ tiêu SRS.
+- **Quy chuẩn Chiều cao Modal (Safe Inset Sizing):** Trong `UiModalHelper.showCustomModal`, kích thước layout option được tính toán với khoảng đệm an toàn: `width + 56` và `height + 150` so với `content.getPreferredSize()`. Quy chuẩn này tính đủ cho header (~48px), footer action buttons (~56px) và khoảng đệm insets (~40px), đảm bảo 2 nút thao tác (`Ok`, `Cancel`) không bao giờ bị cắt cụt ở mép đáy popup.
+- **Quản lý Vòng đời Modal (Callback Isolation):** Khi sử dụng `SimpleModalBorder`, sự kiện `modalOpened()` luôn phát `action = 20` (`OPENED`). Callback điều khiển bắt buộc chỉ được đóng modal khi `action == CANCEL_OPTION || action == CLOSE_OPTION`, ngăn chặn việc đóng cửa sổ ngay trong frame khởi tạo đầu tiên.
 - **Chuẩn hóa Ngày Giờ:** 100% trường nhập ngày tháng phải gắn `UiModalHelper.createDatePicker(editor, isRange)`, trả về `java.time.LocalDate` chuẩn `dd/MM/yyyy`. Cấm dùng `JTextField` chuỗi tự do để tránh lỗi parse.
 
 ### 7.6 Quy chuẩn Bảng màu Thương hiệu Tập trung (Pastel Pink Design System)
@@ -440,7 +442,20 @@ Toàn bộ mã màu giao diện được quản lý tập trung duy nhất tại
 | `textPrimary` | `#1F1720` | Chữ chính |
 | `textMuted` | `#6B5A66` | Chữ phụ, nhãn, placeholder |
 | `onPrimary` | `#FFFFFF` | Chữ trên nền `primary` |
-*Màu trạng thái nghiệp vụ giữ nguyên chuẩn:* `success` (nền `#D1FAE5`, chữ `#047857`), `warning` (nền `#FEF3C7`, chữ `#B45309`), `danger` (nền `#FEE2E2`, chữ `#B91C1C`).
+| `successBg` / `successText` | `#ECFDF5` / `#047857` | Nền và chữ trạng thái thành công, thẻ hoạt động |
+| `warningBg` / `warningText` | `#FEF3C7` / `#B45309` | Nền và chữ trạng thái cảnh báo, hết hạn |
+| `dangerBg` / `dangerText` | `#FEF2F2` / `#B91C1C` | Nền và chữ trạng thái lỗi, khóa thẻ, quá hạn |
+
+### 7.7 Quy chuẩn Icon Vector Chuẩn (SVG Lucide & Cấm Ký Tự Tofu Unicode)
+- **100% SVG Vector Chuẩn:** Toàn bộ icon trong hệ thống sử dụng định dạng vector SVG (nguồn Lucide Icons) đặt tại thư mục `sources/src/main/resources/icons/svg/*.svg`, nạp thông qua `FlatSVGIcon` (`flatlaf-extras`) với bộ lọc đổi màu động `ColorFilter` qua lớp quản lý tập trung `com.ximilib.presentation.util.IconFactory`.
+- **Cấm Vẽ Bằng Tọa Độ:** Tuyệt đối cấm AI tự vẽ icon thủ công bằng tọa độ Graphics2D (`drawLine`, `drawPolygon`, `drawArc`) gây méo mó, lệch pixel khi thay đổi tỷ lệ DPI màn hình.
+- **Cấm Ký Tự Biểu Tượng Unicode:** Tuyệt đối không dùng các ký tự Unicode đặc biệt (như `✓`, `★`, `✕`, emoji) trực tiếp trong chuỗi hiển thị Text vì gây lỗi ô vuông (tofu glyph `▯`) trên font Windows mặc định.
+
+### 7.8 Quy chuẩn Phân tách JTable Cell Renderer & Cell Editor
+- **Nguyên tắc Độc lập Trạng thái (State Isolation):** Khi xây dựng cột thao tác (Action Column) chứa các nút bấm (Sửa, Khóa/Mở, Gia hạn) trong `JTable`, bắt buộc phải tạo 2 lớp riêng biệt:
+  1. `Renderer` kế thừa `TableCellRenderer`: Chỉ đảm nhận nhiệm vụ vẽ giao diện tĩnh của nút bấm cho từng dòng, không lưu giữ biến trạng thái nghiệp vụ.
+  2. `Editor` kế thừa `AbstractCellEditor` và `TableCellEditor`: Đảm nhận việc xử lý sự kiện tương tác chuột (`addActionListener`). Đối tượng dữ liệu nghiệp vụ của dòng được gán cục bộ trong hàm `getTableCellEditorComponent(...)` và hủy sạch khi `fireEditingStopped()`.
+- **Chống Lỗi Single-cell State Pollution:** Tuyệt đối không gộp chung Renderer và Editor vào một đối tượng singleton duy nhất. Việc gộp chung khiến quá trình paint của JTable liên tục ghi đè biến dữ liệu của dòng cuối cùng vào biến `currentData`, làm cho sự kiện click chuột ở bất kỳ hàng nào phía trên đều bị kích hoạt sai vào đối tượng ở cuối danh sách.
 
 ## 8. Open Issues (Vấn đề Mở)
 - `[OPEN-ARCH-01]`: Khả năng tải khi số lượng Client Desktop trong trường tăng lên: Nếu 50 máy cùng poll DB mỗi 5 giây, tần suất là 10 req/s lên MySQL. Cần cân nhắc tăng khoảng thời gian polling lên 10s hoặc kích hoạt MySQL Query Cache nếu tải CPU vượt quá 60%.

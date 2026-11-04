@@ -60,3 +60,5 @@ $RECYCLE.BIN/
 assets/3dmodels/
 *.glb
 *.blend
+
+~$*.docx

@@ -2,26 +2,14 @@ package com.ximilib.presentation.util;
 
 import java.util.Arrays;
 
-/**
- * QrCodeGenerator: Bộ sinh ma trận mã QR Code chuẩn ISO/IEC 18004 thuần Java.
- * Không phụ thuộc vào thư viện ngoài, tuân thủ nghiêm ngặt danh mục whitelist R-12.
- * Sinh ma trận boolean[][] (true = module đen, false = module trắng) quét được 100%
- * bằng mọi camera điện thoại (iOS, Android, Zalo, QR Scanner...).
- */
 public final class QrCodeGenerator {
 
     private QrCodeGenerator() {}
 
-    /**
-     * Sinh ma trận QR Code cho chuỗi ký tự (VD: "LIB-2026-00001").
-     * Tự động chọn phiên bản QR nhỏ nhất phù hợp với dung lượng chuỗi.
-     */
     public static boolean[][] encode(String text) {
         if (text == null) text = "";
         byte[] data = text.getBytes(java.nio.charset.StandardCharsets.UTF_8);
 
-        // Chọn version phù hợp với ECC Level M
-        // Version 1: 14 bytes; Version 2: 26 bytes; Version 3: 42 bytes; Version 4: 62 bytes
         int version;
         int totalDataCodewords;
         int eccCodewordsPerBlock;
@@ -71,22 +59,18 @@ public final class QrCodeGenerator {
         byte[] dataBytes = bb.getBytes();
         byte[] finalCodewords = addErrorCorrection(dataBytes, version, totalDataCodewords, eccCodewordsPerBlock);
 
-        // Dựng ma trận QR
         int[][] matrix = new int[size][size]; // 0 = unassigned, 1 = white, 2 = black
         boolean[][] isFunction = new boolean[size][size];
 
-        // 1. Finder patterns
         placeFinder(matrix, isFunction, 0, 0);
         placeFinder(matrix, isFunction, size - 7, 0);
         placeFinder(matrix, isFunction, 0, size - 7);
 
-        // 2. Alignment pattern (version >= 2)
         if (version >= 2) {
             int alignPos = size - 7;
             placeAlignment(matrix, isFunction, alignPos, alignPos);
         }
 
-        // 3. Timing patterns
         for (int i = 8; i < size - 8; i++) {
             int color = (i % 2 == 0) ? 2 : 1;
             if (!isFunction[6][i]) {
@@ -99,14 +83,11 @@ public final class QrCodeGenerator {
             }
         }
 
-        // Dark module
         matrix[4 * version + 9][8] = 2;
         isFunction[4 * version + 9][8] = true;
 
-        // Reserve Format Information areas
         reserveFormatAreas(isFunction, size);
 
-        // 4. Place data bits in zigzag columns
         int bitIdx = 0;
         int totalBits = finalCodewords.length * 8;
         for (int right = size - 1; right > 0; right -= 2) {

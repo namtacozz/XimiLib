@@ -1,5 +1,5 @@
 <!--
-Version: 1.3 | Last updated: 2026-11-04 | Owner: Architecture Team
+Version: 1.4 | Last updated: 2026-11-04 | Owner: Architecture Team
 Related files: docs/ARCHITECTURE.md, docs/DATABASE_SCHEMA.md, docs/BUSINESS_RULES.md, docs/PROJECT_STATUS.md, docs/TRACEABILITY.md, docs/CODING_STYLE.md
 Quy ước nhãn: [TBD] = chưa chốt, cần xác nhận | [ASSUMPTION] = đề xuất kỹ thuật chưa được nghiệm thu
 -->

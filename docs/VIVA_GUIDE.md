@@ -1,4 +1,5 @@
 # CẨM NANG VẤN ĐÁP ĐỒ ÁN XIMILIB (VIVA GUIDE)
+> Phiên bản: 1.1 | Ngày cập nhật: 2026-11-04 | Tác giả: Principal Software Architect & QA Lead
 
 > Cẩm nang hướng dẫn sinh viên trả lời vấn đáp đồ án PBL trước hội đồng giảng viên.
 > Trình bày trực quan, bám sát từng dòng mã nguồn, luồng dữ liệu 4 tầng (Clean Architecture) và 24 bảng CSDL MySQL.
@@ -219,3 +220,17 @@
   * *Trả lời:* Hệ thống tuân thủ nguyên văn thông báo SRS: *"Không có phát sinh giao dịch trong mốc thời gian đã chọn"*, vô hiệu hóa nút xuất Excel để tránh sinh file rỗng.
 * **Hỏi 3: Việc xuất file Excel báo cáo lớn có làm đơ giao diện đồ họa không?**
   * *Trả lời:* Tuân thủ quy tắc R-06, toàn bộ quá trình đọc dữ liệu DB và ghi file Excel POI đều chạy ngầm trên `SwingWorker`. Giao diện chính hiển thị trạng thái đang xử lý và chỉ kích hoạt thông báo thành công trên EDT sau khi file đã được ghi hoàn tất xuống ổ đĩa.
+
+---
+
+### 9. Kỹ Thuật Lập Trình Giao Diện Swing & Khắc Phục Lỗi UI (DJ-Raven Suite & JTable)
+
+#### 4 Câu Hỏi Giảng Viên Hay Hỏi Về Kỹ Thuật UI:
+* **Hỏi 1: Tại sao trong JTable cần phải tách riêng `TableCellRenderer` và `TableCellEditor` thành 2 class độc lập? Nếu gộp chung thì phát sinh lỗi gì?**
+  * *Trả lời:* Trong cơ chế hoạt động của Swing `JTable`, Renderer dùng chung 1 component duy nhất để vẽ lần lượt từ trên xuống dưới cho tất cả các dòng trên màn hình (Flyweight Pattern). Nếu dùng chung 1 instance cho cả Editor và lưu biến độc giả trong instance đó, biến này sẽ luôn mang giá trị của dòng cuối cùng được vẽ. Khi người dùng click chuột vào nút bấm ở một dòng phía trên, sự kiện `actionPerformed` sẽ lấy nhầm dữ liệu của dòng cuối cùng dẫn đến thao tác sai mục tiêu (ví dụ: bấm Khóa thẻ dòng 1 nhưng lại gửi lệnh khóa thẻ dòng 15). Việc tách riêng Renderer (chỉ vẽ) và Editor (quản lý sự kiện cho đúng dòng đang active) đảm bảo tính toàn vẹn trạng thái 100%.
+* **Hỏi 2: Làm thế nào để ngăn chặn hiện tượng cửa sổ popup modal bị mất chớp nhoáng ngay khi vừa mở?**
+  * *Trả lời:* Trong thư viện `io.github.dj-raven:modal-dialog`, khi một modal mở lên, component `SimpleModalBorder` luôn tự động phát sự kiện khởi tạo ban đầu `modalOpened()` với mã hành động `action = 20` (`OPENED`). Nếu callback điều khiển viết theo dạng `if (action == OK) ... else controller.close()`, nhánh `else` sẽ bắt nhầm sự kiện `OPENED` và đóng cửa sổ ngay trong frame đầu tiên. Để khắc phục triệt để, callback bắt buộc phải chỉ định rõ chỉ đóng khi người dùng chủ động nhấn nút hủy: `else if (action == CANCEL_OPTION || action == CLOSE_OPTION) controller.close()`.
+* **Hỏi 3: Làm thế nào để đảm bảo cửa sổ popup tùy biến (Custom Modal) không bị mép dưới cắt cụt các nút bấm Ok/Cancel?**
+  * *Trả lời:* Trong `UiModalHelper.showCustomModal`, kích thước cửa sổ ModalDialog được tính toán bao gồm kích thước nội dung form (`content.getPreferredSize()`) cộng thêm khoảng đệm an toàn tối thiểu `150px` chiều cao (`content.height + 150`) và `56px` chiều rộng. Khoảng đệm này bù đắp chính xác cho chiều cao của tiêu đề header (~48px), thanh nút bấm footer (~56px) và khoảng cách insets viền ngoài (~40px), đảm bảo giao diện luôn hiển thị trọn vẹn và thoáng đãng trên mọi độ phân giải màn hình.
+* **Hỏi 4: Tại sao dự án cấm dùng ký tự Unicode đặc biệt (như `✓`, `★`, `✕`) trực tiếp trong chuỗi text và giải pháp thay thế là gì?**
+  * *Trả lời:* Các ký tự biểu tượng Unicode đặc biệt không được hỗ trợ đầy đủ trên bộ font chữ mặc định của hệ điều hành Windows (`Segoe UI` / `Tahoma`), dẫn đến lỗi hiển thị ô vuông rỗng (tofu glyph `▯`). Giải pháp chuẩn mực của dự án là loại bỏ toàn bộ ký tự này, thay thế bằng file vector SVG chuẩn (bộ Lucide Icons) lưu trong `resources/icons/svg/` và nạp động thông qua `FlatSVGIcon` kết hợp `ColorFilter` trong lớp `IconFactory`.

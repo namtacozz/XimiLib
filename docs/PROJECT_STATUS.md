@@ -1,4 +1,4 @@
-# Version: 1.4 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: ../AGENTS.md, ARCHITECTURE.md, DATABASE_SCHEMA.md, BUSINESS_RULES.md, VAN_DAP.md, TRACEABILITY.md
+# Version: 1.5 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: ../AGENTS.md, ARCHITECTURE.md, DATABASE_SCHEMA.md, BUSINESS_RULES.md, VAN_DAP.md, TRACEABILITY.md
 
 # PROJECT_STATUS.md — Trạng thái Dự án & Lộ trình Phát triển XimiLib
 
@@ -26,15 +26,41 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 ## 2. Tiêu chuẩn Hoàn thành (Definition of Done - DoD)
 Đã đạt **100% 6 tiêu chí DoD**:
 1. **Kiến trúc:** Tuân thủ Clean Architecture 4 tầng, Pure DI tại `AppContainer`, không có bất kỳ import ngược nào giữa các tầng (`DependencyRuleTest` xanh 100%).
-2. **Kiểm thử tự động:** **106 test cases JUnit 5** bao gồm Unit tests các tầng và Integration tests kết nối, giao dịch, leak detection.
+2. **Kiểm thử tự động:** **121 test cases JUnit 5** bao gồm Unit tests các tầng và Integration tests kết nối, giao dịch, leak detection (`StyleRuleTest` và `DependencyRuleTest` xanh 100%).
 3. **An toàn dữ liệu:** 100% `PreparedStatement`, mật khẩu băm BCrypt, tiền tệ dùng `BigDecimal`, khóa bi quan `SELECT ... FOR UPDATE`, quản lý transaction tập trung ở tầng Application.
-4. **Không chặn giao diện:** Mọi truy vấn DB và I/O đều chạy trên `SwingWorker` ngoài EDT; giao diện cập nhật an toàn trên EDT. Khởi động nguội < 1 giây.
+4. **Không chặn giao diện:** Mọi truy vấn DB và I/O đều chạy trên `SwingWorker` ngoài EDT; giao diện cập nhật an toàn trên EDT. Khởi động nguội < 1.6 giây.
 5. **Đóng gói & Chạy thử:** Lệnh `mvn clean package` xuất ra file `dist/XimiLib.jar` độc lập chạy trực tiếp bằng `run.bat` / `run.sh` và hỗ trợ cờ headless `--init-db`.
-6. **Tài liệu:** Đầy đủ bộ tài liệu SSOT trong `/docs` (`AGENTS.md`, `ARCHITECTURE.md`, `DATABASE_SCHEMA.md`, `BUSINESS_RULES.md`, `PROJECT_STATUS.md`, `VAN_DAP.md`, `TRACEABILITY.md`).
+6. **Tài liệu:** Đầy đủ bộ tài liệu SSOT trong `/docs` (`AGENTS.md`, `ARCHITECTURE.md`, `DATABASE_SCHEMA.md`, `BUSINESS_RULES.md`, `PROJECT_STATUS.md`, `VAN_DAP.md`, `TRACEABILITY.md`, `VIVA_GUIDE.md`).
 
 ---
 
 ## 3. Nhật ký Thay đổi Dự án (Changelog)
+
+### [Sprint 25 — Tối Ưu Bàn Lưu Hành, Khắc Phục Lỗi JTable Editor Thẻ Độc Giả, Hoàn Thiện Modal Size & Humanizer] - 2026-11-04
+#### Fixed & Enhanced (Core UI/UX, Component Architecture & Humanizer)
+- **Quản lý Thẻ & Bạn đọc (`PatronManagementView`)**:
+  * Phân tách triệt để `PatronActionRenderer` và `PatronActionEditor` thành hai class độc lập, triệt tiêu lỗi chia sẻ state trong single-cell editor khiến click thao tác (Khóa/Mở, Sửa) bị gán nhầm vào đối tượng cuối danh sách (`Lý Thế Vinh`).
+  * Chuẩn hóa logic icon Khóa/Mở thẻ: Mặc định khi thẻ hoạt động là **icon mở khóa** (`unlock`, màu xanh lá trên nền `#ECFDF5`); khi bị khóa chuyển sang **icon khóa** (`lock`, màu đỏ trên nền `#FEF2F2`) kèm nhãn `Bị khóa` nổi bật.
+  * Tăng kích thước icon hành động lên 16px sắc nét trong ô nút 32x32px.
+  * Cố định popup chỉnh sửa độc giả: sửa điều kiện callback SimpleModalBorder chỉ đóng khi người dùng chủ động nhấn nút Hủy hoặc Đóng, loại bỏ hoàn toàn hiện tượng popup biến mất chớp nhoáng khi mở.
+  * Mở rộng kích thước form chỉnh sửa độc giả lên `420x260px`, hiển thị trạng thái thẻ với màu sắc ngữ nghĩa trực quan.
+- **Hệ thống In-App Modal Overlay (`UiModalHelper`)**:
+  * Mở rộng khoảng đệm chiều cao trong `showCustomModal` lên `content.height + 150` và chiều rộng `+ 56`, đảm bảo toàn bộ header, content, insets và 2 nút bấm thao tác (`Ok`, `Cancel`) luôn hiển thị trọn vẹn, không bao giờ bị mép dưới của popup cắt cụt.
+- **Bàn lưu hành & Xử lý trả (`CirculationDeskView`, `ReturnAndCompensationView`)**:
+  * Loại bỏ hoàn toàn nhãn `(Desk)` bên cạnh Bàn lưu hành trên toàn bộ tiêu đề, nhãn tab, điều hướng và trang chủ nhân viên (`StaffHomePanel`).
+  * Bố cục 2 nút chọn hình thức mượn (Mang về nhà / Tại chỗ) thành 2 nút vuông cùng hàng chia đều 50/50 diện tích, không đè lấp chữ.
+  * Tích hợp bộ đệm thời gian (debounce timer 200ms) cho thanh tìm kiếm bạn đọc, loại bỏ tình trạng tạo nhiều luồng truy vấn đè nhau (race condition).
+  * Nâng cấp thuật toán sắp xếp gợi ý tìm kiếm theo độ khớp chính xác (`ORDER BY CASE WHEN LOWER(u.Hoten) = ? THEN 1 ...`), đưa bạn đọc khớp chính xác (như `ND004 - Trần Văn An`) lên vị trí số 1.
+  * Tăng giới hạn số lượng bạn đọc hiển thị trong dropdown gợi ý từ 5 lên 10 kết quả.
+- **Kho Sách & Chi tiết Sách (`BookDetailModalPanel`, `BookCatalogView`)**:
+  * Bổ sung liên kết tương tác cho `Thể loại` (`↗`): cho phép bấm vào thể loại để tự động lọc nhanh toàn bộ sách cùng chuyên mục trong Kho Sách, đồng bộ với tác giả và vị trí kệ sách.
+  * Cố định phân trang dạng lưới của Kho Sách thành 5 trang x 50 sách/trang, lược bỏ phần chọn cách chia phức tạp.
+  * Cố định popup thông báo đăng nhập cho Khách: khi người dùng ở vai trò Khách bấm mượn hoặc đặt trước sách, hệ thống hiển thị modal cảnh báo cố định (chặn click nền) và chỉ đóng khi người dùng chủ động bấm Đóng/Xác nhận.
+- **Văn phong Tự nhiên (Humanizer Writing)**:
+  * Viết lại ngắn gọn, tự nhiên và nhã nhặn toàn bộ các câu thông báo xác nhận và thông báo hệ thống, loại bỏ triệt để các công thức kỹ thuật và thuật ngữ lập trình rườm rà (như trong hộp thoại xác nhận báo mất sách).
+- **Kiểm thử & Đóng gói**:
+  * Đạt 121/121 test cases JUnit 5 pass 100% (`StyleRuleTest` và `DependencyRuleTest` xanh).
+  * Tái đóng gói file thực thi độc lập `dist/XimiLib.jar` (~35MB) sẵn sàng vận hành.
 
 ### [Sprint 24 — Cải Tiến Toàn Diện Trải Nghiệm Người Dùng (Guest, Admin, Thủ Thư, Độc Giả)] - 2026-11-04
 #### Feat & UI/UX Overhaul (4 Roles)

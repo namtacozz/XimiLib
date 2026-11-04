@@ -3,11 +3,6 @@ package com.ximilib.presentation.util;
 import com.ximilib.domain.model.LoanDueClassification;
 import java.awt.Color;
 
-/**
- * LoanDueBadgeHelper: Lớp hỗ trợ giao diện ánh xạ phân loại hạn trả sách (LoanDueClassification)
- * sang mã màu và kiểu hiển thị trực quan (Badge) trên Swing UI.
- * Giữ nguyên các mã màu chuẩn của giao diện và đảm bảo tầng Domain hoàn toàn độc lập với UI.
- */
 public final class LoanDueBadgeHelper {
 
     private LoanDueBadgeHelper() {}

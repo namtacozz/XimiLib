@@ -1,8 +1,5 @@
 package com.ximilib.presentation.util;
 
-/**
- * Illustrations: Quản lý đường dẫn các hình minh họa vector chuẩn trong ứng dụng.
- */
 public final class Illustrations {
 
     public static final String EMPTY_SEARCH = "images/illustrations/reading-glasses-bro.svg";
