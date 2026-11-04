@@ -37,6 +37,7 @@ public class DatabaseInitializer {
     private static final String V2_PATH = "db/migrations/V2__srs_schema_updates.sql";
     private static final String V3_PATH = "db/migrations/V3__enforce_bcrypt_passwords.sql";
     private static final String V4_PATH = "db/migrations/V4__report_and_search_indexes.sql";
+    private static final String V5_PATH = "db/migrations/V5__srs_alignment_and_audit.sql";
 
     private static final DateTimeFormatter LOG_TS_FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss");
@@ -67,8 +68,10 @@ public class DatabaseInitializer {
             log("=== DatabaseInitializer BẮT ĐẦU: " + LocalDateTime.now() + " ===", log);
 
             int tableCount;
+            boolean hasAudit;
             try (Connection conn = connectionManager.getConnection()) {
                 tableCount = countTables(conn);
+                hasAudit = hasTable(conn, "auditlog");
             } catch (SQLException e) {
                 String msg = "Không thể kết nối CSDL để kiểm tra trạng thái: " + e.getMessage();
                 log("[LỖI] " + msg, log);
@@ -77,8 +80,8 @@ public class DatabaseInitializer {
 
             log("[INFO] Số bảng hiện có trong CSDL: " + tableCount, log);
 
-            if (tableCount >= 20) {
-                log("[INFO] CSDL đã được khởi tạo trước đó (" + tableCount + " bảng). Bỏ qua migration.", log);
+            if (tableCount >= 24 && hasAudit) {
+                log("[INFO] CSDL đã được khởi tạo đầy đủ (" + tableCount + " bảng). Bỏ qua migration.", log);
                 log("=== DatabaseInitializer KẾT THÚC ===", log);
                 return;
             }
@@ -86,16 +89,21 @@ public class DatabaseInitializer {
             // Xác định danh sách script cần chạy
             List<String> scriptsToRun = new ArrayList<>();
             if (tableCount == 0) {
-                log("[INFO] CSDL trống, chạy V1 → V2 → V3 → V4.", log);
+                log("[INFO] CSDL trống, chạy V1 → V2 → V3 → V4 → V5.", log);
                 scriptsToRun.add(V1_PATH);
                 scriptsToRun.add(V2_PATH);
                 scriptsToRun.add(V3_PATH);
                 scriptsToRun.add(V4_PATH);
+                scriptsToRun.add(V5_PATH);
+            } else if (!hasAudit) {
+                log("[INFO] CSDL cần nâng cấp Migration V5 (SRS alignment & auditlog). Đang chạy V5.", log);
+                scriptsToRun.add(V5_PATH);
             } else {
-                log("[WARNING] CSDL có " + tableCount + " bảng (không đủ 20). Bỏ qua V1, chạy V2 → V3 → V4.", log);
+                log("[WARNING] CSDL có " + tableCount + " bảng (không đủ 24). Chạy V2 → V3 → V4 → V5.", log);
                 scriptsToRun.add(V2_PATH);
                 scriptsToRun.add(V3_PATH);
                 scriptsToRun.add(V4_PATH);
+                scriptsToRun.add(V5_PATH);
             }
 
             // Chạy từng script trên một connection riêng
@@ -125,6 +133,14 @@ public class DatabaseInitializer {
                 return rs.getInt(1);
             }
             return 0;
+        }
+    }
+
+    private boolean hasTable(Connection conn, String tableName) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '" + tableName + "'";
+        try (Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            return rs.next() && rs.getInt(1) > 0;
         }
     }
 
