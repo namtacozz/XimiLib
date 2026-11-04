@@ -80,6 +80,7 @@ public class UITheme {
     public static final Font FONT_TITLE = new Font("Segoe UI", Font.BOLD, 17);
     public static final Font FONT_SUBTITLE = new Font("Segoe UI", Font.BOLD, 14);
     public static final Font FONT_BOLD = new Font("Segoe UI", Font.BOLD, 13);
+    public static final Font FONT_BUTTON = new Font("Segoe UI", Font.BOLD, 13);
     public static final Font FONT_REGULAR = new Font("Segoe UI", Font.PLAIN, 13);
     public static final Font FONT_SMALL = new Font("Segoe UI", Font.PLAIN, 12);
     public static final Font FONT_BADGE = new Font("Segoe UI", Font.BOLD, 11);
