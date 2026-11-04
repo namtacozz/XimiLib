@@ -3,21 +3,30 @@ package com.ximilib.presentation.view;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.ximilib.application.dto.RegisterRequestDto;
 import com.ximilib.application.service.AuthenticationService;
+import com.ximilib.presentation.component.PasswordPolicyChecklist;
+import com.ximilib.presentation.util.AppLogo;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
 import raven.datetime.DatePicker;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 
 /**
- * RegisterForm: Giao diện Đăng Ký Tài Khoản mới cho Độc Giả (SRS UC-2).
- * Tự động cấp thẻ thư viện hiệu lực 365 ngày (BR-02).
- * Tuân thủ R-01, R-06, R-08, R-11.
+ * RegisterForm: Giao diện Đăng Ký Tài Khoản Bạn Đọc Thư Viện (SRS UC-2, BR-10, BR-11).
+ * - Bố cục phân 3 nhóm: Thông tin cá nhân, Thông tin liên hệ, Tài khoản.
+ * - Hàng ghép cặp thông minh (Ngày sinh // CCCD, Email // SĐT, Mật khẩu // Nhập lại).
+ * - PasswordPolicyChecklist kiểm tra mật khẩu thời gian thực (8 ký tự, hoa, số, ký tự đặc biệt).
+ * - Xác thực inline (outline đỏ khi sai, tự xóa khi gõ lại).
+ * - Tuân thủ R-01, R-06, R-08, R-11.
  */
 public class RegisterForm extends JFrame {
 
@@ -33,6 +42,7 @@ public class RegisterForm extends JFrame {
     private JTextField txtUsername;
     private JPasswordField txtPassword;
     private JPasswordField txtConfirmPassword;
+    private PasswordPolicyChecklist policyChecklist;
     private JLabel lblError;
     private JButton btnRegister;
 
@@ -45,12 +55,13 @@ public class RegisterForm extends JFrame {
 
         setTitle("XimiLib - Đăng Ký Tài Khoản Bạn Đọc Thư Viện");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(650, 700);
+        setSize(680, 770);
+        setMinimumSize(new Dimension(640, 720));
         setLocationRelativeTo(null);
         setResizable(false);
         getContentPane().setBackground(UITheme.BG_LIGHT);
 
-        com.ximilib.presentation.util.AppLogo.applyWindowIcons(this);
+        AppLogo.applyWindowIcons(this);
         UiModalHelper.initMainFrame(this);
         initUI();
     }
@@ -58,7 +69,7 @@ public class RegisterForm extends JFrame {
     private void initUI() {
         JPanel root = new JPanel(new GridBagLayout());
         root.setBackground(UITheme.BG_LIGHT);
-        root.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        root.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JPanel card = new JPanel() {
             @Override
@@ -76,48 +87,85 @@ public class RegisterForm extends JFrame {
         };
         card.setOpaque(false);
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createEmptyBorder(18, 28, 16, 28));
-        card.setPreferredSize(new Dimension(600, 630));
+        card.setBorder(BorderFactory.createEmptyBorder(16, 26, 16, 26));
+        card.setPreferredSize(new Dimension(620, 710));
+        card.setMaximumSize(new Dimension(640, 730));
 
-        JLabel lblHeading = new JLabel("Đăng Ký Tài Khoản");
+        // 1. Tiêu đề chính
+        JLabel lblHeading = new JLabel("Đăng Ký Tài Khoản Bạn Đọc");
         lblHeading.setFont(UITheme.FONT_TITLE_LARGE);
         lblHeading.setForeground(UITheme.TEXT_MAIN);
         lblHeading.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel lblSub = new JLabel("Tạo tài khoản bạn đọc để mượn sách tại thư viện");
+        JLabel lblSub = new JLabel("Tạo tài khoản để mượn sách, tra cứu tài liệu và nhận thẻ thư viện điện tử");
         lblSub.setFont(UITheme.FONT_SMALL);
         lblSub.setForeground(UITheme.TEXT_MUTED);
         lblSub.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        txtFullName = createTextField("Nhập họ và tên đầy đủ");
-        txtBirthDate = new JFormattedTextField();
-        txtBirthDate.setFont(UITheme.FONT_REGULAR);
-        txtBirthDate.setPreferredSize(new Dimension(360, 36));
-        txtBirthDate.putClientProperty(FlatClientProperties.STYLE, "arc: 10;");
-        birthDatePicker = UiModalHelper.createDatePicker(txtBirthDate, false);
-        birthDatePicker.setSelectedDate(LocalDate.of(2004, 1, 1));
+        card.add(lblHeading);
+        card.add(Box.createVerticalStrut(2));
+        card.add(lblSub);
+        card.add(Box.createVerticalStrut(12));
 
-        txtCccd = createTextField("9 hoặc 12 chữ số");
-        txtAddress = createTextField("Địa chỉ cư trú hiện tại");
-        txtEmail = createTextField("example@domain.com");
-        txtPhone = createTextField("Số điện thoại liên hệ");
-        txtUsername = createTextField("Tên đăng nhập viết liền");
+        // 2. Khởi tạo các trường nhập
+        initInputFields();
 
-        txtPassword = createPasswordField("Mật khẩu tối thiểu 8 ký tự");
-        txtConfirmPassword = createPasswordField("Nhập lại mật khẩu");
+        // 3. Nhóm 1: THÔNG TIN CÁ NHÂN
+        card.add(createSectionHeader("1. Thông tin cá nhân"));
+        card.add(Box.createVerticalStrut(6));
+        card.add(createFieldGroup("Họ và tên *", txtFullName));
+        card.add(Box.createVerticalStrut(6));
+        card.add(createPairRow(
+            createFieldGroup("Ngày sinh *", txtBirthDate),
+            createFieldGroup("Số CCCD/CMND *", txtCccd)
+        ));
+        card.add(Box.createVerticalStrut(10));
 
+        // 4. Nhóm 2: THÔNG TIN LIÊN HỆ
+        card.add(createSectionHeader("2. Thông tin liên hệ"));
+        card.add(Box.createVerticalStrut(6));
+        card.add(createFieldGroup("Địa chỉ cư trú hiện tại", txtAddress));
+        card.add(Box.createVerticalStrut(6));
+        card.add(createPairRow(
+            createFieldGroup("Email *", txtEmail),
+            createFieldGroup("Số điện thoại *", txtPhone)
+        ));
+        card.add(Box.createVerticalStrut(10));
+
+        // 5. Nhóm 3: TÀI KHOẢN & BẢO MẬT
+        card.add(createSectionHeader("3. Tài khoản & Bảo mật"));
+        card.add(Box.createVerticalStrut(6));
+        card.add(createFieldGroup("Tên đăng nhập *", txtUsername));
+        card.add(Box.createVerticalStrut(6));
+        card.add(createPairRow(
+            createFieldGroup("Mật khẩu *", txtPassword),
+            createFieldGroup("Xác nhận mật khẩu *", txtConfirmPassword)
+        ));
+        card.add(Box.createVerticalStrut(6));
+
+        // Checklist kiểm tra độ mạnh mật khẩu (SRS UC-2, BR-10)
+        policyChecklist.setAlignmentX(Component.CENTER_ALIGNMENT);
+        card.add(policyChecklist);
+
+        // 6. Thông báo lỗi inline
         lblError = new JLabel(" ");
         lblError.setFont(UITheme.FONT_SMALL);
         lblError.setForeground(UITheme.DANGER_TEXT);
         lblError.setAlignmentX(Component.CENTER_ALIGNMENT);
+        card.add(Box.createVerticalStrut(6));
+        card.add(lblError);
 
+        // 7. Nút Đăng ký chính
         btnRegister = UITheme.createPillButton("TẠO TÀI KHOẢN", UITheme.PRIMARY, Color.WHITE);
         btnRegister.setFont(UITheme.FONT_BOLD);
         btnRegister.setPreferredSize(new Dimension(360, 42));
-        btnRegister.setMaximumSize(new Dimension(400, 42));
+        btnRegister.setMaximumSize(new Dimension(420, 42));
         btnRegister.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnRegister.addActionListener(e -> handleRegister());
+        card.add(Box.createVerticalStrut(6));
+        card.add(btnRegister);
 
+        // 8. Liên kết quay lại đăng nhập
         JPanel loginLinkRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 0));
         loginLinkRow.setOpaque(false);
         JLabel lblHaveAcc = new JLabel("Đã có tài khoản?");
@@ -137,32 +185,6 @@ public class RegisterForm extends JFrame {
         });
         loginLinkRow.add(lblHaveAcc);
         loginLinkRow.add(lblLoginNow);
-
-        card.add(lblHeading);
-        card.add(Box.createVerticalStrut(2));
-        card.add(lblSub);
-        card.add(Box.createVerticalStrut(14));
-
-        // Form Fields dạng bảng 2 cột: Label bên trái, ô nhập bên phải
-        JPanel formGrid = new JPanel(new GridBagLayout());
-        formGrid.setOpaque(false);
-        formGrid.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        addFormFieldRow(formGrid, 0, "Họ và tên:", txtFullName);
-        addFormFieldRow(formGrid, 1, "Ngày sinh:", txtBirthDate);
-        addFormFieldRow(formGrid, 2, "Số CCCD/CMND:", txtCccd);
-        addFormFieldRow(formGrid, 3, "Địa chỉ liên lạc:", txtAddress);
-        addFormFieldRow(formGrid, 4, "Email:", txtEmail);
-        addFormFieldRow(formGrid, 5, "Số điện thoại:", txtPhone);
-        addFormFieldRow(formGrid, 6, "Tên đăng nhập:", txtUsername);
-        addFormFieldRow(formGrid, 7, "Mật khẩu:", txtPassword);
-        addFormFieldRow(formGrid, 8, "Xác nhận mật khẩu:", txtConfirmPassword);
-
-        card.add(formGrid);
-        card.add(Box.createVerticalStrut(6));
-        card.add(lblError);
-        card.add(Box.createVerticalStrut(4));
-        card.add(btnRegister);
         card.add(Box.createVerticalStrut(8));
         card.add(loginLinkRow);
 
@@ -170,37 +192,137 @@ public class RegisterForm extends JFrame {
         add(root);
     }
 
-    private void addFormFieldRow(JPanel container, int row, String labelText, JComponent field) {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(3, 6, 3, 6);
+    private void initInputFields() {
+        txtFullName = createTextField("Nhập họ và tên đầy đủ");
 
-        // Cột 0: Label
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
+        txtBirthDate = new JFormattedTextField();
+        txtBirthDate.setFont(UITheme.FONT_REGULAR);
+        txtBirthDate.setPreferredSize(new Dimension(280, 34));
+        txtBirthDate.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "dd/MM/yyyy");
+        txtBirthDate.putClientProperty(FlatClientProperties.STYLE, "arc: 10;");
+        birthDatePicker = UiModalHelper.createDatePicker(txtBirthDate, false);
+        // Không set ngày mặc định để bắt buộc chọn qua lịch
 
-        JLabel lbl = new JLabel(labelText);
-        lbl.setFont(UITheme.FONT_SMALL);
+        txtCccd = createTextField("9 hoặc 12 chữ số");
+        txtAddress = createTextField("Địa chỉ cư trú hiện tại");
+        txtEmail = createTextField("example@domain.com");
+        txtPhone = createTextField("Số điện thoại (10 chữ số)");
+        txtUsername = createTextField("Tên đăng nhập viết liền");
+
+        txtPassword = createPasswordField("Tối thiểu 8 ký tự");
+        txtConfirmPassword = createPasswordField("Nhập lại mật khẩu");
+
+        policyChecklist = new PasswordPolicyChecklist();
+
+        // Lắng nghe gõ mật khẩu để cập nhật checklist theo thời gian thực
+        txtPassword.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { updateChecklist(); }
+            @Override public void removeUpdate(DocumentEvent e) { updateChecklist(); }
+            @Override public void changedUpdate(DocumentEvent e) { updateChecklist(); }
+
+            private void updateChecklist() {
+                String pwd = new String(txtPassword.getPassword());
+                policyChecklist.updatePassword(pwd);
+                clearOutline(txtPassword);
+            }
+        });
+
+        // Xóa viền đỏ khi người dùng gõ lại vào ô
+        registerClearOutlineOnType(txtFullName);
+        registerClearOutlineOnType(txtBirthDate);
+        registerClearOutlineOnType(txtCccd);
+        registerClearOutlineOnType(txtAddress);
+        registerClearOutlineOnType(txtEmail);
+        registerClearOutlineOnType(txtPhone);
+        registerClearOutlineOnType(txtUsername);
+        registerClearOutlineOnType(txtConfirmPassword);
+
+        // Xác thực inline khi rời ô (Focus Lost)
+        txtEmail.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                String em = txtEmail.getText().trim();
+                if (!em.isEmpty() && !em.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+                    markError(txtEmail, "Email không đúng định dạng!");
+                }
+            }
+        });
+
+        txtPhone.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                String ph = txtPhone.getText().trim();
+                if (!ph.isEmpty() && !ph.matches("^0\\d{9}$")) {
+                    markError(txtPhone, "Số điện thoại phải gồm 10 chữ số (bắt đầu bằng 0)!");
+                }
+            }
+        });
+
+        txtCccd.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                String c = txtCccd.getText().trim();
+                if (!c.isEmpty() && !c.matches("^(\\d{9}|\\d{12})$")) {
+                    markError(txtCccd, "Số CCCD/CMND phải gồm đúng 9 hoặc 12 chữ số!");
+                }
+            }
+        });
+
+        txtConfirmPassword.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                String p1 = new String(txtPassword.getPassword());
+                String p2 = new String(txtConfirmPassword.getPassword());
+                if (!p2.isEmpty() && !p1.equals(p2)) {
+                    markError(txtConfirmPassword, "Mật khẩu xác nhận không khớp!");
+                }
+            }
+        });
+    }
+
+    private JPanel createSectionHeader(String title) {
+        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        p.setOpaque(false);
+        p.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+        JLabel lbl = new JLabel(title.toUpperCase());
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lbl.setForeground(UITheme.PRIMARY);
+        p.add(lbl);
+        return p;
+    }
+
+    private JPanel createFieldGroup(String label, JComponent field) {
+        JPanel p = new JPanel();
+        p.setOpaque(false);
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.setMaximumSize(new Dimension(Integer.MAX_VALUE, 56));
+
+        JLabel lbl = new JLabel(label);
+        lbl.setFont(UITheme.FONT_SMALL.deriveFont(Font.BOLD));
         lbl.setForeground(UITheme.TEXT_MAIN);
-        lbl.setPreferredSize(new Dimension(135, 34));
-        lbl.setHorizontalAlignment(SwingConstants.RIGHT);
-        container.add(lbl, gbc);
+        lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Cột 1: Ô nhập (cùng 1 hàng với chữ)
-        gbc.gridx = 1;
-        gbc.gridy = row;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        container.add(field, gbc);
+        field.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        p.add(lbl);
+        p.add(Box.createVerticalStrut(3));
+        p.add(field);
+        return p;
+    }
+
+    private JPanel createPairRow(JPanel left, JPanel right) {
+        JPanel row = new JPanel(new GridLayout(1, 2, 12, 0));
+        row.setOpaque(false);
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 56));
+        row.add(left);
+        row.add(right);
+        return row;
     }
 
     private JTextField createTextField(String placeholder) {
         JTextField tf = new JTextField();
         tf.setFont(UITheme.FONT_REGULAR);
-        tf.setPreferredSize(new Dimension(360, 34));
+        tf.setPreferredSize(new Dimension(280, 34));
         tf.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, placeholder);
         tf.putClientProperty(FlatClientProperties.STYLE, "arc: 10;");
         return tf;
@@ -209,10 +331,44 @@ public class RegisterForm extends JFrame {
     private JPasswordField createPasswordField(String placeholder) {
         JPasswordField pf = new JPasswordField();
         pf.setFont(UITheme.FONT_REGULAR);
-        pf.setPreferredSize(new Dimension(360, 34));
+        pf.setPreferredSize(new Dimension(280, 34));
         pf.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, placeholder);
         pf.putClientProperty(FlatClientProperties.STYLE, "showRevealButton: true; arc: 10;");
         return pf;
+    }
+
+    private void registerClearOutlineOnType(JTextField tf) {
+        tf.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { clearOutline(tf); }
+            @Override public void removeUpdate(DocumentEvent e) { clearOutline(tf); }
+            @Override public void changedUpdate(DocumentEvent e) { clearOutline(tf); }
+        });
+    }
+
+    private void clearOutline(JComponent comp) {
+        comp.putClientProperty(FlatClientProperties.OUTLINE, null);
+        lblError.setText(" ");
+    }
+
+    private void markError(JComponent comp, String message) {
+        if (comp != null) {
+            comp.putClientProperty(FlatClientProperties.OUTLINE, FlatClientProperties.OUTLINE_ERROR);
+            comp.requestFocusInWindow();
+        }
+        lblError.setText(message);
+    }
+
+    private void setFormInteractive(boolean enabled) {
+        txtFullName.setEnabled(enabled);
+        txtBirthDate.setEnabled(enabled);
+        txtCccd.setEnabled(enabled);
+        txtAddress.setEnabled(enabled);
+        txtEmail.setEnabled(enabled);
+        txtPhone.setEnabled(enabled);
+        txtUsername.setEnabled(enabled);
+        txtPassword.setEnabled(enabled);
+        txtConfirmPassword.setEnabled(enabled);
+        btnRegister.setEnabled(enabled);
     }
 
     private void handleRegister() {
@@ -226,25 +382,67 @@ public class RegisterForm extends JFrame {
         String pass = new String(txtPassword.getPassword()).trim();
         String confirm = new String(txtConfirmPassword.getPassword()).trim();
 
-        if (fullName.isEmpty() || email.isEmpty() || username.isEmpty() || pass.isEmpty()) {
-            lblError.setText("Vui lòng điền đầy đủ các thông tin bắt buộc!");
-            return;
-        }
-
-        if (!cccd.isEmpty() && !cccd.matches("^(\\d{9}|\\d{12})$")) {
-            lblError.setText("Số CCCD/CMND phải gồm đúng 9 hoặc 12 chữ số!");
-            return;
-        }
-
-        if (!pass.equals(confirm)) {
-            lblError.setText("Mật khẩu xác nhận không khớp!");
+        // 1. Kiểm tra rỗng
+        if (fullName.isEmpty()) {
+            markError(txtFullName, "Vui lòng nhập họ và tên đầy đủ!");
             return;
         }
 
         LocalDate birthDate = birthDatePicker.getSelectedDate();
+        if (birthDate == null) {
+            markError(txtBirthDate, "Vui lòng chọn ngày sinh qua lịch!");
+            return;
+        }
+
+        if (cccd.isEmpty()) {
+            markError(txtCccd, "Vui lòng nhập số CCCD/CMND!");
+            return;
+        }
+
+        if (!cccd.matches("^(\\d{9}|\\d{12})$")) {
+            markError(txtCccd, "Số CCCD/CMND phải gồm đúng 9 hoặc 12 chữ số!");
+            return;
+        }
+
+        if (email.isEmpty()) {
+            markError(txtEmail, "Vui lòng nhập địa chỉ email!");
+            return;
+        }
+
+        if (!email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+            markError(txtEmail, "Địa chỉ email không đúng định dạng!");
+            return;
+        }
+
+        if (phone.isEmpty()) {
+            markError(txtPhone, "Vui lòng nhập số điện thoại!");
+            return;
+        }
+
+        if (!phone.matches("^0\\d{9}$")) {
+            markError(txtPhone, "Số điện thoại phải gồm 10 chữ số (bắt đầu bằng 0)!");
+            return;
+        }
+
+        if (username.isEmpty() || username.length() < 3 || username.contains(" ")) {
+            markError(txtUsername, "Tên đăng nhập tối thiểu 3 ký tự và không chứa khoảng trắng!");
+            return;
+        }
+
+        if (pass.isEmpty() || !policyChecklist.isAllSatisfied()) {
+            markError(txtPassword, "Mật khẩu chưa đáp ứng đầy đủ chính sách bảo mật!");
+            return;
+        }
+
+        if (!pass.equals(confirm)) {
+            markError(txtConfirmPassword, "Mật khẩu xác nhận không khớp!");
+            return;
+        }
+
         RegisterRequestDto req = new RegisterRequestDto(username, pass, fullName, email, phone, cccd, address, birthDate);
 
-        btnRegister.setEnabled(false);
+        // Khóa form và hiển thị trạng thái đang xử lý
+        setFormInteractive(false);
         btnRegister.setText("Đang đăng ký...");
 
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
@@ -270,9 +468,9 @@ public class RegisterForm extends JFrame {
                 } catch (Exception ex) {
                     Throwable cause = (ex.getCause() != null) ? ex.getCause() : ex;
                     SwingUtilities.invokeLater(() -> {
-                        btnRegister.setEnabled(true);
+                        setFormInteractive(true);
                         btnRegister.setText("TẠO TÀI KHOẢN");
-                        lblError.setText(cause.getMessage());
+                        markError(null, cause.getMessage());
                     });
                 }
             }

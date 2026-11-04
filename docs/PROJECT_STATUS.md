@@ -36,6 +36,15 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 
 ## 3. Nhật ký Thay đổi Dự án (Changelog)
 
+### [Sprint 20 — PR 2: Cải Tiến Form Đăng Ký & Xác Thực Trực Tuyến Thời Gian Thực] - 2026-11-04
+#### Feat & Enhanced (UI/UX)
+- **`PasswordPolicyChecklist` thời gian thực**: Component hiển thị 4 tiêu chí bảo mật mật khẩu (tối thiểu 8 ký tự, ít nhất 1 chữ hoa, ít nhất 1 chữ số, ít nhất 1 ký tự đặc biệt) với icon tick xanh khi đạt và chấm xám khi chưa đạt. Tự động ẩn khi trống và hiện mượt mà khi gõ.
+- **Tái cấu trúc 3 nhóm bố cục (Layout Groups)**: Phân tách rõ ràng 3 nhóm: "1. Thông tin cá nhân", "2. Thông tin liên hệ", "3. Tài khoản & Bảo mật" với các cặp trường song song (Ngày sinh // CCCD, Email // SĐT, Mật khẩu // Nhập lại mật khẩu).
+- **Ngày sinh bắt buộc qua lịch**: Bỏ ngày sinh mặc định (01/01/2004), yêu cầu người dùng chọn trực tiếp qua `DatePicker`, placeholder `dd/MM/yyyy`.
+- **Xác thực inline (Inline Field Validation)**: Kiểm tra định dạng khi rời ô (Focus Lost) và khi bấm Submit (outline đỏ `FlatClientProperties.OUTLINE_ERROR`), tự động xóa viền đỏ và thông báo lỗi ngay khi người dùng gõ lại.
+- **Trạng thái gửi an toàn**: Khi submit form, gọi `setFormInteractive(false)` khóa toàn bộ trường nhập, nút chuyển thành `"Đang đăng ký..."`, ngăn chặn submit trùng lặp; tự động hiển thị toast thành công và đóng form sau 1.2s.
+- **Kiểm thử tự động**: Thêm `PasswordPolicyChecklistTest` (2 tests mới), tổng số test cases đạt **110 tests xanh 100%**.
+
 ### [Sprint 19 — PR 1: Khắc Phục Lỗi Hiển Thị & Hành Vi Sai Giao Diện Đăng Nhập, Đăng Ký, Khách] - 2026-11-04
 #### Fixed & Enhanced (UI/UX)
 - **`DividerLabel` thuần Graphics2D**: Thay thế chuỗi có ký tự gạch Unicode (`─── hoặc ───`) gây lỗi ô vuông (tofu glyph) trên Windows bằng component `DividerLabel` tự vẽ hai vạch kẻ `UITheme.CARD_BORDER` và chữ "hoặc" `UITheme.TEXT_MUTED`.
