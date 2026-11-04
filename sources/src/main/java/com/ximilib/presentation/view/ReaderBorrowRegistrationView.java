@@ -619,7 +619,7 @@ public class ReaderBorrowRegistrationView extends JPanel {
                     get();
                     UiModalHelper.showToastSuccess(
                         ReaderBorrowRegistrationView.this,
-                        "Đặt mượn thành công! Vui lòng đến quầy xuất trình thẻ thư viện trong 24 giờ để nhận sách."
+                        "Đặt mượn thành công! Vui lòng đến quầy thư viện xuất trình thẻ thư viện trong vòng 24 giờ để nhận sách"
                     );
                     if (onSuccessNavigate != null) {
                         onSuccessNavigate.run();

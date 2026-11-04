@@ -167,6 +167,25 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
     }
 
     @Override
+    public boolean hasOverdueLoans(String userId) {
+        String sql = """
+            SELECT 1 FROM phieumuon pm
+            JOIN chitietphieumuon ct ON pm.Maphieumuon = ct.Maphieumuon
+            WHERE pm.ID = ? AND ct.Ngaytra IS NULL AND pm.Hantranhan < NOW() AND pm.Trangthai IN (1, 3)
+            LIMIT 1;
+        """;
+        try (Connection conn = connectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    @Override
     public boolean hasUnpaidFines(String userId) {
         String sql = """
             SELECT 1 FROM phieuphat f

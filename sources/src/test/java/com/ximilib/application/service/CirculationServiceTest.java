@@ -91,7 +91,7 @@ class CirculationServiceTest {
     }
 
     @Test
-    @DisplayName("BR-02: Chặn mượn quá 3 cuốn mang về nhà")
+    @DisplayName("BR-02: Chặn mượn quá 3 cuốn mang về nhà (SRS UC 3.2.5 Ngoại lệ b)")
     void testBlockExceedingThreeHomeLoans() {
         repository.setActiveHomeLoansCount(2);
 
@@ -99,7 +99,31 @@ class CirculationServiceTest {
             circulationService.createLoan("LIB-2026-00001", List.of("BK001-C01", "BK001-C02"), LoanType.VE_NHA, "");
         });
 
-        assertTrue(ex.getMessage().contains("tối đa 3 cuốn sách mang về nhà"));
+        assertEquals("Bạn đã đạt giới hạn mượn tối đa 3 cuốn sách mang về", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("SRS UC 3.2.5 Ngoại lệ a: Độc giả có sách quá hạn chưa hoàn trả bị chặn mượn")
+    void testBorrowBlockedWhenHasOverdueBook() {
+        repository.setHasOverdueLoans(true);
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {
+            circulationService.createLoan("LIB-2026-00001", List.of("BK001-C01"), LoanType.VE_NHA, "");
+        });
+
+        assertEquals("Bạn có sách quá hạn chưa hoàn trả. Vui lòng trả sách trước khi mượn tiếp", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("SRS UC 3.2.5 Ngoại lệ c: Thẻ độc giả hết hạn sử dụng bị chặn mượn")
+    void testBorrowBlockedWhenCardExpired() {
+        repository.setCardExpired(true);
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {
+            circulationService.createLoan("LIB-2026-00001", List.of("BK001-C01"), LoanType.VE_NHA, "");
+        });
+
+        assertEquals("Thẻ thư viện của bạn đã hết hạn sử dụng. Vui lòng liên hệ thủ thư để gia hạn", ex.getMessage());
     }
 
     @Test
@@ -149,6 +173,8 @@ class CirculationServiceTest {
     private static class StubCirculationRepository implements CirculationRepository, CirculationQueryPort {
         private boolean hasUnpaidFine = false;
         private int activeHomeLoansCount = 0;
+        private boolean hasOverdueLoans = false;
+        private boolean cardExpired = false;
         private final Map<String, Integer> ticketStatuses = new HashMap<>();
         private final Map<String, LocalDateTime> ticketDueDates = new HashMap<>();
         private final Set<String> renewedTickets = new HashSet<>();
@@ -156,6 +182,8 @@ class CirculationServiceTest {
 
         public void setHasUnpaidFine(boolean v) { this.hasUnpaidFine = v; }
         public void setActiveHomeLoansCount(int c) { this.activeHomeLoansCount = c; }
+        public void setHasOverdueLoans(boolean v) { this.hasOverdueLoans = v; }
+        public void setCardExpired(boolean v) { this.cardExpired = v; }
         public int getTicketStatus(String tid) { return ticketStatuses.getOrDefault(tid, -1); }
 
         public void addActiveLoan(String copyBarcode, LocalDateTime dueDate, BigDecimal coverPrice) {
@@ -175,7 +203,12 @@ class CirculationServiceTest {
 
         @Override
         public Optional<UserCardInfo> findCardByIdentifier(String identifier) {
-            return Optional.of(new UserCardInfo("ND004", "Trần Văn An", "LIB-2026-00001", true, false));
+            return Optional.of(new UserCardInfo("ND004", "Trần Văn An", "LIB-2026-00001", true, cardExpired));
+        }
+
+        @Override
+        public boolean hasOverdueLoans(String userId) {
+            return hasOverdueLoans;
         }
 
         @Override

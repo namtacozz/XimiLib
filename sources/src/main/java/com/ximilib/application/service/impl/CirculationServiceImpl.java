@@ -82,7 +82,12 @@ public class CirculationServiceImpl implements CirculationService {
             throw new IllegalStateException("Thẻ thư viện của bạn đọc đang bị khóa. Vui lòng liên hệ thủ thư.");
         }
         if (card.cardExpired()) {
-            throw new IllegalStateException("Thẻ thư viện đã hết hạn. Vui lòng gia hạn thẻ trước khi mượn sách.");
+            throw new IllegalStateException("Thẻ thư viện của bạn đã hết hạn sử dụng. Vui lòng liên hệ thủ thư để gia hạn");
+        }
+
+        // 1b. Kiểm tra sách quá hạn chưa trả (SRS UC 3.2.5 Ngoại lệ a & BR-07)
+        if (repo.hasOverdueLoans(card.userId())) {
+            throw new IllegalStateException("Bạn có sách quá hạn chưa hoàn trả. Vui lòng trả sách trước khi mượn tiếp");
         }
 
         // 2. Kiểm tra nợ phạt (BR-07)
@@ -90,12 +95,11 @@ public class CirculationServiceImpl implements CirculationService {
             throw new IllegalStateException("Bạn đọc đang có khoản phạt chưa thanh toán. Vui lòng thanh toán trước khi mượn sách (Quy tắc BR-07).");
         }
 
-        // 3. Kiểm tra hạn mức mượn sách mang về nhà (BR-02: Tối đa 3 cuốn; Mượn tại chỗ không giới hạn)
+        // 3. Kiểm tra hạn mức mượn sách mang về nhà (BR-02: Tối đa 3 cuốn; Mượn tại chỗ không giới hạn - SRS UC 3.2.5 Ngoại lệ b)
         if (loanType == LoanType.VE_NHA) {
             int activeHomeLoans = repo.countActiveHomeLoans(card.userId());
             if (activeHomeLoans + copyBarcodes.size() > LibraryPolicy.MAX_BOOKS_BORROW) {
-                throw new IllegalStateException("Mỗi bạn đọc chỉ được mượn tối đa 3 cuốn sách mang về nhà (Quy tắc BR-02). Hiện đang mượn: "
-                    + activeHomeLoans + " cuốn.");
+                throw new IllegalStateException("Bạn đã đạt giới hạn mượn tối đa 3 cuốn sách mang về");
             }
         }
 

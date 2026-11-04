@@ -26,6 +26,10 @@ public interface CirculationRepository {
 
     int countActiveHomeLoans(String userId);
 
+    default boolean hasOverdueLoans(String userId) {
+        return false;
+    }
+
     boolean hasUnpaidFines(String userId);
 
     void createBorrowTicket(String ticketId, String userId, String cardId, LoanType loanType,
