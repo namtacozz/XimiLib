@@ -1,0 +1,27 @@
+# ==============================================================================
+# XimiLib - Style Rule Baseline Exceptions (Step 0)
+# ==============================================================================
+# File này ghi nhận hạn mức tối đa các vi phạm hiện hữu ở Baseline (Bước 0).
+# Trong các Bước tiếp theo (Bước 1 -> Bước 4), số lượng này sẽ giảm dần về 0.
+# Bất kỳ mã nguồn mới nào làm tăng số vi phạm vượt ngưỡng này sẽ bị StyleRuleTest chặn.
+
+# 1. Số lượng file package-info.java (sẽ được xóa trong các PR refactor)
+package_info.allowed=26
+
+# 2. Số lượng dòng comment (//, /*, Javadoc) (sẽ được xóa sạch theo Luật A)
+comments.allowed=1776
+
+# 3. Số lượng cú pháp Stream API, Optional, var (sẽ được thay bằng loop/if theo Luật C)
+stream_optional_var.allowed=42
+
+# 4. Số lượng định danh chứa tiếng Việt (đã đạt chuẩn 0)
+vietnamese_identifiers.allowed=0
+
+# 5. Số lượng mã màu hex hard-code ngoài UITheme trong presentation
+hardcoded_hex.allowed=21
+
+# 6. Số lượng gọi trực tiếp JOptionPane/JDialog (phải qua UiModalHelper)
+joptionpane_jdialog.allowed=6
+
+# 7. Số lượng chuỗi tiếng Việt trong presentation ngoài UiText (sẽ chuyển vào UiText ở Bước 3)
+vietnamese_presentation_strings.allowed=996

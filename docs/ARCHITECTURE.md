@@ -372,9 +372,13 @@ public interface PaymentGateway {
   5. Cập nhật UI thông báo thành công tức thời qua `UiModalHelper.showToastSuccess(parent, "Giao dịch thành công!")` và tự động đóng modal.
 
 ## 7. Coding Standards & Thực hành Kỹ thuật
-### 7.1 Quy ước Đặt tên (Naming Conventions)
-- **Java:** Class đặt theo `PascalCase` (`BorrowTicketService`), biến và hàm theo `camelCase` (`findActiveLoans()`), hằng số theo `UPPER_SNAKE_CASE` (`MAX_BORROW_DAYS`).
-- **Database:** Tên bảng và tên cột dùng chữ thường không dấu, phân cách bằng dấu gạch dưới `snake_case` (`chitietphieumuon`, `ngay_du_kien_tra`).
+### 7.1 Quy ước Đặt tên (Student Low-Code Style)
+- **Lớp (Class/Interface):** Đặt theo `PascalCase` danh từ (`BookService`, `BookRepositoryImpl`, `UserSession`, `MainDashboardFrame`).
+- **Hàm (Method):** Đặt theo `PascalCase` động từ + danh từ theo chuẩn sinh viên đồ án (`GetBookInfo()`, `FindUserByEmail()`, `CalculateOverdueFine()`, `IsCardExpired()`). Giữ nguyên các hàm override bắt buộc của JDK/Swing/FlatLaf/JUnit (`run`, `actionPerformed`, `paintComponent`, `equals`, `toString`).
+- **Biến & Thuộc tính (Variable/Field):** Đặt theo `camelCase` mô tả rõ mục đích (`bookTitle`, `overdueDays`, `finePerDay`, `readerCardId`). Biến boolean bắt đầu bằng `is/has/can`.
+- **Hằng số (Constants):** Đặt theo `UPPER_SNAKE_CASE` khai báo tập trung một nơi (`MAX_BORROW_COUNT`, `BORROW_DAYS`, `FINE_PER_DAY`).
+- **Database Mapping:** Giữ nguyên tên bảng/cột MySQL trong câu SQL; ánh xạ sang định danh tiếng Anh ở Java (`Masach` -> `bookId`, `Maphieumuon` -> `loanId`, `Tienphat` -> `fineAmount`, `Tensach` -> `title`). Chuỗi SQL đặt trong hằng số tên rõ nghĩa.
+- **Chuỗi hiển thị UI:** 100% chuỗi tiếng Việt có dấu đưa vào lớp `UiText`. Mọi mã màu đưa vào `UITheme`. Chi tiết xem `docs/CODING_STYLE.md` và `AGENTS.md` §10.
 
 ### 7.2 Quản lý Ngoại lệ (Exception Handling Matrix)
 Sử dụng kiến trúc Custom Unchecked Exceptions kế thừa từ `XimiException`:

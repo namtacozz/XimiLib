@@ -1,8 +1,11 @@
 <!--
-Version: 1.2 | Last updated: 2026-11-04 | Owner: Architecture Team
-Related files: docs/ARCHITECTURE.md, docs/DATABASE_SCHEMA.md, docs/BUSINESS_RULES.md, docs/PROJECT_STATUS.md, docs/TRACEABILITY.md
+Version: 1.3 | Last updated: 2026-11-04 | Owner: Architecture Team
+Related files: docs/ARCHITECTURE.md, docs/DATABASE_SCHEMA.md, docs/BUSINESS_RULES.md, docs/PROJECT_STATUS.md, docs/TRACEABILITY.md, docs/CODING_STYLE.md
 Quy ước nhãn: [TBD] = chưa chốt, cần xác nhận | [ASSUMPTION] = đề xuất kỹ thuật chưa được nghiệm thu
 -->
+
+> [!IMPORTANT]
+> **Mọi sửa đổi, kể cả do AI thực hiện, phải tuân thủ §10 và qua `StyleRuleTest`. Không đưa lại comment, stream, Optional, tên tiếng Việt vào mã.**
 
 # AGENTS.md — Điểm vào cho AI Agent (XimiLib)
 
@@ -26,9 +29,10 @@ Quy ước nhãn: [TBD] = chưa chốt, cần xác nhận | [ASSUMPTION] = đề
 
 ## 3. Nguồn Sự Thật & Thứ tự Ưu tiên khi Mâu thuẫn
 1. **Tài liệu Đặc tả Yêu cầu Phần mềm (SRS gốc, IEEE Std 830-1998)**: BẬC CAO NHẤT (YC-01..YC-14, UC 3.2.1..3.2.9, Mục 4 Phi chức năng).
-2. `docs/DATABASE_SCHEMA.md` > `docs/BUSINESS_RULES.md` > `docs/ARCHITECTURE.md` > `AGENTS.md` > `docs/PROJECT_STATUS.md` > `README.md`.
+2. `docs/DATABASE_SCHEMA.md` > `docs/BUSINESS_RULES.md` > `docs/ARCHITECTURE.md` > `AGENTS.md` > `docs/CODING_STYLE.md` > `docs/PROJECT_STATUS.md` > `README.md`.
 3. **Khi tài liệu nội bộ mâu thuẫn SRS**: Sửa tài liệu nội bộ theo SRS. Khi SRS không đề cập: Giữ tài liệu hiện hành, không tự suy diễn.
 4. **Khi SRS không khả thi với kiến trúc hiện tại hoặc thay đổi quá lớn**: TUYỆT ĐỐI KHÔNG tự quyết. Ghi vào **Deviation Register** (`docs/TRACEABILITY.md`) kèm 2-3 phương án và dừng chờ người dùng phê duyệt trước khi lập trình.
+5. **Quy tắc Đúng - Sai vs Phong cách**: Khi quy tắc phong cách (§10, R-13..R-17) mâu thuẫn quy tắc đúng-sai (R-01..R-12), quy tắc đúng-sai thắng. Không vì làm code "ngắn" hay "đẹp" mà phá vỡ ranh giới tầng, giao dịch an toàn hay kiểm quyền.
 
 ## 4. Lệnh build, test, chạy
 - Build: `mvn clean package -f sources/pom.xml -DskipTests` (hoặc `run.bat` / `scripts/build.bat`)
@@ -100,10 +104,164 @@ Tên cột viết thường; chi tiết cột đầy đủ xem `DATABASE_SCHEMA.
 | Cấu hình quy định | System Config | `SystemConfig` | `cauhinh` / `khoa` |
 | Nhật ký kiểm toán | Audit Log | `AuditLog` | `auditlog` / `id` (Migration V5) |
 
-## 9. Trạng thái Các Vấn Đề Kỹ Thuật (Đã Giải Quyết 100%)
-1. **VietQR**: Đã tích hợp thành công qua chuẩn Napas247 VietQR (`VietQrModalPanel`), sinh mã QR động kèm nội dung đối soát `XML{Maphieuphat}`, tự động lưu giao dịch vào bảng `thanhtoan`.
-2. **Cờ soft-delete**: Đã thống nhất 100% dùng cột `IsDeleted` (BOOLEAN DEFAULT FALSE) theo `DATABASE_SCHEMA.md` v1.2 và quy tắc R-03.
-3. **Phiếu mượn khi báo mất**: Đã hiện thực chuẩn FSM 2 bước theo SRS UC-9 và R-10: Khi báo mất chuyển `CHO_XU_LY_BOI_THUONG (4)`; sau khi thanh toán tiền đền bù mới chính thức đóng sang `DA_MAT (5)`.
-4. **Scale tiền tệ**: Đã thống nhất `DECIMAL(12,2)` trong MySQL và `BigDecimal` (scale 2, `RoundingMode.HALF_UP`) trong Java theo R-04.
-5. **Lệnh build/run**: Đã xác minh hoàn chỉnh trên cả Windows và Linux/macOS (`scripts/build.bat`, `scripts/build.sh`, `run.bat`, `run.sh`, `dist/XimiLib.jar`). Khởi động nguội < 1 giây.
-6. **UI Component Overrides & Shadow Classes**: Đã giải quyết 100% lỗi `NoSuchMethodError` (`DatePicker`) và `NullPointerException: VolatileImage.createGraphics()` (`GlassPanePopup`) bằng 2 shadow class an toàn `raven.datetime.util.Utils` và `raven.popup.component.ComponentImageUtils`. Toàn bộ nút đóng popup dùng nút vector `Graphics2D` độc lập font hệ thống; form đăng nhập hỗ trợ khóa tương tác `setFormInteractive(false)` chống spam request.
+## 10. Phong cách mã bắt buộc (Student Low-Code Style)
+Tuân thủ toàn bộ các quy tắc bên dưới để mã nguồn đạt tính tự giải thích, trực quan, sinh viên năm hai có thể giải thích trôi chảy khi vấn đáp đồ án với giảng viên:
+
+| ID | Quy tắc | Nội dung chi tiết |
+|---|---|---|
+| R-13 | **Không chú thích** | Không dùng `//`, `/* */`, Javadoc, mã bị comment-out, xóa các file `package-info.java`. Mã nguồn tự giải thích thông qua tên gọi tường minh; khi cần diễn giải phải tách hàm con có tên rõ nghĩa. (Ngoại lệ: file SQL, file cấu hình properties, tài liệu `.md`). |
+| R-14 | **Định danh 100% tiếng Anh** | Tên class, method, biến, tham số, hằng số, enum 100% tiếng Anh không viết tắt (`bk`, `tmp`, `lst`). Hàm đặt theo `PascalCase` (`GetBookInfo()`, `FindUserByEmail()`, `CalculateOverdueFine()`, `IsCardExpired()`). Biến đặt theo `camelCase` (`bookTitle`, `overdueDays`). Hằng số `UPPER_SNAKE_CASE`. Giữ nguyên tên bắt buộc của JDK/Swing/JUnit khi override (`run`, `actionPerformed`, `paintComponent`). Toàn bộ chuỗi hiển thị tiếng Việt trên UI nằm tập trung trong lớp `UiText`. |
+| R-15 | **Cấu trúc đơn giản (Low-Code)** | Chỉ dùng các cấu trúc căn bản: biến, `if`/`else`, `for`/`while`/`for-each`, `switch`, `try`/`catch`/`finally`, lớp thường, interface đơn giản, `ArrayList`, `HashMap`. **Cấm**: Stream API (`.stream()`, `Collectors`), Optional chuỗi, `var`, record, sealed class, pattern matching, builder/fluent API, reflection, annotation tự chế, ternary lồng, lambda phức tạp (chỉ cho phép lambda 1 dòng cho Swing listener). Hàm $\le$ ~25 dòng, lớp $\le$ ~300 dòng, $\le$ 3 cấp thụt lề, $\le$ 4 tham số. |
+| R-16 | **Dễ giải thích hơn nhanh hoặc ngắn** | Ưu tiên giải pháp dễ hiểu, dễ trình bày khi bảo vệ đồ án; ưu tiên hàm có sẵn của JDK, Swing, FlatLaf và thư viện whitelist. Không thêm bất kỳ thư viện bên ngoài nào. Giảm thụt lề bằng cách return sớm (`guard clauses`). |
+| R-17 | **Chuẩn hóa chữ và màu sắc** | Toàn bộ chữ hiển thị đi qua `UiText`, viết giọng tự nhiên theo phong cách humanizer (ngắn gọn, bỏ sáo rỗng, không emoji trang trí); giữ nguyên văn câu thông báo lỗi/thành công của SRS. Giao diện sử dụng 100% bảng màu tập trung `UITheme`, cấm hard-code mã màu hex trong View. |
+
+---
+
+## 11. Cách sửa đúng phong cách (10 ví dụ Trước / Sau)
+
+#### Ví dụ 1: Thay thế Stream API / filter / map bằng vòng lặp for-each cơ bản
+```java
+// TRƯỚC (Phức tạp, khó debug từng bước):
+List<String> titles = books.stream()
+    .filter(b -> b.getAvailableCopies() > 0)
+    .map(Book::getTitle)
+    .collect(Collectors.toList());
+
+// SAU (Tự giải thích, sinh viên dễ giải thích):
+List<String> titles = new ArrayList<>();
+for (Book book : books) {
+    if (book.hasAvailableCopies()) {
+        titles.add(book.getTitle());
+    }
+}
+```
+
+#### Ví dụ 2: Thay thế Optional lồng nhau bằng kiểm tra if-null truyền thống
+```java
+// TRƯỚC (Functional Optional):
+return userRepository.findById(id)
+    .map(User::getFullName)
+    .orElse("Chưa xác định");
+
+// SAU (Trực quan, dễ đặt breakpoint):
+User user = userRepository.FindById(id);
+if (user != null) {
+    return user.getFullName();
+}
+return "Chưa xác định";
+```
+
+#### Ví dụ 3: Đổi tên hàm sang PascalCase và định danh tiếng Anh rõ nghĩa
+```java
+// TRƯỚC:
+public int tinhTienPhat(PhieuMuon pm, int soNgay) { ... }
+
+// SAU:
+public BigDecimal CalculateOverdueFine(LoanTicket loanTicket, int overdueDays) { ... }
+```
+
+#### Ví dụ 4: Xóa bỏ Javadoc và chú thích rườm rà, dùng tên hàm tự giải thích
+```java
+// TRƯỚC:
+/**
+ * Hàm này dùng để kiểm tra độc giả có mượn được sách không
+ * @param reader độc giả cần kiểm tra
+ * @return true nếu được mượn
+ */
+// Kiểm tra độc giả có bị phạt không
+if (reader.getTienPhat().compareTo(BigDecimal.ZERO) > 0) {
+    return false; // Còn nợ phạt nên không cho mượn
+}
+
+// SAU:
+if (HasUnpaidFine(reader)) {
+    return false;
+}
+```
+
+#### Ví dụ 5: Thay từ khóa `var` bằng kiểu dữ liệu tường minh
+```java
+// TRƯỚC:
+var loans = loanRepository.findAllActive();
+var total = BigDecimal.ZERO;
+
+// SAU:
+List<LoanTicket> loans = loanRepository.FindAllActive();
+BigDecimal total = BigDecimal.ZERO;
+```
+
+#### Ví dụ 6: Thay thế toán tử 3 ngôi lồng nhau bằng if-else và return sớm
+```java
+// TRƯỚC:
+String status = isOverdue ? (finePaid ? "Đã phạt" : "Chờ phạt") : (returned ? "Đã trả" : "Đang mượn");
+
+// SAU:
+if (isOverdue) {
+    if (finePaid) {
+        return UiText.STATUS_FINE_PAID;
+    }
+    return UiText.STATUS_WAITING_FINE;
+}
+if (returned) {
+    return UiText.STATUS_RETURNED;
+}
+return UiText.STATUS_BORROWING;
+```
+
+#### Ví dụ 7: SQL với tham số PreparedStatement và hằng số SQL rõ nghĩa
+```java
+// TRƯỚC:
+String sql = "SELECT * FROM sach WHERE tensach LIKE '%" + keyword + "%'";
+ResultSet rs = stmt.executeQuery(sql);
+
+// SAU:
+private static final String SELECT_BOOKS_BY_TITLE = "SELECT * FROM sach WHERE IsDeleted = FALSE AND tensach LIKE ?";
+PreparedStatement stmt = conn.prepareStatement(SELECT_BOOKS_BY_TITLE);
+stmt.setString(1, "%" + keyword + "%");
+ResultSet rs = stmt.executeQuery();
+```
+
+#### Ví dụ 8: Chuỗi hiển thị tiếng Việt tập trung trong `UiText`
+```java
+// TRƯỚC (Hard-code tiếng Việt rải rác trong View):
+btnSave.setText("Lưu thông tin sách");
+lblMessage.setText("Thêm sách thành công!");
+
+// SAU:
+btnSave.setText(UiText.BUTTON_SAVE_BOOK);
+lblMessage.setText(UiText.MSG_BOOK_ADD_SUCCESS);
+```
+
+#### Ví dụ 9: Token màu sắc tập trung trong `UITheme`
+```java
+// TRƯỚC (Hard-code mã hex):
+btnSubmit.setBackground(Color.decode("#DB2777"));
+lblError.setForeground(new Color(185, 28, 28));
+
+// SAU:
+btnSubmit.setBackground(UITheme.PRIMARY);
+lblError.setForeground(UITheme.DANGER);
+```
+
+#### Ví dụ 10: Quản lý Transaction tường minh thay vì callback lồng
+```java
+// TRƯỚC (Callback functional):
+transactionCoordinator.executeInTransaction(ctx -> {
+    loanRepo.create(loan);
+    copyRepo.updateStatus(copyId, STATUS);
+    return true;
+});
+
+// SAU (Tường minh Begin, Commit, Rollback trong Application Service):
+try {
+    transactionManager.BeginTransaction();
+    loanRepository.CreateLoan(loan);
+    copyRepository.UpdateStatus(copyId, BookCopyStatus.DANG_MUON);
+    transactionManager.CommitTransaction();
+} catch (Exception ex) {
+    transactionManager.RollbackTransaction();
+    throw new BorrowBookException(UiText.MSG_BORROW_FAILED, ex);
+} finally {
+    transactionManager.EndTransaction();
+}
+```
