@@ -22,13 +22,20 @@ sources/dependency-reduced-pom.xml
 *.log
 logs/*
 !logs/.gitkeep
+sources/logs/
 
 # Sensitive configurations
 config/db.properties
 
 # Database backups (preserve folder structure)
-database/backups/*
-!database/backups/.gitkeep
+# Temporary development & backup folders
+backups/
+import-report/
+tools/
+*.bak
+*.orig
+*.tmp
+
 
 # IDE & Editor specific files
 .vscode/.project
