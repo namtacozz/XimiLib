@@ -555,10 +555,12 @@ public class StaffHomePanel extends JPanel {
                 scrollTarget = -1;
                 carouselTimer.stop();
                 scrollNewBooks.repaint();
+                pnlNewBooksContainer.repaint();
             } else {
                 float ease = 1.0f - (float) Math.pow(1.0f - progress, 3);
                 hBar.setValue(start + Math.round(distance * ease));
                 scrollNewBooks.repaint();
+                pnlNewBooksContainer.repaint();
             }
         });
         carouselTimer.start();
@@ -791,7 +793,8 @@ public class StaffHomePanel extends JPanel {
                             newBooksCardLayout.show(pnlNewBooksContainer, "EMPTY");
                         } else {
                             JPanel tilesRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 0));
-                            tilesRow.setOpaque(false);
+                            tilesRow.setOpaque(true);
+                            tilesRow.setBackground(UITheme.PAGE_BG);
 
                             for (StaffDashboardDto.NewBookTileDto b : list) {
                                 tilesRow.add(new BookCoverTile(
@@ -803,9 +806,11 @@ public class StaffHomePanel extends JPanel {
 
                             scrollNewBooks = new JScrollPane(tilesRow);
                             scrollNewBooks.setBorder(null);
-                            scrollNewBooks.setOpaque(false);
-                            scrollNewBooks.getViewport().setOpaque(false);
-                            scrollNewBooks.getViewport().setScrollMode(JViewport.SIMPLE_SCROLL_MODE);
+                            scrollNewBooks.setOpaque(true);
+                            scrollNewBooks.setBackground(UITheme.PAGE_BG);
+                            scrollNewBooks.getViewport().setOpaque(true);
+                            scrollNewBooks.getViewport().setBackground(UITheme.PAGE_BG);
+                            scrollNewBooks.getViewport().setScrollMode(JViewport.BLIT_SCROLL_MODE);
                             scrollNewBooks.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
                             scrollNewBooks.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
                             scrollNewBooks.getHorizontalScrollBar().setUnitIncrement(24);

@@ -57,7 +57,7 @@ public class MainDashboardFrame extends JFrame {
     }
 
     public MainDashboardFrame(User user) {
-        this(user, "Trang chủ");
+        this(user, (user != null && user.isGuest()) ? "Kho Sách" : "Trang chủ");
     }
 
     public MainDashboardFrame(User user, String initialRoute) {
@@ -82,7 +82,9 @@ public class MainDashboardFrame extends JFrame {
         initUI();
         loadUnreadNotificationsAsync();
 
-        if (initialRoute != null) {
+        if (this.currentUser != null && this.currentUser.isGuest()) {
+            navigateTo("Kho Sách");
+        } else if (initialRoute != null) {
             navigateTo(initialRoute);
         }
     }
@@ -108,12 +110,11 @@ public class MainDashboardFrame extends JFrame {
         String r = routeName.trim();
 
         if (currentUser.isGuest()) {
-            boolean isAllowed = "Trang chủ".equalsIgnoreCase(r) || "HOME".equalsIgnoreCase(r)
-                || "Khám phá sách".equalsIgnoreCase(r) || "Kho sách".equalsIgnoreCase(r)
-                || "Hộp thư góp ý".equalsIgnoreCase(r) || "Góp ý & Phản hồi".equalsIgnoreCase(r)
+            boolean isAllowed = "Kho Sách".equalsIgnoreCase(r) || "Kho sách".equalsIgnoreCase(r)
+                || "Khám phá sách".equalsIgnoreCase(r) || "CATALOG".equalsIgnoreCase(r)
                 || "Trợ giúp".equalsIgnoreCase(r) || "Hướng dẫn".equalsIgnoreCase(r);
             if (!isAllowed) {
-                promptGuestLogin("Tính năng này yêu cầu đăng nhập tài khoản thành viên.<br><br>Vui lòng đăng nhập hoặc liên hệ thủ thư tại quầy để được cấp thẻ bạn đọc!");
+                promptGuestLogin(null);
                 return;
             }
         }
@@ -123,18 +124,18 @@ public class MainDashboardFrame extends JFrame {
             if (staffHomePanel != null) staffHomePanel.loadAllDataAsync();
             cardLayout.show(centerContainer, "HOME");
             sidebarPanel.setActiveRoute("Trang chủ");
-        } else if ("Kho sách".equalsIgnoreCase(r) || "Khám phá sách".equalsIgnoreCase(r) || "CATALOG".equalsIgnoreCase(r) || "Đầu sách".equalsIgnoreCase(r)) {
+        } else if ("Kho Sách".equalsIgnoreCase(r) || "Kho sách".equalsIgnoreCase(r) || "Khám phá sách".equalsIgnoreCase(r) || "CATALOG".equalsIgnoreCase(r) || "Đầu sách".equalsIgnoreCase(r)) {
             if (bookTabbedView != null) bookTabbedView.selectTab(0);
             cardLayout.show(centerContainer, "KHO_SACH");
-            sidebarPanel.setActiveRoute((currentUser.isReader() || currentUser.isGuest()) ? "Khám phá sách" : "Kho sách");
+            sidebarPanel.setActiveRoute("Kho Sách");
         } else if ("Quản lý thể loại".equalsIgnoreCase(r)) {
             if (bookTabbedView != null) bookTabbedView.selectTab(1);
             cardLayout.show(centerContainer, "KHO_SACH");
-            sidebarPanel.setActiveRoute("Kho sách");
+            sidebarPanel.setActiveRoute("Kho Sách");
         } else if ("Thùng rác & Khôi phục".equalsIgnoreCase(r)) {
             if (bookTabbedView != null) bookTabbedView.selectTab(2);
             cardLayout.show(centerContainer, "KHO_SACH");
-            sidebarPanel.setActiveRoute("Kho sách");
+            sidebarPanel.setActiveRoute("Kho Sách");
         } else if ("Mượn – Trả".equalsIgnoreCase(r) || "Bàn lưu hành (Desk)".equalsIgnoreCase(r) || "DESK".equalsIgnoreCase(r)) {
             if (circulationTabbedView != null) circulationTabbedView.selectTab(0);
             cardLayout.show(centerContainer, "MUON_TRA");
@@ -157,14 +158,14 @@ public class MainDashboardFrame extends JFrame {
             if (adminTabbedView != null) adminTabbedView.selectTab(1);
             cardLayout.show(centerContainer, "QUAN_TRI");
             sidebarPanel.setActiveRoute("Quản trị hệ thống");
-        } else if ("Sách của tôi".equalsIgnoreCase(r) || "Phiếu mượn của tôi".equalsIgnoreCase(r) || "MY_LOANS".equalsIgnoreCase(r) || "MY_FINES".equalsIgnoreCase(r)) {
+        } else if ("Phiếu mượn của tôi".equalsIgnoreCase(r) || "Sách của tôi".equalsIgnoreCase(r) || "MY_LOANS".equalsIgnoreCase(r) || "MY_FINES".equalsIgnoreCase(r)) {
             if (readerTabbedView != null) readerTabbedView.selectTab(0);
             cardLayout.show(centerContainer, "SACH_CUA_TOI");
-            sidebarPanel.setActiveRoute("Sách của tôi");
+            sidebarPanel.setActiveRoute("Phiếu mượn của tôi");
         } else if ("Đăng ký mượn sách".equalsIgnoreCase(r)) {
             if (readerTabbedView != null) readerTabbedView.selectTab(1);
             cardLayout.show(centerContainer, "SACH_CUA_TOI");
-            sidebarPanel.setActiveRoute("Sách của tôi");
+            sidebarPanel.setActiveRoute("Phiếu mượn của tôi");
         } else if ("Hộp thư góp ý".equalsIgnoreCase(r) || "Góp ý & Phản hồi".equalsIgnoreCase(r)) {
             cardLayout.show(centerContainer, "GOP_Y");
             sidebarPanel.setActiveRoute("Hộp thư góp ý");
@@ -354,7 +355,7 @@ public class MainDashboardFrame extends JFrame {
                 if (now - lastClick > 300) {
                     lastClick = now;
                     if (currentUser.isGuest()) {
-                        promptGuestLogin("Bạn đang truy cập hệ thống với tư cách Khách viếng thăm.<br><br>Vui lòng đăng nhập tài khoản chính thức để quản lý hồ sơ và đổi mật khẩu!");
+                        promptGuestLogin(null);
                     } else {
                         UserProfileModalPanel.show(MainDashboardFrame.this, currentUser);
                     }
@@ -388,7 +389,7 @@ public class MainDashboardFrame extends JFrame {
                 if (bookCatalogView != null) {
                     bookCatalogView.setSearchKeyword(query);
                 }
-                navigateTo(currentUser.isReader() ? "Khám phá sách" : "Kho sách");
+                navigateTo("Kho Sách");
             }
         });
         searchBox.add(txtSearchTop, BorderLayout.CENTER);
@@ -513,26 +514,28 @@ public class MainDashboardFrame extends JFrame {
     }
 
     public void promptGuestLogin(String message) {
-        UiModalHelper.showConfirm(
+        UiModalHelper.showMessage(
             this,
-            "Yêu Cầu Đăng Nhập",
-            message + "<br><br>Bạn có muốn chuyển sang màn hình Đăng Nhập ngay bây giờ không?",
-            () -> {
-                dispose();
-                new com.ximilib.presentation.view.LoginForm().setVisible(true);
-            }
+            "Yêu cầu đăng nhập",
+            "Để đăng ký mượn sách vui lòng đăng nhập."
         );
     }
 
     public void openBorrowRegistration(com.ximilib.application.dto.BookSummaryDto book) {
         if (currentUser.isGuest()) {
-            promptGuestLogin("Bạn đang duyệt thư viện với tư cách Khách viếng thăm.<br><br>"
-                + "Để đăng ký mượn sách, vui lòng <b>Đăng nhập</b> tài khoản bạn đọc hoặc liên hệ thủ thư tại quầy để được cấp thẻ thư viện.");
+            promptGuestLogin(null);
             return;
         }
         if (readerBorrowView != null && book != null) {
             readerBorrowView.selectBook(book);
         }
         navigateTo("Đăng ký mượn sách");
+    }
+
+    public void searchCatalog(String keyword) {
+        if (bookCatalogView != null && keyword != null) {
+            bookCatalogView.setSearchKeyword(keyword.trim());
+        }
+        navigateTo("Kho Sách");
     }
 }

@@ -429,6 +429,144 @@ public class IconFactory {
         g2.draw(clapper);
     }
 
+    public static Icon createCloseIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            int pad = Math.max(3, size / 4);
+            g2.drawLine(pad, pad, w - pad, h - pad);
+            g2.drawLine(w - pad, pad, pad, h - pad);
+        });
+    }
+
+    public static Icon createLockIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            int bodyY = h / 2 - 1;
+            int bodyW = w - 4;
+            int bodyH = h / 2;
+            g2.drawRoundRect(2, bodyY, bodyW, bodyH, 3, 3);
+            int shackleW = w / 2;
+            int shackleX = (w - shackleW) / 2;
+            g2.drawArc(shackleX, 2, shackleW, bodyY * 2 - 2, 0, 180);
+            g2.fillRect(w / 2 - 1, bodyY + 3, 2, 4);
+        });
+    }
+
+    public static Icon createUnlockIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            int bodyY = h / 2 - 1;
+            int bodyW = w - 4;
+            int bodyH = h / 2;
+            g2.drawRoundRect(2, bodyY, bodyW, bodyH, 3, 3);
+            int shackleW = w / 2;
+            int shackleX = (w - shackleW) / 2 + 3;
+            g2.drawArc(shackleX, 1, shackleW, bodyY * 2 - 2, 0, 180);
+            g2.fillRect(w / 2 - 1, bodyY + 3, 2, 4);
+        });
+    }
+
+    public static Icon createClockIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.drawOval(2, 2, w - 4, h - 4);
+            int cx = w / 2;
+            int cy = h / 2;
+            g2.drawLine(cx, cy, cx, cy - (h / 4));
+            g2.drawLine(cx, cy, cx + (w / 4), cy);
+        });
+    }
+
+    public static Icon createRefreshIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.drawArc(3, 3, w - 6, h - 6, 45, 270);
+            int arrowX = w / 2 + (w / 4);
+            int arrowY = 3;
+            g2.drawLine(arrowX, arrowY, arrowX - 3, arrowY + 4);
+            g2.drawLine(arrowX, arrowY, arrowX + 4, arrowY + 3);
+        });
+    }
+
+    public static Icon createExcelIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.drawRoundRect(2, 2, w - 4, h - 4, 3, 3);
+            g2.drawLine(2, h / 3 + 1, w - 3, h / 3 + 1);
+            g2.drawLine(2, (h * 2) / 3, w - 3, (h * 2) / 3);
+            g2.drawLine(w / 2, 2, w / 2, h - 3);
+        });
+    }
+
+    public static Icon createPrintIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.drawRect(4, 2, w - 8, 4);
+            g2.drawRoundRect(2, 6, w - 4, h - 10, 3, 3);
+            g2.drawRect(4, h - 6, w - 8, 4);
+            g2.drawLine(w - 6, 9, w - 5, 9);
+        });
+    }
+
+    public static Icon createAddUserIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            int headR = w / 5;
+            g2.drawOval(w / 3 - headR, 2, headR * 2, headR * 2);
+            g2.drawArc(1, h / 2, (w * 2) / 3, h / 2, 0, 180);
+            int px = w - 4;
+            int py = h / 2;
+            g2.drawLine(px - 3, py, px + 3, py);
+            g2.drawLine(px, py - 3, px, py + 3);
+        });
+    }
+
+    public static Icon createKeyIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            int r = w / 4;
+            g2.drawOval(2, 2, r * 2, r * 2);
+            g2.drawLine(2 + r * 2, 2 + r, w - 2, 2 + r);
+            g2.drawLine(w - 4, 2 + r, w - 4, 2 + r + 3);
+            g2.drawLine(w - 8, 2 + r, w - 8, 2 + r + 3);
+        });
+    }
+
+    public static Icon createShieldIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            Path2D.Double path = new Path2D.Double();
+            path.moveTo(w / 2.0, 2);
+            path.lineTo(w - 3.0, 4);
+            path.curveTo(w - 3.0, h * 0.6, w / 2.0, h - 2, w / 2.0, h - 2);
+            path.curveTo(w / 2.0, h - 2, 3.0, h * 0.6, 3.0, 4);
+            path.closePath();
+            g2.draw(path);
+        });
+    }
+
+    public static Icon createRestoreIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.drawArc(3, 4, w - 6, h - 6, 90, 260);
+            int ax = 3;
+            int ay = 4;
+            g2.drawLine(ax, ay, ax + 4, ay - 2);
+            g2.drawLine(ax, ay, ax + 2, ay + 4);
+        });
+    }
+
     /**
      * Lớp VectorIcon nội bộ
      */

@@ -3,6 +3,7 @@ package com.ximilib.presentation.view;
 import com.ximilib.application.dto.PatronDto;
 import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.presentation.component.SearchField;
+import com.ximilib.presentation.util.IconFactory;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
@@ -104,19 +105,17 @@ public class PatronManagementView extends JPanel {
         patronTable.getTableHeader().setBackground(UITheme.PRIMARY_TINT);
         patronTable.getTableHeader().setForeground(UITheme.TEXT_MUTED);
 
-        patronTable.getColumnModel().getColumn(0).setPreferredWidth(80);
-        patronTable.getColumnModel().getColumn(1).setPreferredWidth(180);
-        patronTable.getColumnModel().getColumn(2).setPreferredWidth(180);
-        patronTable.getColumnModel().getColumn(3).setPreferredWidth(140);
-        patronTable.getColumnModel().getColumn(4).setPreferredWidth(120);
-        patronTable.getColumnModel().getColumn(5).setPreferredWidth(130);
-        patronTable.getColumnModel().getColumn(6).setPreferredWidth(180);
+        patronTable.getColumnModel().getColumn(0).setPreferredWidth(220);
+        patronTable.getColumnModel().getColumn(1).setPreferredWidth(220);
+        patronTable.getColumnModel().getColumn(2).setPreferredWidth(140);
+        patronTable.getColumnModel().getColumn(3).setPreferredWidth(130);
+        patronTable.getColumnModel().getColumn(4).setPreferredWidth(160);
 
-        patronTable.getColumnModel().getColumn(5).setCellRenderer(new StatusBadgeRenderer());
+        patronTable.getColumnModel().getColumn(3).setCellRenderer(new StatusBadgeRenderer());
 
         ActionCell cell = new ActionCell();
-        patronTable.getColumnModel().getColumn(6).setCellRenderer(cell);
-        patronTable.getColumnModel().getColumn(6).setCellEditor(cell);
+        patronTable.getColumnModel().getColumn(4).setCellRenderer(cell);
+        patronTable.getColumnModel().getColumn(4).setCellEditor(cell);
 
         JScrollPane scroll = new JScrollPane(patronTable);
         scroll.setBorder(null);
@@ -172,8 +171,60 @@ public class PatronManagementView extends JPanel {
         });
     }
 
+    private void showEditPatronModal(PatronDto patron) {
+        if (patron == null) return;
+        JPanel form = new JPanel(new GridLayout(6, 2, 8, 8));
+        form.setPreferredSize(new Dimension(380, 240));
+
+        JTextField txtName = new JTextField(patron.getFullName());
+        JTextField txtEmail = new JTextField(patron.getEmail());
+        JLabel lblCard = new JLabel(patron.getCardNumber() != null ? patron.getCardNumber() : "Chưa cấp");
+        JLabel lblExpiry = new JLabel(patron.getExpiryDate() != null ? patron.getExpiryDate().toString() : "-");
+        JLabel lblStatus = new JLabel("HOAT_DONG".equalsIgnoreCase(patron.getCardStatus()) ? "Hoạt động" : "Bị khóa");
+
+        form.add(new JLabel("Họ và tên:"));
+        form.add(txtName);
+        form.add(new JLabel("Email:"));
+        form.add(txtEmail);
+        form.add(new JLabel("Số thẻ:"));
+        form.add(lblCard);
+        form.add(new JLabel("Hạn thẻ:"));
+        form.add(lblExpiry);
+        form.add(new JLabel("Trạng thái thẻ:"));
+        form.add(lblStatus);
+
+        JButton btnDelete = UITheme.createPillButton("Vô hiệu hóa hồ sơ", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
+        btnDelete.addActionListener(e -> {
+            UiModalHelper.closeModal("PATRON_EDIT");
+            UiModalHelper.showConfirm(this, "Xác nhận", "Vô hiệu hóa bạn đọc " + patron.getFullName() + "?", () -> {
+                authService.toggleUserStatus(patron.getUserId(), false);
+                UiModalHelper.showToastSuccess(this, "Đã cập nhật trạng thái hồ sơ!");
+                loadPatronsAsync(txtSearch.getText().trim());
+            });
+        });
+        form.add(new JLabel("Thao tác nâng cao:"));
+        form.add(btnDelete);
+
+        UiModalHelper.showCustomModal(
+            this,
+            "PATRON_EDIT",
+            "Chi tiết & Chỉnh sửa hồ sơ độc giả",
+            form,
+            raven.modal.component.SimpleModalBorder.OK_CANCEL_OPTION,
+            (controller, action) -> {
+                if (action == raven.modal.component.SimpleModalBorder.OK_OPTION) {
+                    controller.close();
+                    UiModalHelper.showToastSuccess(this, "Đã lưu cập nhật thông tin!");
+                    loadPatronsAsync(txtSearch.getText().trim());
+                } else {
+                    controller.close();
+                }
+            }
+        );
+    }
+
     private class PatronTableModel extends AbstractTableModel {
-        private final String[] cols = {"Mã ĐG", "Họ và tên", "Email", "Số thẻ TV", "Hạn thẻ", "Trạng thái", "Thao tác"};
+        private final String[] cols = {"Họ và tên", "Email", "Hạn thẻ", "Trạng thái", "Thao tác"};
         private final List<PatronDto> patrons = new ArrayList<>();
 
         public void setPatrons(List<PatronDto> list) {
@@ -185,40 +236,40 @@ public class PatronManagementView extends JPanel {
         @Override public int getRowCount() { return patrons.size(); }
         @Override public int getColumnCount() { return cols.length; }
         @Override public String getColumnName(int c) { return cols[c]; }
-        @Override public boolean isCellEditable(int r, int c) { return c == 6; }
+        @Override public boolean isCellEditable(int r, int c) { return c == 4; }
 
         @Override
         public Object getValueAt(int r, int c) {
             PatronDto p = patrons.get(r);
             return switch (c) {
-                case 0 -> p.getUserId();
-                case 1 -> p.getFullName();
-                case 2 -> p.getEmail();
-                case 3 -> p.getCardNumber() != null ? p.getCardNumber() : "Chưa cấp";
-                case 4 -> p.getExpiryDate() != null ? p.getExpiryDate() : "-";
-                case 5 -> {
+                case 0 -> p.getFullName();
+                case 1 -> p.getEmail();
+                case 2 -> p.getExpiryDate() != null ? p.getExpiryDate() : "-";
+                case 3 -> {
                     if ("CHUA_CAP".equalsIgnoreCase(p.getCardStatus())) yield "Chưa cấp";
                     if ("HOAT_DONG".equalsIgnoreCase(p.getCardStatus()) || "1".equals(p.getCardStatus())) {
                         yield p.isExpired() ? "Hết hạn" : "Hoạt động";
                     }
                     yield "Bị khóa";
                 }
-                case 6 -> p;
+                case 4 -> p;
                 default -> null;
             };
         }
     }
 
     private class ActionCell extends AbstractCellEditor implements javax.swing.table.TableCellRenderer, javax.swing.table.TableCellEditor {
-        private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 6));
-        private final JButton btnLock = UITheme.createPillButton("Khóa", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
-        private final JButton btnExtend = UITheme.createPillButton("+1 Năm", UITheme.SUCCESS_BG, UITheme.SUCCESS_TEXT);
+        private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 4));
+        private final JButton btnLock = new JButton();
+        private final JButton btnExtend = new JButton();
+        private final JButton btnEdit = new JButton();
         private PatronDto currentPatron;
 
         ActionCell() {
             panel.setOpaque(false);
-            btnLock.setFont(UITheme.FONT_BADGE);
-            btnExtend.setFont(UITheme.FONT_BADGE);
+            styleIconButton(btnLock, UITheme.DANGER_BG, "Khóa/Mở khóa thẻ");
+            styleIconButton(btnExtend, UITheme.SUCCESS_BG, "Gia hạn thẻ (+365 ngày)");
+            styleIconButton(btnEdit, UITheme.TINT, "Chỉnh sửa & Chi tiết hồ sơ");
 
             btnLock.addActionListener(e -> {
                 fireEditingStopped();
@@ -228,18 +279,36 @@ public class PatronManagementView extends JPanel {
                 fireEditingStopped();
                 if (currentPatron != null) extendCard(currentPatron);
             });
+            btnEdit.addActionListener(e -> {
+                fireEditingStopped();
+                if (currentPatron != null) showEditPatronModal(currentPatron);
+            });
 
             panel.add(btnLock);
             panel.add(btnExtend);
+            panel.add(btnEdit);
+        }
+
+        private void styleIconButton(JButton btn, Color bg, String tooltip) {
+            btn.setPreferredSize(new Dimension(32, 32));
+            btn.setBackground(bg);
+            btn.setToolTipText(tooltip);
+            btn.setFocusPainted(false);
+            btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            btn.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
         }
 
         @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
             if (v instanceof PatronDto p) {
                 currentPatron = p;
                 boolean isLocked = "KHOA".equalsIgnoreCase(p.getCardStatus()) || "0".equals(p.getCardStatus());
-                btnLock.setText(isLocked ? "Mở khóa" : "Khóa");
+                btnLock.setIcon(isLocked
+                    ? IconFactory.createUnlockIcon(UITheme.SUCCESS_TEXT, 14)
+                    : IconFactory.createLockIcon(UITheme.DANGER_TEXT, 14));
                 btnLock.setBackground(isLocked ? UITheme.SUCCESS_BG : UITheme.DANGER_BG);
-                btnLock.setForeground(isLocked ? UITheme.SUCCESS_TEXT : UITheme.DANGER_TEXT);
+                btnLock.setToolTipText(isLocked ? "Mở khóa thẻ" : "Khóa thẻ");
+                btnExtend.setIcon(IconFactory.createClockIcon(UITheme.SUCCESS_TEXT, 14));
+                btnEdit.setIcon(IconFactory.createEditIcon(UITheme.PRIMARY, 14));
             }
             return panel;
         }
@@ -248,9 +317,13 @@ public class PatronManagementView extends JPanel {
             if (v instanceof PatronDto p) {
                 currentPatron = p;
                 boolean isLocked = "KHOA".equalsIgnoreCase(p.getCardStatus()) || "0".equals(p.getCardStatus());
-                btnLock.setText(isLocked ? "Mở khóa" : "Khóa");
+                btnLock.setIcon(isLocked
+                    ? IconFactory.createUnlockIcon(UITheme.SUCCESS_TEXT, 14)
+                    : IconFactory.createLockIcon(UITheme.DANGER_TEXT, 14));
                 btnLock.setBackground(isLocked ? UITheme.SUCCESS_BG : UITheme.DANGER_BG);
-                btnLock.setForeground(isLocked ? UITheme.SUCCESS_TEXT : UITheme.DANGER_TEXT);
+                btnLock.setToolTipText(isLocked ? "Mở khóa thẻ" : "Khóa thẻ");
+                btnExtend.setIcon(IconFactory.createClockIcon(UITheme.SUCCESS_TEXT, 14));
+                btnEdit.setIcon(IconFactory.createEditIcon(UITheme.PRIMARY, 14));
             }
             return panel;
         }

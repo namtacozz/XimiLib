@@ -111,17 +111,13 @@ public class SidebarPanel extends JPanel {
             menuContainer.add(Box.createVerticalStrut(6));
             menuContainer.add(createMenuItem("Hộp thư góp ý", IconFactory.createHelpIcon(UITheme.TEXT_MUTED, 16), false));
         } else if (isGuest) {
-            // KHÁCH (Chỉ thấy Khám phá sách và Hộp thư góp ý)
-            JButton btnExplore = createMenuItem("Khám phá sách", IconFactory.createBookIcon(Color.WHITE, 16), true);
+            JButton btnExplore = createMenuItem("Kho Sách", IconFactory.createBookIcon(Color.WHITE, 16), true);
             menuContainer.add(btnExplore);
             activeButton = btnExplore;
-            menuContainer.add(Box.createVerticalStrut(6));
-            menuContainer.add(createMenuItem("Hộp thư góp ý", IconFactory.createHelpIcon(UITheme.TEXT_MUTED, 16), false));
         } else {
-            // ĐỘC GIẢ (3 mục tiếp theo = 4 mục tổng cộng)
-            menuContainer.add(createMenuItem("Khám phá sách", IconFactory.createBookIcon(UITheme.TEXT_MUTED, 16), false));
+            menuContainer.add(createMenuItem("Kho Sách", IconFactory.createBookIcon(UITheme.TEXT_MUTED, 16), false));
             menuContainer.add(Box.createVerticalStrut(6));
-            menuContainer.add(createMenuItem("Sách của tôi", IconFactory.createCirculationIcon(UITheme.TEXT_MUTED, 16), false));
+            menuContainer.add(createMenuItem("Phiếu mượn của tôi", IconFactory.createCirculationIcon(UITheme.TEXT_MUTED, 16), false));
             menuContainer.add(Box.createVerticalStrut(6));
             menuContainer.add(createMenuItem("Hộp thư góp ý", IconFactory.createHelpIcon(UITheme.TEXT_MUTED, 16), false));
         }

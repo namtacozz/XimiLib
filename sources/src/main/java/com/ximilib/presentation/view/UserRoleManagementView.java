@@ -3,6 +3,7 @@ package com.ximilib.presentation.view;
 import com.ximilib.application.dto.UserAccountDto;
 import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.presentation.component.SearchField;
+import com.ximilib.presentation.util.IconFactory;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
@@ -93,13 +94,23 @@ public class UserRoleManagementView extends JPanel {
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actions.setOpaque(false);
 
-        JButton btnAddStaff = UITheme.createPillButton("+ Cấp Tài Khoản Nhân Viên", UITheme.PRIMARY, Color.WHITE);
-        btnAddStaff.setPreferredSize(new Dimension(210, 38));
-        btnAddStaff.addActionListener(e -> showCreateStaffModal());
-
-        JButton btnRefresh = UITheme.createPillButton("Làm Mới", UITheme.BG_LIGHT, UITheme.TEXT_MAIN);
-        btnRefresh.setPreferredSize(new Dimension(100, 38));
+        JButton btnRefresh = new JButton(IconFactory.createRefreshIcon(UITheme.TEXT_MAIN, 16));
+        btnRefresh.setPreferredSize(new Dimension(38, 38));
+        btnRefresh.setBackground(UITheme.BG_LIGHT);
+        btnRefresh.setToolTipText("Làm mới danh sách");
+        btnRefresh.setFocusPainted(false);
+        btnRefresh.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnRefresh.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
         btnRefresh.addActionListener(e -> loadUsersAsync());
+
+        JButton btnAddStaff = new JButton(IconFactory.createAddUserIcon(Color.WHITE, 16));
+        btnAddStaff.setPreferredSize(new Dimension(38, 38));
+        btnAddStaff.setBackground(UITheme.PRIMARY);
+        btnAddStaff.setToolTipText("Cấp tài khoản nhân viên mới");
+        btnAddStaff.setFocusPainted(false);
+        btnAddStaff.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnAddStaff.setBorder(new UITheme.RoundedBorder(UITheme.PRIMARY, 8));
+        btnAddStaff.addActionListener(e -> showCreateStaffModal());
 
         actions.add(btnRefresh);
         actions.add(btnAddStaff);
@@ -208,22 +219,20 @@ public class UserRoleManagementView extends JPanel {
         userTable.getTableHeader().setBackground(UITheme.TINT);
         userTable.getTableHeader().setForeground(UITheme.TEXT_MUTED);
 
-        userTable.getColumnModel().getColumn(0).setPreferredWidth(70);
-        userTable.getColumnModel().getColumn(1).setPreferredWidth(110);
-        userTable.getColumnModel().getColumn(2).setPreferredWidth(160);
-        userTable.getColumnModel().getColumn(3).setPreferredWidth(160);
-        userTable.getColumnModel().getColumn(4).setPreferredWidth(110);
+        userTable.getColumnModel().getColumn(0).setPreferredWidth(120);
+        userTable.getColumnModel().getColumn(1).setPreferredWidth(130);
+        userTable.getColumnModel().getColumn(2).setPreferredWidth(180);
+        userTable.getColumnModel().getColumn(3).setPreferredWidth(180);
+        userTable.getColumnModel().getColumn(4).setPreferredWidth(120);
         userTable.getColumnModel().getColumn(5).setPreferredWidth(110);
-        userTable.getColumnModel().getColumn(6).setPreferredWidth(100);
-        userTable.getColumnModel().getColumn(7).setPreferredWidth(260);
-        userTable.getColumnModel().getColumn(7).setMinWidth(250);
+        userTable.getColumnModel().getColumn(6).setPreferredWidth(150);
 
-        userTable.getColumnModel().getColumn(5).setCellRenderer(new RoleBadgeRenderer());
-        userTable.getColumnModel().getColumn(6).setCellRenderer(new StatusBadgeRenderer());
+        userTable.getColumnModel().getColumn(0).setCellRenderer(new RoleBadgeRenderer());
+        userTable.getColumnModel().getColumn(5).setCellRenderer(new StatusBadgeRenderer());
 
         ActionCellEditor cellEditor = new ActionCellEditor();
-        userTable.getColumnModel().getColumn(7).setCellRenderer(cellEditor);
-        userTable.getColumnModel().getColumn(7).setCellEditor(cellEditor);
+        userTable.getColumnModel().getColumn(6).setCellRenderer(cellEditor);
+        userTable.getColumnModel().getColumn(6).setCellEditor(cellEditor);
 
         JScrollPane scroll = new JScrollPane(userTable);
         scroll.setBorder(BorderFactory.createLineBorder(UITheme.BORDER, 1));
@@ -435,7 +444,7 @@ public class UserRoleManagementView extends JPanel {
     }
 
     private class UserTableModel extends AbstractTableModel {
-        private final String[] cols = {"Mã ND", "Tên đăng nhập", "Họ và tên", "Email", "Số ĐT", "Vai trò (RBAC)", "Trạng thái", "Thao tác"};
+        private final String[] cols = {"Vai trò", "Tên đăng nhập", "Họ và tên", "Email", "Số điện thoại", "Trạng thái", "Thao tác"};
         private final List<UserAccountDto> users = new ArrayList<>();
 
         public void setUsers(List<UserAccountDto> list) {
@@ -447,23 +456,30 @@ public class UserRoleManagementView extends JPanel {
         @Override public int getRowCount() { return users.size(); }
         @Override public int getColumnCount() { return cols.length; }
         @Override public String getColumnName(int c) { return cols[c]; }
-        @Override public boolean isCellEditable(int r, int c) { return c == 7; }
+        @Override public boolean isCellEditable(int r, int c) { return c == 6; }
 
         @Override
         public Object getValueAt(int r, int c) {
             UserAccountDto u = users.get(r);
             return switch (c) {
-                case 0 -> u.getUserId();
+                case 0 -> cleanRoleName(u.getRoleName() != null ? u.getRoleName() : u.getRoleCode());
                 case 1 -> u.getUsername();
                 case 2 -> u.getFullName();
                 case 3 -> (u.getEmail() != null && !u.getEmail().isEmpty()) ? u.getEmail() : "-";
                 case 4 -> (u.getPhone() != null && !u.getPhone().isEmpty()) ? u.getPhone() : "-";
-                case 5 -> u.getRoleName() != null ? u.getRoleName() : u.getRoleCode();
-                case 6 -> u.isActive() ? "Hoạt động" : "Bị khóa";
-                case 7 -> u;
+                case 5 -> u.isActive() ? "Hoạt động" : "Bị khóa";
+                case 6 -> u;
                 default -> null;
             };
         }
+    }
+
+    private static String cleanRoleName(String raw) {
+        if (raw == null) return "Độc giả";
+        String upper = raw.toUpperCase();
+        if (upper.contains("ADMIN") || upper.contains("QUẢN TRỊ")) return "Quản trị viên";
+        if (upper.contains("LIB") || upper.contains("THỦ THƯ")) return "Thủ thư";
+        return "Độc giả";
     }
 
     private static class RoleBadgeRenderer extends DefaultTableCellRenderer {
@@ -502,16 +518,19 @@ public class UserRoleManagementView extends JPanel {
 
     private class ActionCellEditor extends AbstractCellEditor implements javax.swing.table.TableCellRenderer, javax.swing.table.TableCellEditor {
         private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 4));
-        private final JButton btnRole = UITheme.createPillButton("Phân quyền", UITheme.TINT, UITheme.ON_TINT);
-        private final JButton btnStatus = UITheme.createPillButton("Khóa", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
-        private final JButton btnReset = UITheme.createPillButton("Đặt lại MK", UITheme.BG_LIGHT, UITheme.TEXT_MAIN);
+        private final JButton btnRole = new JButton();
+        private final JButton btnStatus = new JButton();
+        private final JButton btnReset = new JButton();
         private UserAccountDto currentUser;
 
         ActionCellEditor() {
             panel.setOpaque(false);
-            btnRole.setFont(UITheme.FONT_BADGE);
-            btnStatus.setFont(UITheme.FONT_BADGE);
-            btnReset.setFont(UITheme.FONT_BADGE);
+            styleIconButton(btnRole, UITheme.TINT, "Phân quyền tài khoản");
+            styleIconButton(btnStatus, UITheme.DANGER_BG, "Khóa/Mở tài khoản");
+            styleIconButton(btnReset, UITheme.BG_LIGHT, "Đặt lại mật khẩu");
+
+            btnRole.setIcon(IconFactory.createShieldIcon(UITheme.PRIMARY, 14));
+            btnReset.setIcon(IconFactory.createKeyIcon(UITheme.TEXT_MAIN, 14));
 
             btnRole.addActionListener(e -> {
                 fireEditingStopped();
@@ -533,15 +552,22 @@ public class UserRoleManagementView extends JPanel {
             panel.add(btnReset);
         }
 
+        private void styleIconButton(JButton btn, Color bg, String tooltip) {
+            btn.setPreferredSize(new Dimension(32, 32));
+            btn.setBackground(bg);
+            btn.setToolTipText(tooltip);
+            btn.setFocusPainted(false);
+            btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            btn.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
+        }
+
         private void updateButtonStates(UserAccountDto u) {
-            btnStatus.setText(u.isActive() ? "Khóa" : "Mở");
-            if (u.isActive()) {
-                btnStatus.setBackground(UITheme.DANGER_BG);
-                btnStatus.setForeground(UITheme.DANGER_TEXT);
-            } else {
-                btnStatus.setBackground(UITheme.SUCCESS_BG);
-                btnStatus.setForeground(UITheme.SUCCESS_TEXT);
-            }
+            boolean active = u.isActive();
+            btnStatus.setIcon(active
+                ? IconFactory.createLockIcon(UITheme.DANGER_TEXT, 14)
+                : IconFactory.createUnlockIcon(UITheme.SUCCESS_TEXT, 14));
+            btnStatus.setBackground(active ? UITheme.DANGER_BG : UITheme.SUCCESS_BG);
+            btnStatus.setToolTipText(active ? "Khóa tài khoản" : "Mở khóa tài khoản");
         }
 
         @Override

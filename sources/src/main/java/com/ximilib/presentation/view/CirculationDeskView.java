@@ -1,11 +1,17 @@
 package com.ximilib.presentation.view;
 
+import com.ximilib.application.dto.BookSearchCriteria;
+import com.ximilib.application.dto.BookSummaryDto;
 import com.ximilib.application.dto.BorrowTicketDto;
+import com.ximilib.application.dto.PagedResult;
+import com.ximilib.application.dto.PatronDto;
+import com.ximilib.application.service.BookCatalogService;
 import com.ximilib.application.service.CirculationService;
 import com.ximilib.domain.model.LoanType;
 import com.ximilib.domain.repository.CirculationRepository.BookCopyInfo;
 import com.ximilib.domain.repository.CirculationRepository.UserCardInfo;
 import com.ximilib.presentation.util.UITheme;
+import com.ximilib.presentation.util.UiText;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
 
@@ -28,6 +34,7 @@ import javax.swing.table.DefaultTableModel;
 public class CirculationDeskView extends JPanel {
 
     private final CirculationService circulationService;
+    private final BookCatalogService bookCatalogService;
 
     // Components - Left Panel
     private JTextField txtReaderCard;
@@ -37,7 +44,8 @@ public class CirculationDeskView extends JPanel {
     private JLabel lblReaderBadge;
     private UserCardInfo currentCard;
 
-    private JComboBox<String> cmbLoanType;
+    private JToggleButton btnMangVe;
+    private JToggleButton btnTaiCho;
     private JLabel lblLoanHint;
 
     private JTextField txtBarcode;
@@ -59,11 +67,16 @@ public class CirculationDeskView extends JPanel {
     private final List<String> cartBarcodes = new ArrayList<>();
 
     public CirculationDeskView() {
-        this(AppContainer.getInstance().getCirculationService());
+        this(AppContainer.getInstance().getCirculationService(), AppContainer.getInstance().getBookCatalogService());
     }
 
     public CirculationDeskView(CirculationService service) {
+        this(service, AppContainer.getInstance().getBookCatalogService());
+    }
+
+    public CirculationDeskView(CirculationService service, BookCatalogService catalogService) {
         this.circulationService = service != null ? service : AppContainer.getInstance().getCirculationService();
+        this.bookCatalogService = catalogService != null ? catalogService : AppContainer.getInstance().getBookCatalogService();
 
         setOpaque(false);
         setLayout(new BorderLayout(0, 16));
@@ -111,10 +124,9 @@ public class CirculationDeskView extends JPanel {
     // =========================================================================
     private JPanel createLeftFormCard() {
         JPanel card = createBaseCard();
-        card.setPreferredSize(new Dimension(380, 0));
+        card.setPreferredSize(new Dimension(420, 0));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-        // Tiêu đề khối
         JLabel lblCardTitle = new JLabel("Thông Tin Phiếu Mượn");
         lblCardTitle.setFont(UITheme.FONT_TITLE);
         lblCardTitle.setForeground(UITheme.TEXT_MAIN);
@@ -122,9 +134,6 @@ public class CirculationDeskView extends JPanel {
         card.add(lblCardTitle);
         card.add(Box.createVerticalStrut(14));
 
-        // ---------------------------------------------------------------------
-        // Bước 1: Thẻ Thư Viện Bạn Đọc
-        // ---------------------------------------------------------------------
         card.add(createStepHeader(1, "THẺ THƯ VIỆN BẠN ĐỌC"));
         card.add(Box.createVerticalStrut(6));
 
@@ -136,10 +145,29 @@ public class CirculationDeskView extends JPanel {
         txtReaderCard = new JTextField("LIB-2026-00001");
         txtReaderCard.setFont(UITheme.FONT_REGULAR);
         txtReaderCard.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
-        txtReaderCard.putClientProperty("JTextField.placeholderText", "Nhập mã thẻ hoặc CCCD...");
+        txtReaderCard.putClientProperty("JTextField.placeholderText", UiText.PH_SEARCH_READER);
         txtReaderCard.addActionListener(e -> checkReaderCard());
 
-        JButton btnCheckReader = UITheme.createPillButton(" Kiểm tra", UITheme.PRIMARY, Color.WHITE);
+        JPopupMenu suggestPopup = new JPopupMenu();
+        suggestPopup.setFocusable(false);
+        txtReaderCard.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { triggerReaderSuggest(suggestPopup); }
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { triggerReaderSuggest(suggestPopup); }
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { triggerReaderSuggest(suggestPopup); }
+        });
+        txtReaderCard.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                Timer t = new Timer(200, ev -> suggestPopup.setVisible(false));
+                t.setRepeats(false);
+                t.start();
+            }
+        });
+
+        JButton btnCheckReader = UITheme.createPillButton(" " + UiText.BTN_CHECK, UITheme.PRIMARY, Color.WHITE);
         btnCheckReader.setIcon(createSearchIcon(13, Color.WHITE));
         btnCheckReader.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnCheckReader.setPreferredSize(new Dimension(112, 36));
@@ -151,28 +179,39 @@ public class CirculationDeskView extends JPanel {
         card.add(readerInputBox);
         card.add(Box.createVerticalStrut(8));
 
-        // Thẻ hiển thị trạng thái bạn đọc (Mini Profile Card)
         pnlReaderCard = createReaderStatusCard();
         pnlReaderCard.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(pnlReaderCard);
         card.add(Box.createVerticalStrut(14));
 
-        // ---------------------------------------------------------------------
-        // Bước 2: Hình Thức Mượn
-        // ---------------------------------------------------------------------
         card.add(createStepHeader(2, "HÌNH THỨC MƯỢN"));
         card.add(Box.createVerticalStrut(6));
 
-        cmbLoanType = new JComboBox<>(new String[]{
-            "Mang về nhà (Hạn 14 ngày, tối đa 3 cuốn)",
-            "Đọc tại chỗ (Hoàn trả trước 17:00 hôm nay)"
-        });
-        cmbLoanType.setFont(UITheme.FONT_REGULAR);
-        cmbLoanType.setBackground(Color.WHITE);
-        cmbLoanType.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
-        cmbLoanType.setAlignmentX(Component.LEFT_ALIGNMENT);
-        cmbLoanType.addActionListener(e -> updateLoanHint());
-        card.add(cmbLoanType);
+        btnMangVe = new JToggleButton(UiText.TOGGLE_HOME_LOAN);
+        btnTaiCho = new JToggleButton(UiText.TOGGLE_ONSITE_LOAN);
+        btnMangVe.setFont(UITheme.FONT_BOLD);
+        btnTaiCho.setFont(UITheme.FONT_BOLD);
+        btnMangVe.setFocusPainted(false);
+        btnTaiCho.setFocusPainted(false);
+        btnMangVe.setPreferredSize(new Dimension(185, 36));
+        btnTaiCho.setPreferredSize(new Dimension(185, 36));
+        btnMangVe.putClientProperty("JComponent.roundRect", true);
+        btnTaiCho.putClientProperty("JComponent.roundRect", true);
+        btnMangVe.setSelected(true);
+
+        ButtonGroup grp = new ButtonGroup();
+        grp.add(btnMangVe);
+        grp.add(btnTaiCho);
+
+        btnMangVe.addActionListener(e -> updateLoanTypeToggleUI());
+        btnTaiCho.addActionListener(e -> updateLoanTypeToggleUI());
+
+        JPanel loanTypeRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        loanTypeRow.setOpaque(false);
+        loanTypeRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        loanTypeRow.add(btnMangVe);
+        loanTypeRow.add(btnTaiCho);
+        card.add(loanTypeRow);
         card.add(Box.createVerticalStrut(6));
 
         lblLoanHint = new JLabel();
@@ -180,13 +219,10 @@ public class CirculationDeskView extends JPanel {
         lblLoanHint.setForeground(UITheme.TEXT_MUTED);
         lblLoanHint.setIconTextGap(6);
         lblLoanHint.setAlignmentX(Component.LEFT_ALIGNMENT);
-        updateLoanHint();
+        updateLoanTypeToggleUI();
         card.add(lblLoanHint);
         card.add(Box.createVerticalStrut(14));
 
-        // ---------------------------------------------------------------------
-        // Bước 3: Quét Mã Vạch Cuốn Sách
-        // ---------------------------------------------------------------------
         card.add(createStepHeader(3, "QUÉT MÃ VẠCH CUỐN SÁCH"));
         card.add(Box.createVerticalStrut(6));
 
@@ -198,7 +234,7 @@ public class CirculationDeskView extends JPanel {
         txtBarcode = new JTextField();
         txtBarcode.setFont(UITheme.FONT_REGULAR);
         txtBarcode.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
-        txtBarcode.putClientProperty("JTextField.placeholderText", "Quét mã vạch cuốn sách (VD: CS001)...");
+        txtBarcode.putClientProperty("JTextField.placeholderText", UiText.PH_SEARCH_BOOK_COPY);
         txtBarcode.addActionListener(e -> addBarcodeToCart());
 
         JButton btnAddBook = UITheme.createPillButton(" Thêm", UITheme.TINT, UITheme.ON_TINT);
@@ -392,18 +428,75 @@ public class CirculationDeskView extends JPanel {
         return card;
     }
 
+    private void updateLoanTypeToggleUI() {
+        if (btnMangVe != null && btnTaiCho != null) {
+            if (btnMangVe.isSelected()) {
+                btnMangVe.setBackground(UITheme.PRIMARY);
+                btnMangVe.setForeground(Color.WHITE);
+                btnTaiCho.setBackground(UITheme.CARD_BG);
+                btnTaiCho.setForeground(UITheme.TEXT_MAIN);
+            } else {
+                btnTaiCho.setBackground(UITheme.PRIMARY);
+                btnTaiCho.setForeground(Color.WHITE);
+                btnMangVe.setBackground(UITheme.CARD_BG);
+                btnMangVe.setForeground(UITheme.TEXT_MAIN);
+            }
+        }
+        updateLoanHint();
+    }
+
     private void updateLoanHint() {
-        int idx = (cmbLoanType != null) ? cmbLoanType.getSelectedIndex() : 0;
-        if (idx == 0) {
+        boolean isMangVe = (btnMangVe == null || btnMangVe.isSelected());
+        if (isMangVe) {
             String due = LocalDate.now().plusDays(14).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
             lblLoanHint.setIcon(createCalendarIcon(16, UITheme.PRIMARY));
-            lblLoanHint.setText("Hạn trả dự kiến: " + due + " (tối đa 3 cuốn về nhà)");
-            if (lblDueDateSummary != null) lblDueDateSummary.setText("• Hạn hoàn trả: " + due);
+            lblLoanHint.setText(UiText.HINT_LOAN_HOME_PREFIX + due + UiText.HINT_LOAN_HOME_SUFFIX);
+            if (lblDueDateSummary != null) lblDueDateSummary.setText(UiText.SUMMARY_DUE_PREFIX + due);
         } else {
             lblLoanHint.setIcon(createClockIcon(16, UITheme.PRIMARY));
-            lblLoanHint.setText("Hạn trả dự kiến: Hôm nay trước 17:00 (hoàn trả trong ngày)");
-            if (lblDueDateSummary != null) lblDueDateSummary.setText("• Hạn hoàn trả: Hôm nay trước 17:00");
+            lblLoanHint.setText(UiText.HINT_LOAN_ONSITE);
+            if (lblDueDateSummary != null) lblDueDateSummary.setText(UiText.SUMMARY_DUE_ONSITE);
         }
+    }
+
+    private void triggerReaderSuggest(JPopupMenu popup) {
+        String query = txtReaderCard.getText().trim();
+        if (query.length() < 2) {
+            popup.setVisible(false);
+            return;
+        }
+        SwingWorker<List<PatronDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<PatronDto> doInBackground() {
+                return AppContainer.getInstance().getAuthenticationService().searchPatrons(query);
+            }
+            @Override
+            protected void done() {
+                try {
+                    List<PatronDto> patrons = get();
+                    popup.removeAll();
+                    if (patrons != null && !patrons.isEmpty() && txtReaderCard.isFocusOwner()) {
+                        int limit = Math.min(patrons.size(), 5);
+                        for (int i = 0; i < limit; i++) {
+                            PatronDto p = patrons.get(i);
+                            JMenuItem item = new JMenuItem(p.getFullName() + " (" + p.getCardNumber() + ")");
+                            item.setFont(UITheme.FONT_REGULAR);
+                            item.addActionListener(e -> {
+                                txtReaderCard.setText(p.getCardNumber());
+                                checkReaderCard();
+                                popup.setVisible(false);
+                            });
+                            popup.add(item);
+                        }
+                        popup.show(txtReaderCard, 0, txtReaderCard.getHeight());
+                    } else {
+                        popup.setVisible(false);
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        };
+        worker.execute();
     }
 
     // =========================================================================
@@ -669,12 +762,11 @@ public class CirculationDeskView extends JPanel {
     }
 
     private JPanel createStepHeader(int step, String title) {
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         p.setOpaque(false);
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
-        p.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
+        p.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
 
-        // Khung số tròn bo viền (Circle Badge bo tròn hoàn hảo)
         JLabel badge = new JLabel(String.valueOf(step), SwingConstants.CENTER) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -687,14 +779,14 @@ public class CirculationDeskView extends JPanel {
             }
         };
         badge.setOpaque(false);
-        badge.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        badge.setFont(new Font("Segoe UI", Font.BOLD, 10));
         badge.setForeground(Color.WHITE);
-        badge.setPreferredSize(new Dimension(20, 20));
-        badge.setMinimumSize(new Dimension(20, 20));
-        badge.setMaximumSize(new Dimension(20, 20));
+        badge.setPreferredSize(new Dimension(18, 18));
+        badge.setMinimumSize(new Dimension(18, 18));
+        badge.setMaximumSize(new Dimension(18, 18));
 
         JLabel text = new JLabel(title);
-        text.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        text.setFont(new Font("Segoe UI", Font.BOLD, 11));
         text.setForeground(UITheme.PRIMARY);
 
         p.add(badge);
@@ -893,7 +985,7 @@ public class CirculationDeskView extends JPanel {
         currentCard = info;
         lblReaderName.setText(info.fullName());
         lblReaderName.setForeground(UITheme.TEXT_MAIN);
-        lblReaderSub.setText("Mã thẻ: " + info.cardNumber() + " • Mã ND: " + info.userId());
+        lblReaderSub.setText("Số thẻ: " + info.cardNumber());
         lblReaderSummary.setText("• Bạn đọc: " + info.fullName() + " (" + info.cardNumber() + ")");
 
         if (!info.cardActive()) {
@@ -921,20 +1013,43 @@ public class CirculationDeskView extends JPanel {
     }
 
     private void addBarcodeToCart() {
-        String barcode = txtBarcode.getText().trim();
-        if (barcode.isEmpty()) return;
+        String input = txtBarcode.getText().trim();
+        if (input.isEmpty()) return;
 
-        // Kiểm tra giới hạn 3 cuốn nếu mượn về nhà (BR-02)
-        int loanTypeIdx = (cmbLoanType != null) ? cmbLoanType.getSelectedIndex() : 0;
-        if (loanTypeIdx == 0 && cartBarcodes.size() >= 3) {
-            UiModalHelper.showToastWarning(this, "Mỗi độc giả chỉ được mượn tối đa 3 cuốn sách mang về nhà!");
+        boolean isMangVe = (btnMangVe == null || btnMangVe.isSelected());
+        if (isMangVe && cartBarcodes.size() >= 3) {
+            UiModalHelper.showToastWarning(this, UiText.MSG_MAX_3_HOME_BOOKS);
             txtBarcode.setText("");
             return;
         }
 
-        BookCopyInfo copy = circulationService.getCopyInfo(barcode);
+        BookCopyInfo copy = circulationService.getCopyInfo(input);
+        if (copy == null && bookCatalogService != null) {
+            PagedResult<BookSummaryDto> result = bookCatalogService.searchBooks(
+                new BookSearchCriteria(input, null, BookSearchCriteria.AvailabilityFilter.AVAILABLE_ONLY),
+                1,
+                5
+            );
+            if (result != null && result.getItems() != null) {
+                for (BookSummaryDto b : result.getItems()) {
+                    if (b.getAvailableCopies() > 0) {
+                        List<BookCopyInfo> copies = circulationService.getAvailableCopies(b.getBookId());
+                        if (copies != null) {
+                            for (BookCopyInfo cp : copies) {
+                                if (!cartBarcodes.contains(cp.copyId()) && "KHA_DUNG".equalsIgnoreCase(cp.status())) {
+                                    copy = cp;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (copy != null) break;
+                }
+            }
+        }
+
         if (copy == null) {
-            UiModalHelper.showToastError(this, "Không tìm thấy cuốn sách với mã vạch: " + barcode);
+            UiModalHelper.showToastError(this, UiText.ERR_COPY_OR_TITLE_NOT_FOUND + input);
             return;
         }
 
@@ -1045,7 +1160,7 @@ public class CirculationDeskView extends JPanel {
             return;
         }
 
-        LoanType lt = (cmbLoanType.getSelectedIndex() == 0) ? LoanType.VE_NHA : LoanType.TAI_CHO;
+        LoanType lt = (btnMangVe != null && btnMangVe.isSelected()) ? LoanType.VE_NHA : LoanType.TAI_CHO;
 
         SwingWorker<BorrowTicketDto, Void> worker = new SwingWorker<>() {
             @Override

@@ -145,29 +145,11 @@ public class BookCatalogView extends JPanel {
         leftBox.add(lblIcon);
         leftBox.add(lblMsg);
 
-        // Phải: Nút Đăng Nhập + Nút Đăng Ký + Nút đóng X
+        // Phải: Nút đóng X vector
         JPanel rightBox = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         rightBox.setOpaque(false);
 
-        JButton btnRegisterNow = UITheme.createPillButton("Đăng Ký", UITheme.TINT, UITheme.ON_TINT);
-        btnRegisterNow.setFont(UITheme.FONT_BADGE);
-        btnRegisterNow.setPreferredSize(new Dimension(80, 26));
-        btnRegisterNow.addActionListener(e -> {
-            Window win = SwingUtilities.getWindowAncestor(this);
-            if (win != null) win.dispose();
-            new RegisterForm().setVisible(true);
-        });
-
-        JButton btnLoginNow = UITheme.createPillButton("Đăng Nhập", UITheme.PRIMARY, Color.WHITE);
-        btnLoginNow.setFont(UITheme.FONT_BADGE);
-        btnLoginNow.setPreferredSize(new Dimension(86, 26));
-        btnLoginNow.addActionListener(e -> {
-            Window win = SwingUtilities.getWindowAncestor(this);
-            if (win != null) win.dispose();
-            new LoginForm().setVisible(true);
-        });
-
-        JButton btnClose = new JButton("✕") {
+        JButton btnClose = new JButton() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -176,10 +158,10 @@ public class BookCatalogView extends JPanel {
                     g2.setColor(new Color(0, 0, 0, 15));
                     g2.fillOval(0, 0, getWidth(), getHeight());
                 }
-                g2.setColor(UITheme.TEXT_MUTED);
-                g2.setFont(new Font("Segoe UI", Font.BOLD, 12));
-                FontMetrics fm = g2.getFontMetrics();
-                g2.drawString("✕", (getWidth() - fm.stringWidth("✕")) / 2, (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
+                Icon closeIcon = IconFactory.createCloseIcon(UITheme.TEXT_MUTED, 12);
+                int ix = (getWidth() - closeIcon.getIconWidth()) / 2;
+                int iy = (getHeight() - closeIcon.getIconHeight()) / 2;
+                closeIcon.paintIcon(this, g2, ix, iy);
                 g2.dispose();
             }
         };
@@ -188,14 +170,13 @@ public class BookCatalogView extends JPanel {
         btnClose.setBorderPainted(false);
         btnClose.setFocusPainted(false);
         btnClose.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnClose.setToolTipText("Đóng");
         btnClose.addActionListener(e -> {
             banner.setVisible(false);
             revalidate();
             repaint();
         });
 
-        rightBox.add(btnRegisterNow);
-        rightBox.add(btnLoginNow);
         rightBox.add(btnClose);
 
         banner.add(leftBox, BorderLayout.WEST);
@@ -211,13 +192,13 @@ public class BookCatalogView extends JPanel {
         titleBox.setOpaque(false);
         titleBox.setLayout(new BoxLayout(titleBox, BoxLayout.Y_AXIS));
 
-        boolean isCatalogReader = (currentUser != null && (currentUser.isReader() || currentUser.isGuest()));
-        JLabel lblTitle = new JLabel(isCatalogReader ? "Khám phá sách" : "Kho sách");
+        JLabel lblTitle = new JLabel("Kho Sách");
         lblTitle.setFont(UITheme.FONT_TITLE_LARGE);
         lblTitle.setForeground(UITheme.TEXT_MAIN);
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblSub = new JLabel(isCatalogReader
+        boolean isReaderMode = (currentUser == null || currentUser.isReader() || currentUser.isGuest());
+        JLabel lblSub = new JLabel(isReaderMode
             ? "Tra cứu danh mục sách phong phú, tác giả và tình trạng sẵn sàng tại thư viện"
             : "Danh mục các đầu sách trong thư viện, quản lý số lượng tồn và tình trạng khả dụng");
         lblSub.setFont(UITheme.FONT_SMALL);
@@ -273,13 +254,30 @@ public class BookCatalogView extends JPanel {
         tableScroll.getViewport().setBackground(UITheme.CARD_BG);
         tableScroll.setOpaque(false);
 
-        gridPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 16));
+        gridPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 16)) {
+            @Override
+            public Dimension getPreferredSize() {
+                int targetWidth = (getParent() != null && getParent().getWidth() > 0) ? getParent().getWidth() : 800;
+                int tileWidth = 126;
+                int tileHeight = 224;
+                int hgap = 16;
+                int vgap = 16;
+                int cols = Math.max(1, (targetWidth - hgap) / (tileWidth + hgap));
+                int count = getComponentCount();
+                if (count == 0) return new Dimension(targetWidth, 100);
+                int rows = (count + cols - 1) / cols;
+                int totalHeight = rows * (tileHeight + vgap) + vgap + 20;
+                return new Dimension(targetWidth, totalHeight);
+            }
+        };
         gridPanel.setOpaque(false);
         JScrollPane gridScroll = new JScrollPane(gridPanel);
         gridScroll.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UITheme.BORDER));
         gridScroll.getViewport().setBackground(UITheme.CARD_BG);
         gridScroll.setOpaque(false);
         gridScroll.getVerticalScrollBar().setUnitIncrement(16);
+        gridScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        gridScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 
         loadingOverlay = createLoadingPanel();
         emptyStatePanel = createEmptyStatePanel();
@@ -380,16 +378,33 @@ public class BookCatalogView extends JPanel {
         rightBox.add(cmbCategory);
         rightBox.add(cmbAvailability);
 
-        btnViewToggle = UITheme.createPillButton(
-            "GRID".equalsIgnoreCase(UserSession.getCatalogViewMode()) ? "Danh sách" : "Lưới ảnh",
-            UITheme.TINT,
-            UITheme.ON_TINT
-        );
-        btnViewToggle.setFont(UITheme.FONT_BADGE);
+        btnViewToggle = new JButton() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (getModel().isRollover()) {
+                    g2.setColor(UITheme.TINT_LIGHT);
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                } else {
+                    g2.setColor(UITheme.CARD_BG);
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                }
+                g2.setColor(UITheme.BORDER);
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
         btnViewToggle.setIcon("GRID".equalsIgnoreCase(UserSession.getCatalogViewMode())
-            ? IconFactory.createListIcon(UITheme.ON_TINT, 14)
-            : IconFactory.createGridIcon(UITheme.ON_TINT, 14));
-        btnViewToggle.setToolTipText("Chuyển đổi giữa chế độ xem Danh Sách và Lưới Ảnh Bìa");
+            ? IconFactory.createListIcon(UITheme.ON_TINT, 16)
+            : IconFactory.createGridIcon(UITheme.ON_TINT, 16));
+        btnViewToggle.setPreferredSize(new Dimension(36, 36));
+        btnViewToggle.setContentAreaFilled(false);
+        btnViewToggle.setBorderPainted(false);
+        btnViewToggle.setFocusPainted(false);
+        btnViewToggle.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnViewToggle.setToolTipText("Chuyển đổi giữa chế độ xem danh sách và lưới ảnh bìa");
         btnViewToggle.addActionListener(e -> toggleViewMode());
         rightBox.add(btnViewToggle);
 
@@ -562,13 +577,11 @@ public class BookCatalogView extends JPanel {
     private void toggleViewMode() {
         if ("GRID".equalsIgnoreCase(UserSession.getCatalogViewMode())) {
             UserSession.setCatalogViewMode("TABLE");
-            btnViewToggle.setText("Lưới ảnh");
-            btnViewToggle.setIcon(IconFactory.createGridIcon(UITheme.ON_TINT, 14));
+            btnViewToggle.setIcon(IconFactory.createGridIcon(UITheme.ON_TINT, 16));
             showCardView("TABLE");
         } else {
             UserSession.setCatalogViewMode("GRID");
-            btnViewToggle.setText("Danh sách");
-            btnViewToggle.setIcon(IconFactory.createListIcon(UITheme.ON_TINT, 14));
+            btnViewToggle.setIcon(IconFactory.createListIcon(UITheme.ON_TINT, 16));
             renderGridView(lastLoadedBooks);
             showCardView("GRID");
         }

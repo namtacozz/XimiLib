@@ -1,6 +1,7 @@
 package com.ximilib.presentation.view;
 
 import com.ximilib.application.port.ReportPort;
+import com.ximilib.presentation.util.IconFactory;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
@@ -150,10 +151,13 @@ public class ReportsDashboardView extends JPanel {
         cmbReportType.setPreferredSize(new Dimension(230, 36));
         cmbReportType.addActionListener(e -> loadReportDataAsync());
 
-        JButton btnRefresh = UITheme.createPillButton("Làm mới", UITheme.BG_LIGHT, UITheme.TEXT_MAIN);
-        btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnRefresh.setMargin(new Insets(2, 8, 2, 8));
-        btnRefresh.setPreferredSize(new Dimension(92, 36));
+        JButton btnRefresh = new JButton(IconFactory.createRefreshIcon(UITheme.TEXT_MAIN, 16));
+        btnRefresh.setPreferredSize(new Dimension(38, 36));
+        btnRefresh.setBackground(UITheme.BG_LIGHT);
+        btnRefresh.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
+        btnRefresh.setFocusPainted(false);
+        btnRefresh.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnRefresh.setToolTipText("Làm mới dữ liệu thống kê");
         btnRefresh.addActionListener(e -> {
             loadKpisAsync();
             loadChartAsync();
@@ -168,23 +172,31 @@ public class ReportsDashboardView extends JPanel {
         JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         rightActions.setOpaque(false);
 
-        btnUpdateStatus = UITheme.createPillButton("Cập nhật trạng thái", UITheme.TINT, UITheme.ON_TINT);
-        btnUpdateStatus.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnUpdateStatus.setMargin(new Insets(2, 10, 2, 10));
-        btnUpdateStatus.setPreferredSize(new Dimension(162, 36));
+        btnUpdateStatus = new JButton(IconFactory.createCheckIcon(UITheme.ON_TINT, 16));
+        btnUpdateStatus.setPreferredSize(new Dimension(38, 36));
+        btnUpdateStatus.setBackground(UITheme.TINT);
+        btnUpdateStatus.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
+        btnUpdateStatus.setFocusPainted(false);
         btnUpdateStatus.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnUpdateStatus.setToolTipText("Cập nhật trạng thái phiếu mượn");
         btnUpdateStatus.addActionListener(e -> showUpdateStatusDialog());
 
-        JButton btnExportXlsx = UITheme.createPillButton("Xuất Excel (.xlsx)", UITheme.PRIMARY, Color.WHITE);
-        btnExportXlsx.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnExportXlsx.setMargin(new Insets(2, 10, 2, 10));
-        btnExportXlsx.setPreferredSize(new Dimension(150, 36));
+        JButton btnExportXlsx = new JButton(IconFactory.createExcelIcon(Color.WHITE, 16));
+        btnExportXlsx.setPreferredSize(new Dimension(38, 36));
+        btnExportXlsx.setBackground(UITheme.PRIMARY);
+        btnExportXlsx.setBorder(new UITheme.RoundedBorder(UITheme.PRIMARY, 8));
+        btnExportXlsx.setFocusPainted(false);
+        btnExportXlsx.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnExportXlsx.setToolTipText("Xuất báo cáo Excel (.xlsx)");
         btnExportXlsx.addActionListener(e -> exportToXlsx());
 
-        JButton btnPrint = UITheme.createPillButton("In Báo Cáo", new Color(107, 114, 128), Color.WHITE);
-        btnPrint.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnPrint.setMargin(new Insets(2, 8, 2, 8));
-        btnPrint.setPreferredSize(new Dimension(110, 36));
+        JButton btnPrint = new JButton(IconFactory.createPrintIcon(Color.WHITE, 16));
+        btnPrint.setPreferredSize(new Dimension(38, 36));
+        btnPrint.setBackground(UITheme.TEXT_MUTED);
+        btnPrint.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
+        btnPrint.setFocusPainted(false);
+        btnPrint.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnPrint.setToolTipText("In báo cáo");
         btnPrint.addActionListener(e -> printReport());
 
         rightActions.add(btnUpdateStatus);

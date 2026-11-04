@@ -1,55 +1,76 @@
 package com.ximilib.presentation.view;
 
+import com.ximilib.application.dto.BorrowTicketDto;
 import com.ximilib.application.dto.CompensationResultDto;
+import com.ximilib.application.dto.PatronDto;
 import com.ximilib.application.dto.ReturnResultDto;
+import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.application.service.CirculationService;
 import com.ximilib.domain.repository.CirculationRepository.BorrowDetailInfo;
+import com.ximilib.presentation.component.VietQrModalPanel;
 import com.ximilib.presentation.util.UITheme;
+import com.ximilib.presentation.util.UiText;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
-/**
- * ReturnAndCompensationView: Màn hình Xử Lý Trả Sách & Bồi Hoàn Hỏng/Mất (UC-6 & UC-9).
- * Tự động tính tiền phạt trễ hạn (2.000đ/ngày), phí xử lý kỹ thuật (20.000đ)
- * và bồi thường mất sách (200% giá bìa theo BR-08).
- * Tuân thủ R-01, R-04, R-06, R-10, R-11.
- */
 public class ReturnAndCompensationView extends JPanel {
 
     private final CirculationService circulationService;
+    private final AuthenticationService authService;
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+    private JTextField txtBorrower;
+    private JLabel lblSelectedBorrower;
+    private PatronDto selectedPatron;
+
+    private JComboBox<String> cmbBorrowedBooks;
+    private final List<BorrowTicketDto> currentActiveLoans = new ArrayList<>();
     private JTextField txtBarcode;
-    private JLabel lblBookTitle;
-    private JLabel lblBorrower;
-    private JLabel lblDueDate;
-    private JLabel lblOverdueStatus;
 
     private JRadioButton radNormal;
     private JRadioButton radDamaged;
     private JRadioButton radLost;
 
+    private JLabel lblBookTitle;
+    private JLabel lblCopyBarcode;
+    private JLabel lblTicketId;
+    private JLabel lblDueDate;
+    private JLabel lblOverdueStatus;
+
+    private JPanel financeCard;
     private JLabel lblFineDetail;
     private JLabel lblTotalAmount;
+    private JLabel lblCleanReturnNotice;
     private JButton btnExecute;
 
     private BorrowDetailInfo currentDetail;
+    private BigDecimal currentTotalFee = BigDecimal.ZERO;
 
     public ReturnAndCompensationView() {
-        this(AppContainer.getInstance().getCirculationService());
+        this(AppContainer.getInstance().getCirculationService(), AppContainer.getInstance().getAuthenticationService());
     }
 
     public ReturnAndCompensationView(CirculationService service) {
+        this(service, AppContainer.getInstance().getAuthenticationService());
+    }
+
+    public ReturnAndCompensationView(CirculationService service, AuthenticationService authService) {
         this.circulationService = service != null ? service : AppContainer.getInstance().getCirculationService();
+        this.authService = authService != null ? authService : AppContainer.getInstance().getAuthenticationService();
 
         setOpaque(false);
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(0, 16));
         setBorder(BorderFactory.createEmptyBorder(20, 28, 28, 28));
 
         initUI();
@@ -60,11 +81,11 @@ public class ReturnAndCompensationView extends JPanel {
         headerPanel.setOpaque(false);
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
 
-        JLabel lblTitle = new JLabel("Xử lý trả sách & bồi hoàn mất/hỏng");
+        JLabel lblTitle = new JLabel(UiText.TITLE_RETURN_VIEW);
         lblTitle.setFont(UITheme.FONT_TITLE_LARGE);
         lblTitle.setForeground(UITheme.TEXT_MAIN);
 
-        JLabel lblSub = new JLabel("Quét mã cuốn sách để kiểm tra phiếu mượn, tính phạt trễ hạn hoặc lập biên bản bồi thường");
+        JLabel lblSub = new JLabel(UiText.SUB_RETURN_VIEW);
         lblSub.setFont(UITheme.FONT_SMALL);
         lblSub.setForeground(UITheme.TEXT_MUTED);
 
@@ -73,7 +94,243 @@ public class ReturnAndCompensationView extends JPanel {
         headerPanel.add(lblSub);
         add(headerPanel, BorderLayout.NORTH);
 
-        JPanel card = new JPanel(new GridBagLayout()) {
+        JPanel mainSplit = new JPanel(new GridLayout(1, 2, 18, 0));
+        mainSplit.setOpaque(false);
+
+        mainSplit.add(createLeftWorkflowCard());
+        mainSplit.add(createRightDetailsCard());
+
+        add(mainSplit, BorderLayout.CENTER);
+    }
+
+    private JPanel createLeftWorkflowCard() {
+        JPanel card = createBaseCard();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+
+        JLabel lblCardTitle = new JLabel(UiText.TITLE_RECEIVE_RETURN);
+        lblCardTitle.setFont(UITheme.FONT_TITLE);
+        lblCardTitle.setForeground(UITheme.TEXT_MAIN);
+        lblCardTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        card.add(lblCardTitle);
+        card.add(Box.createVerticalStrut(14));
+
+        card.add(createStepHeader(1, UiText.STEP_SELECT_BORROWER));
+        card.add(Box.createVerticalStrut(6));
+
+        JPanel borrowerInputBox = new JPanel(new BorderLayout(8, 0));
+        borrowerInputBox.setOpaque(false);
+        borrowerInputBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
+        borrowerInputBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        txtBorrower = new JTextField();
+        txtBorrower.setFont(UITheme.FONT_REGULAR);
+        txtBorrower.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
+        txtBorrower.putClientProperty("JTextField.placeholderText", UiText.PH_SEARCH_BORROWER);
+
+        JPopupMenu suggestPopup = new JPopupMenu();
+        suggestPopup.setFocusable(false);
+
+        txtBorrower.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { triggerBorrowerSuggest(suggestPopup); }
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { triggerBorrowerSuggest(suggestPopup); }
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { triggerBorrowerSuggest(suggestPopup); }
+        });
+        txtBorrower.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                Timer t = new Timer(200, ev -> suggestPopup.setVisible(false));
+                t.setRepeats(false);
+                t.start();
+            }
+        });
+
+        JButton btnSearchBorrower = UITheme.createPillButton(UiText.BTN_SEARCH_SHORT, UITheme.PRIMARY, Color.WHITE);
+        btnSearchBorrower.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnSearchBorrower.setPreferredSize(new Dimension(80, 36));
+        btnSearchBorrower.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnSearchBorrower.addActionListener(e -> searchBorrowerDirect());
+
+        borrowerInputBox.add(txtBorrower, BorderLayout.CENTER);
+        borrowerInputBox.add(btnSearchBorrower, BorderLayout.EAST);
+        card.add(borrowerInputBox);
+        card.add(Box.createVerticalStrut(6));
+
+        lblSelectedBorrower = new JLabel(UiText.LBL_PATRON_UNSELECTED);
+        lblSelectedBorrower.setFont(UITheme.FONT_SMALL);
+        lblSelectedBorrower.setForeground(UITheme.TEXT_MUTED);
+        lblSelectedBorrower.setAlignmentX(Component.LEFT_ALIGNMENT);
+        card.add(lblSelectedBorrower);
+        card.add(Box.createVerticalStrut(14));
+
+        card.add(createStepHeader(2, UiText.STEP_SELECT_RETURN_BOOK));
+        card.add(Box.createVerticalStrut(6));
+
+        cmbBorrowedBooks = new JComboBox<>(new String[]{UiText.PH_SELECT_BOOK_COMBO});
+        cmbBorrowedBooks.setFont(UITheme.FONT_REGULAR);
+        cmbBorrowedBooks.setBackground(Color.WHITE);
+        cmbBorrowedBooks.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        cmbBorrowedBooks.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cmbBorrowedBooks.addActionListener(e -> onSelectBookFromCombo());
+        card.add(cmbBorrowedBooks);
+        card.add(Box.createVerticalStrut(8));
+
+        JPanel scanRow = new JPanel(new BorderLayout(8, 0));
+        scanRow.setOpaque(false);
+        scanRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        scanRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        txtBarcode = new JTextField();
+        txtBarcode.setFont(UITheme.FONT_REGULAR);
+        txtBarcode.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
+        txtBarcode.putClientProperty("JTextField.placeholderText", UiText.PH_SCAN_BARCODE_DIRECT);
+        txtBarcode.addActionListener(e -> checkDirectBarcode());
+
+        JButton btnCheckBarcode = UITheme.createPillButton(UiText.BTN_CHECK, UITheme.TINT, UITheme.ON_TINT);
+        btnCheckBarcode.setFont(UITheme.FONT_SMALL);
+        btnCheckBarcode.setPreferredSize(new Dimension(86, 36));
+        btnCheckBarcode.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnCheckBarcode.addActionListener(e -> checkDirectBarcode());
+
+        scanRow.add(txtBarcode, BorderLayout.CENTER);
+        scanRow.add(btnCheckBarcode, BorderLayout.EAST);
+        card.add(scanRow);
+        card.add(Box.createVerticalStrut(14));
+
+        card.add(createStepHeader(3, UiText.STEP_BOOK_CONDITION));
+        card.add(Box.createVerticalStrut(6));
+
+        radNormal = new JRadioButton(UiText.COND_NORMAL, true);
+        radDamaged = new JRadioButton(UiText.COND_DAMAGED);
+        radLost = new JRadioButton(UiText.COND_LOST);
+
+        radNormal.setFont(UITheme.FONT_REGULAR);
+        radDamaged.setFont(UITheme.FONT_REGULAR);
+        radLost.setFont(UITheme.FONT_REGULAR);
+        radNormal.setOpaque(false);
+        radDamaged.setOpaque(false);
+        radLost.setOpaque(false);
+
+        ButtonGroup bg = new ButtonGroup();
+        bg.add(radNormal);
+        bg.add(radDamaged);
+        bg.add(radLost);
+
+        radNormal.addActionListener(e -> recalculateFine());
+        radDamaged.addActionListener(e -> recalculateFine());
+        radLost.addActionListener(e -> recalculateFine());
+
+        card.add(radNormal);
+        card.add(Box.createVerticalStrut(4));
+        card.add(radDamaged);
+        card.add(Box.createVerticalStrut(4));
+        card.add(radLost);
+        card.add(Box.createVerticalGlue());
+
+        return card;
+    }
+
+    private JPanel createRightDetailsCard() {
+        JPanel card = createBaseCard();
+        card.setLayout(new BorderLayout(0, 14));
+
+        JPanel centerBox = new JPanel();
+        centerBox.setOpaque(false);
+        centerBox.setLayout(new BoxLayout(centerBox, BoxLayout.Y_AXIS));
+
+        JLabel lblCardTitle = new JLabel(UiText.TITLE_LOAN_INFO);
+        lblCardTitle.setFont(UITheme.FONT_TITLE);
+        lblCardTitle.setForeground(UITheme.TEXT_MAIN);
+        lblCardTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        centerBox.add(lblCardTitle);
+        centerBox.add(Box.createVerticalStrut(12));
+
+        JPanel infoBox = new JPanel(new GridLayout(5, 1, 0, 4));
+        infoBox.setBackground(UITheme.BG_LIGHT);
+        infoBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        infoBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 130));
+        infoBox.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(UITheme.BORDER, 1),
+            BorderFactory.createEmptyBorder(10, 14, 10, 14)
+        ));
+
+        lblBookTitle = new JLabel(UiText.LBL_BOOK_UNSELECTED);
+        lblCopyBarcode = new JLabel(UiText.LBL_COPY_EMPTY);
+        lblTicketId = new JLabel(UiText.LBL_TICKET_EMPTY);
+        lblDueDate = new JLabel(UiText.LBL_DUE_EMPTY);
+        lblOverdueStatus = new JLabel(UiText.LBL_STATUS_EMPTY);
+
+        infoBox.add(lblBookTitle);
+        infoBox.add(lblCopyBarcode);
+        infoBox.add(lblTicketId);
+        infoBox.add(lblDueDate);
+        infoBox.add(lblOverdueStatus);
+        centerBox.add(infoBox);
+        centerBox.add(Box.createVerticalStrut(16));
+
+        JLabel lblFinanceTitle = new JLabel(UiText.TITLE_FINANCE_DUTY);
+        lblFinanceTitle.setFont(UITheme.FONT_TITLE);
+        lblFinanceTitle.setForeground(UITheme.TEXT_MAIN);
+        lblFinanceTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        centerBox.add(lblFinanceTitle);
+        centerBox.add(Box.createVerticalStrut(10));
+
+        lblCleanReturnNotice = new JLabel(UiText.NOTICE_CLEAN_RETURN);
+        lblCleanReturnNotice.setFont(UITheme.FONT_REGULAR);
+        lblCleanReturnNotice.setForeground(UITheme.SUCCESS_TEXT);
+        lblCleanReturnNotice.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblCleanReturnNotice.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(UITheme.SUCCESS_GREEN, 1),
+            BorderFactory.createEmptyBorder(10, 14, 10, 14)
+        ));
+        lblCleanReturnNotice.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        centerBox.add(lblCleanReturnNotice);
+
+        financeCard = new JPanel(new GridLayout(2, 1, 0, 4));
+        financeCard.setBackground(UITheme.BG_LIGHT);
+        financeCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+        financeCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 76));
+        financeCard.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(UITheme.DANGER_TEXT, 1),
+            BorderFactory.createEmptyBorder(10, 14, 10, 14)
+        ));
+
+        lblFineDetail = new JLabel(UiText.LBL_FINE_DETAIL_INIT);
+        lblFineDetail.setFont(UITheme.FONT_SMALL);
+        lblFineDetail.setForeground(UITheme.TEXT_MUTED);
+
+        lblTotalAmount = new JLabel(UiText.LBL_TOTAL_AMOUNT_INIT);
+        lblTotalAmount.setFont(UITheme.FONT_TITLE);
+        lblTotalAmount.setForeground(UITheme.DANGER_TEXT);
+
+        financeCard.add(lblFineDetail);
+        financeCard.add(lblTotalAmount);
+        financeCard.setVisible(false);
+        centerBox.add(financeCard);
+        centerBox.add(Box.createVerticalGlue());
+
+        card.add(centerBox, BorderLayout.CENTER);
+
+        JPanel bottomBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        bottomBar.setOpaque(false);
+        bottomBar.setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
+
+        btnExecute = UITheme.createPillButton(UiText.BTN_CONFIRM_UPPER, UITheme.PRIMARY, Color.WHITE);
+        btnExecute.setFont(UITheme.FONT_BOLD);
+        btnExecute.setPreferredSize(new Dimension(180, 42));
+        btnExecute.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnExecute.addActionListener(e -> executeReturnOrLoss());
+
+        bottomBar.add(btnExecute);
+        card.add(bottomBar, BorderLayout.SOUTH);
+
+        return card;
+    }
+
+    private JPanel createBaseCard() {
+        JPanel card = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -88,188 +345,205 @@ public class ReturnAndCompensationView extends JPanel {
             }
         };
         card.setOpaque(false);
-        card.setBorder(BorderFactory.createEmptyBorder(24, 32, 24, 32));
-
-        JPanel formBox = new JPanel();
-        formBox.setOpaque(false);
-        formBox.setLayout(new BoxLayout(formBox, BoxLayout.Y_AXIS));
-        formBox.setPreferredSize(new Dimension(540, 520));
-
-        // 1. Quét mã vạch
-        formBox.add(createSectionLabel("1. QUÉT MÃ VẠCH CUỐN SÁCH"));
-        JPanel scanBox = new JPanel(new BorderLayout(10, 0));
-        scanBox.setOpaque(false);
-        scanBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-        scanBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-
-        txtBarcode = new JTextField();
-        txtBarcode.setFont(UITheme.FONT_REGULAR);
-        txtBarcode.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
-        txtBarcode.addActionListener(e -> checkLoanInfo());
-
-        JButton btnScan = UITheme.createPillButton("Kiểm tra phiếu", UITheme.PRIMARY, Color.WHITE);
-        btnScan.setPreferredSize(new Dimension(130, 40));
-        btnScan.addActionListener(e -> checkLoanInfo());
-
-        scanBox.add(txtBarcode, BorderLayout.CENTER);
-        scanBox.add(btnScan, BorderLayout.EAST);
-        formBox.add(scanBox);
-        formBox.add(Box.createVerticalStrut(14));
-
-        // 2. Thông tin mượn
-        formBox.add(createSectionLabel("2. THÔNG TIN PHIẾU MƯỢN HIỆN TẠI"));
-        JPanel infoBox = new JPanel(new GridLayout(4, 1, 0, 4));
-        infoBox.setBackground(UITheme.BG_LIGHT);
-        infoBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-        infoBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 110));
-        infoBox.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(UITheme.BORDER, 1),
-            BorderFactory.createEmptyBorder(10, 14, 10, 14)
-        ));
-
-        lblBookTitle = new JLabel("Đầu sách: (Chưa quét)");
-        lblBorrower = new JLabel("Người mượn: (Chưa rõ)");
-        lblDueDate = new JLabel("Hạn trả: (Chưa rõ)");
-        lblOverdueStatus = new JLabel("Tình trạng: -");
-
-        infoBox.add(lblBookTitle);
-        infoBox.add(lblBorrower);
-        infoBox.add(lblDueDate);
-        infoBox.add(lblOverdueStatus);
-        formBox.add(infoBox);
-        formBox.add(Box.createVerticalStrut(14));
-
-        // 3. Tình trạng hoàn trả
-        formBox.add(createSectionLabel("3. TÌNH TRẠNG SÁCH KHI TIẾP NHẬN"));
-        JPanel radioBox = new JPanel();
-        radioBox.setLayout(new BoxLayout(radioBox, BoxLayout.Y_AXIS));
-        radioBox.setOpaque(false);
-        radioBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        radNormal = new JRadioButton("Bình thường (Đạt tiêu chuẩn)", true);
-        radDamaged = new JRadioButton("Hỏng nhẹ / Rách bìa (+ 20.000đ phí xử lý)");
-        radLost = new JRadioButton("Báo mất sách (Bồi thường 200% giá bìa + 20.000đ)");
-
-        radNormal.setFont(UITheme.FONT_REGULAR);
-        radDamaged.setFont(UITheme.FONT_REGULAR);
-        radLost.setFont(UITheme.FONT_REGULAR);
-        radNormal.setOpaque(false);
-        radDamaged.setOpaque(false);
-        radLost.setOpaque(false);
-        radNormal.setAlignmentX(Component.LEFT_ALIGNMENT);
-        radDamaged.setAlignmentX(Component.LEFT_ALIGNMENT);
-        radLost.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        ButtonGroup bg = new ButtonGroup();
-        bg.add(radNormal);
-        bg.add(radDamaged);
-        bg.add(radLost);
-
-        radNormal.addActionListener(e -> recalculateFine());
-        radDamaged.addActionListener(e -> recalculateFine());
-        radLost.addActionListener(e -> recalculateFine());
-
-        radioBox.add(radNormal);
-        radioBox.add(Box.createVerticalStrut(4));
-        radioBox.add(radDamaged);
-        radioBox.add(Box.createVerticalStrut(4));
-        radioBox.add(radLost);
-
-        formBox.add(radioBox);
-        formBox.add(Box.createVerticalStrut(14));
-
-        // 4. Bảng tính tiền
-        formBox.add(createSectionLabel("4. TỔNG HỢP NGHĨA VỤ TÀI CHÍNH"));
-        JPanel financeBox = new JPanel(new GridLayout(2, 1, 0, 4));
-        financeBox.setBackground(UITheme.BG_LIGHT);
-        financeBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-        financeBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
-        financeBox.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(UITheme.BORDER, 1),
-            BorderFactory.createEmptyBorder(10, 14, 10, 14)
-        ));
-
-        lblFineDetail = new JLabel("Chi tiết: Trễ hạn 0đ + Phí 0đ");
-        lblFineDetail.setFont(UITheme.FONT_SMALL);
-        lblFineDetail.setForeground(UITheme.TEXT_MUTED);
-
-        lblTotalAmount = new JLabel("TỔNG TIỀN PHẢI NỘP: 0 VNĐ");
-        lblTotalAmount.setFont(UITheme.FONT_TITLE);
-        lblTotalAmount.setForeground(UITheme.DANGER_TEXT);
-
-        financeBox.add(lblFineDetail);
-        financeBox.add(lblTotalAmount);
-        formBox.add(financeBox);
-        formBox.add(Box.createVerticalStrut(20));
-
-        btnExecute = UITheme.createPillButton("XÁC NHẬN HOÀN TẤT", UITheme.PRIMARY, Color.WHITE);
-        btnExecute.setFont(UITheme.FONT_BOLD);
-        btnExecute.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-        btnExecute.setPreferredSize(new Dimension(Integer.MAX_VALUE, 44));
-        btnExecute.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnExecute.addActionListener(e -> executeReturnOrLoss());
-        formBox.add(btnExecute);
-
-        card.add(formBox);
-
-        JPanel main = new JPanel(new BorderLayout());
-        main.setOpaque(false);
-        main.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
-        main.add(card, BorderLayout.CENTER);
-
-        add(main, BorderLayout.CENTER);
+        card.setBorder(BorderFactory.createEmptyBorder(18, 20, 18, 20));
+        return card;
     }
 
-    private JLabel createSectionLabel(String text) {
-        JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lbl.setForeground(UITheme.TEXT_MUTED);
-        lbl.setBorder(BorderFactory.createEmptyBorder(2, 2, 4, 0));
-        lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
-        return lbl;
+    private JPanel createStepHeader(int step, String title) {
+        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        p.setOpaque(false);
+        p.setAlignmentX(Component.LEFT_ALIGNMENT);
+        p.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
+
+        JLabel badge = new JLabel(String.valueOf(step), SwingConstants.CENTER) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(UITheme.PRIMARY);
+                g2.fillOval(0, 0, getWidth(), getHeight());
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        badge.setOpaque(false);
+        badge.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        badge.setForeground(Color.WHITE);
+        badge.setPreferredSize(new Dimension(18, 18));
+        badge.setMinimumSize(new Dimension(18, 18));
+        badge.setMaximumSize(new Dimension(18, 18));
+
+        JLabel text = new JLabel(title);
+        text.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        text.setForeground(UITheme.PRIMARY);
+
+        p.add(badge);
+        p.add(text);
+        return p;
     }
 
-    private void checkLoanInfo() {
+    private void triggerBorrowerSuggest(JPopupMenu popup) {
+        String query = txtBorrower.getText().trim();
+        if (query.length() < 2) {
+            popup.setVisible(false);
+            return;
+        }
+        SwingWorker<List<PatronDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<PatronDto> doInBackground() {
+                return authService.searchPatrons(query);
+            }
+            @Override
+            protected void done() {
+                try {
+                    List<PatronDto> patrons = get();
+                    popup.removeAll();
+                    if (patrons != null && !patrons.isEmpty() && txtBorrower.isFocusOwner()) {
+                        int limit = Math.min(patrons.size(), 5);
+                        for (int i = 0; i < limit; i++) {
+                            PatronDto p = patrons.get(i);
+                            JMenuItem item = new JMenuItem(p.getFullName() + " (" + p.getCardNumber() + ")");
+                            item.setFont(UITheme.FONT_REGULAR);
+                            item.addActionListener(e -> {
+                                txtBorrower.setText(p.getFullName());
+                                popup.setVisible(false);
+                                loadPatronLoans(p);
+                            });
+                            popup.add(item);
+                        }
+                        popup.show(txtBorrower, 0, txtBorrower.getHeight());
+                    } else {
+                        popup.setVisible(false);
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    private void searchBorrowerDirect() {
+        String query = txtBorrower.getText().trim();
+        if (query.isEmpty()) return;
+        List<PatronDto> patrons = authService.searchPatrons(query);
+        if (patrons != null && !patrons.isEmpty()) {
+            loadPatronLoans(patrons.get(0));
+        } else {
+            UiModalHelper.showToastWarning(this, UiText.ERR_BORROWER_NOT_FOUND + query);
+        }
+    }
+
+    private void loadPatronLoans(PatronDto patron) {
+        selectedPatron = patron;
+        lblSelectedBorrower.setText("Bạn đọc: " + patron.getFullName() + " (" + patron.getCardNumber() + ")");
+        lblSelectedBorrower.setForeground(UITheme.PRIMARY);
+
+        SwingWorker<List<BorrowTicketDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<BorrowTicketDto> doInBackground() {
+                return circulationService.getAllLoans(patron.getCardNumber(), 1);
+            }
+            @Override
+            protected void done() {
+                try {
+                    List<BorrowTicketDto> loans = get();
+                    currentActiveLoans.clear();
+                    cmbBorrowedBooks.removeAllItems();
+                    if (loans != null && !loans.isEmpty()) {
+                        for (BorrowTicketDto ticket : loans) {
+                            if (ticket.getStatus() == 1) {
+                                currentActiveLoans.add(ticket);
+                                String itemText = (ticket.getCopyBarcode() != null ? ticket.getCopyBarcode() : ticket.getTicketId())
+                                    + " - " + ticket.getBookTitle();
+                                cmbBorrowedBooks.addItem(itemText);
+                            }
+                        }
+                    }
+                    if (currentActiveLoans.isEmpty()) {
+                        cmbBorrowedBooks.addItem(UiText.ERR_NO_ACTIVE_LOANS);
+                        clearDetail();
+                    } else {
+                        onSelectBookFromCombo();
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    private void onSelectBookFromCombo() {
+        int idx = cmbBorrowedBooks.getSelectedIndex();
+        if (idx < 0 || idx >= currentActiveLoans.size()) return;
+        BorrowTicketDto ticket = currentActiveLoans.get(idx);
+        if (ticket.getCopyBarcode() != null) {
+            loadCopyDetail(ticket.getCopyBarcode());
+        }
+    }
+
+    private void checkDirectBarcode() {
         String barcode = txtBarcode.getText().trim();
         if (barcode.isEmpty()) return;
+        loadCopyDetail(barcode);
+    }
 
+    private void loadCopyDetail(String barcode) {
         BorrowDetailInfo detail = circulationService.findActiveLoanByCopy(barcode);
         if (detail == null) {
-            UiModalHelper.showToastError(this, "Không tìm thấy cuốn sách hoặc sách không nằm trong phiếu mượn hoạt động!");
-            currentDetail = null;
+            clearDetail();
+            UiModalHelper.showToastWarning(this, UiText.ERR_LOAN_NOT_FOUND);
             return;
         }
 
         currentDetail = detail;
-        lblBookTitle.setText("Đầu sách: " + detail.bookTitle() + " (Mã: " + detail.copyId() + ")");
-        lblBorrower.setText("Mã bạn đọc: " + detail.userId() + " | Mã phiếu: " + detail.ticketId());
-        lblDueDate.setText("Hạn trả: " + (detail.dueDate() != null ? detail.dueDate().toLocalDate() : "Không rõ"));
+        lblBookTitle.setText("Đầu sách: " + detail.bookTitle());
+        lblCopyBarcode.setText("Mã cuốn: " + detail.copyId());
+        lblTicketId.setText("Mã phiếu: " + detail.ticketId() + " (Mã ĐG: " + detail.userId() + ")");
+        lblDueDate.setText("Hạn hoàn trả: " + (detail.dueDate() != null ? detail.dueDate().format(dateFormatter) : "-"));
 
         recalculateFine();
     }
 
     private void recalculateFine() {
-        if (currentDetail == null) return;
+        if (currentDetail == null) {
+            financeCard.setVisible(false);
+            lblCleanReturnNotice.setVisible(true);
+            lblCleanReturnNotice.setText(UiText.NOTICE_SCAN_PROMPT);
+            currentTotalFee = BigDecimal.ZERO;
+            return;
+        }
 
         boolean isLost = radLost.isSelected();
         boolean isDamaged = radDamaged.isSelected();
 
         CompensationResultDto calc = circulationService.calculateCompensation(currentDetail.copyId(), isLost, isDamaged);
+        currentTotalFee = calc.getTotalAmount() != null ? calc.getTotalAmount() : BigDecimal.ZERO;
 
         if (calc.getOverdueDays() > 0) {
-            lblOverdueStatus.setText("<html><font color='#dc2626'><b>Quá hạn " + calc.getOverdueDays() + " ngày (Phạt 2.000đ/ngày)</b></font></html>");
+            lblOverdueStatus.setText("<html><font color='#dc2626'><b>" + UiText.OVERDUE_PREFIX + calc.getOverdueDays() + UiText.OVERDUE_SUFFIX + "</b></font></html>");
         } else {
-            lblOverdueStatus.setText("<html><font color='#16a34a'>Đang trong thời hạn mượn hợp lệ</font></html>");
+            lblOverdueStatus.setText("<html><font color='#16a34a'>" + UiText.STATUS_IN_LOAN_TERM + "</font></html>");
         }
 
-        lblFineDetail.setText("Phạt trễ: " + currencyFormat.format(calc.getOverdueFine()) + " + Phí: " + currencyFormat.format(calc.getTechFee())
-            + (calc.getBookLossAmount().compareTo(BigDecimal.ZERO) > 0 ? " + Đền bù mất sách (200%): " + currencyFormat.format(calc.getBookLossAmount()) : ""));
-        lblTotalAmount.setText("TỔNG TIỀN PHẢI NỘP: " + currencyFormat.format(calc.getTotalAmount()));
+        if (currentTotalFee.compareTo(BigDecimal.ZERO) > 0) {
+            financeCard.setVisible(true);
+            lblCleanReturnNotice.setVisible(false);
+            lblFineDetail.setText(UiText.FINE_OVERDUE_PREFIX + currencyFormat.format(calc.getOverdueFine())
+                + UiText.FINE_FEE_PREFIX + currencyFormat.format(calc.getTechFee())
+                + (calc.getBookLossAmount().compareTo(BigDecimal.ZERO) > 0 ? UiText.FINE_LOSS_PREFIX + currencyFormat.format(calc.getBookLossAmount()) : ""));
+            lblTotalAmount.setText(UiText.TOTAL_PAY_PREFIX + currencyFormat.format(currentTotalFee));
+        } else {
+            financeCard.setVisible(false);
+            lblCleanReturnNotice.setVisible(true);
+            lblCleanReturnNotice.setText(UiText.NOTICE_CLEAN_OK);
+        }
+        financeCard.revalidate();
+        financeCard.repaint();
     }
 
     private void executeReturnOrLoss() {
         if (currentDetail == null) {
-            UiModalHelper.showToastWarning(this, "Vui lòng quét mã cuốn sách cần xử lý!");
+            UiModalHelper.showToastWarning(this, UiText.ERR_SELECT_BOOK_PROMPT);
             return;
         }
 
@@ -277,37 +551,54 @@ public class ReturnAndCompensationView extends JPanel {
 
         if (radLost.isSelected()) {
             CompensationResultDto loss = circulationService.reportLoss(barcode);
-            com.ximilib.presentation.component.VietQrModalPanel.show(this, loss.getFineTicketId(), loss.getTotalAmount(), () -> {
-                circulationService.payFine(loss.getFineTicketId(), "Chuyển khoản VietQR");
-                UiModalHelper.showToastSuccess(this, "Đã lập biên bản bồi thường và hoàn tất thanh toán VietQR: " + currencyFormat.format(loss.getTotalAmount()));
-                resetForm();
-            });
-        } else {
-            String cond = radDamaged.isSelected() ? "Hỏng nhẹ" : "Bình thường";
-            ReturnResultDto ret = circulationService.returnBook(barcode, cond);
-            if (ret.getTotalFine() != null && ret.getTotalFine().compareTo(BigDecimal.ZERO) > 0) {
-                UiModalHelper.showConfirm(this, "Thu tiền phạt", "Tổng tiền phạt là " + currencyFormat.format(ret.getTotalFine()) + ". Mở mã VietQR để thanh toán?", () -> {
-                    com.ximilib.presentation.component.VietQrModalPanel.show(this, "P-" + barcode, ret.getTotalFine(), () -> {
-                        UiModalHelper.showToastSuccess(this, "Đã thu hồi sách và thu phạt qua VietQR thành công!");
-                        resetForm();
-                    });
+            if (loss.getTotalAmount() != null && loss.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
+                VietQrModalPanel.show(this, loss.getFineTicketId(), loss.getTotalAmount(), () -> {
+                    circulationService.payFine(loss.getFineTicketId(), UiText.METHOD_VIETQR);
+                    UiModalHelper.showToastSuccess(this, UiText.MSG_COMPENSATION_PAID + currencyFormat.format(loss.getTotalAmount()));
+                    resetForm();
                 });
             } else {
-                UiModalHelper.showToastSuccess(this, "Đã thu hồi sách thành công! Không có tiền phạt.");
+                UiModalHelper.showToastSuccess(this, UiText.MSG_LOSS_RECORDED);
+                resetForm();
+            }
+        } else {
+            String cond = radDamaged.isSelected() ? UiText.COND_LABEL_DAMAGED : UiText.COND_LABEL_NORMAL;
+            ReturnResultDto ret = circulationService.returnBook(barcode, cond);
+            if (ret.getTotalFine() != null && ret.getTotalFine().compareTo(BigDecimal.ZERO) > 0) {
+                VietQrModalPanel.show(this, "P-" + barcode, ret.getTotalFine(), () -> {
+                    UiModalHelper.showToastSuccess(this, UiText.MSG_RETURN_FINE_PAID + currencyFormat.format(ret.getTotalFine()));
+                    resetForm();
+                });
+            } else {
+                UiModalHelper.showToastSuccess(this, UiText.MSG_RETURN_NO_FINE);
                 resetForm();
             }
         }
     }
 
-    private void resetForm() {
+    private void clearDetail() {
         currentDetail = null;
+        lblBookTitle.setText(UiText.LBL_BOOK_UNSELECTED);
+        lblCopyBarcode.setText(UiText.LBL_COPY_EMPTY);
+        lblTicketId.setText(UiText.LBL_TICKET_EMPTY);
+        lblDueDate.setText(UiText.LBL_DUE_EMPTY);
+        lblOverdueStatus.setText(UiText.LBL_STATUS_EMPTY);
+        financeCard.setVisible(false);
+        lblCleanReturnNotice.setVisible(true);
+        lblCleanReturnNotice.setText(UiText.NOTICE_SCAN_PROMPT);
+        currentTotalFee = BigDecimal.ZERO;
+    }
+
+    private void resetForm() {
+        clearDetail();
+        txtBorrower.setText("");
         txtBarcode.setText("");
-        lblBookTitle.setText("Đầu sách: (Chưa quét)");
-        lblBorrower.setText("Người mượn: (Chưa rõ)");
-        lblDueDate.setText("Hạn trả: (Chưa rõ)");
-        lblOverdueStatus.setText("Tình trạng: -");
+        lblSelectedBorrower.setText(UiText.LBL_PATRON_UNSELECTED);
+        lblSelectedBorrower.setForeground(UITheme.TEXT_MUTED);
+        selectedPatron = null;
+        currentActiveLoans.clear();
+        cmbBorrowedBooks.removeAllItems();
+        cmbBorrowedBooks.addItem(UiText.PH_SELECT_BOOK_COMBO);
         radNormal.setSelected(true);
-        lblFineDetail.setText("Chi tiết: Trễ hạn 0đ + Phí 0đ");
-        lblTotalAmount.setText("TỔNG TIỀN PHẢI NỘP: 0 VNĐ");
     }
 }

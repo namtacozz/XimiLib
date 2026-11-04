@@ -58,8 +58,8 @@ public class ReaderBorrowRegistrationView extends JPanel {
     private final List<BookCopyInfo> currentCopies = new ArrayList<>();
 
     // Tùy chọn mượn
-    private JRadioButton radVeNha;
-    private JRadioButton radTaiCho;
+    private JToggleButton btnVeNha;
+    private JToggleButton btnTaiCho;
     private JLabel lblDueDatePreview;
     private JTextField txtNotes;
     private JButton btnConfirmBorrow;
@@ -336,26 +336,30 @@ public class ReaderBorrowRegistrationView extends JPanel {
         lblFormTitle.setForeground(UITheme.TEXT_MAIN);
         lblFormTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        radVeNha = new JRadioButton("Mượn về nhà (14 ngày)");
-        radTaiCho = new JRadioButton("Đọc tại chỗ (Trong ngày)");
-        radVeNha.setFont(UITheme.FONT_REGULAR);
-        radTaiCho.setFont(UITheme.FONT_REGULAR);
-        radVeNha.setOpaque(false);
-        radTaiCho.setOpaque(false);
-        radVeNha.setSelected(true);
+        btnVeNha = new JToggleButton("Về nhà (14 ngày)");
+        btnTaiCho = new JToggleButton("Tại chỗ (Trong ngày)");
+        btnVeNha.setFont(UITheme.FONT_BOLD);
+        btnTaiCho.setFont(UITheme.FONT_BOLD);
+        btnVeNha.setFocusPainted(false);
+        btnTaiCho.setFocusPainted(false);
+        btnVeNha.setPreferredSize(new Dimension(150, 32));
+        btnTaiCho.setPreferredSize(new Dimension(150, 32));
+        btnVeNha.putClientProperty("JComponent.roundRect", true);
+        btnTaiCho.putClientProperty("JComponent.roundRect", true);
+        btnVeNha.setSelected(true);
 
         ButtonGroup grp = new ButtonGroup();
-        grp.add(radVeNha);
-        grp.add(radTaiCho);
+        grp.add(btnVeNha);
+        grp.add(btnTaiCho);
 
-        radVeNha.addActionListener(e -> updateDueDatePreview());
-        radTaiCho.addActionListener(e -> updateDueDatePreview());
+        btnVeNha.addActionListener(e -> updateLoanTypeToggleUI());
+        btnTaiCho.addActionListener(e -> updateLoanTypeToggleUI());
 
-        JPanel radioRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        JPanel radioRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         radioRow.setOpaque(false);
         radioRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        radioRow.add(radVeNha);
-        radioRow.add(radTaiCho);
+        radioRow.add(btnVeNha);
+        radioRow.add(btnTaiCho);
 
         body.add(lblFormTitle);
         body.add(Box.createVerticalStrut(3));
@@ -419,9 +423,24 @@ public class ReaderBorrowRegistrationView extends JPanel {
         loadAvailableCopiesAsync(book.getBookId());
     }
 
+    private void updateLoanTypeToggleUI() {
+        if (btnVeNha.isSelected()) {
+            btnVeNha.setBackground(UITheme.PRIMARY);
+            btnVeNha.setForeground(Color.WHITE);
+            btnTaiCho.setBackground(UITheme.CARD_BG);
+            btnTaiCho.setForeground(UITheme.TEXT_MAIN);
+        } else {
+            btnTaiCho.setBackground(UITheme.PRIMARY);
+            btnTaiCho.setForeground(Color.WHITE);
+            btnVeNha.setBackground(UITheme.CARD_BG);
+            btnVeNha.setForeground(UITheme.TEXT_MAIN);
+        }
+        updateDueDatePreview();
+    }
+
     private void updateDueDatePreview() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        if (radVeNha.isSelected()) {
+        if (btnVeNha.isSelected()) {
             LocalDateTime due = LocalDateTime.now().plusDays(LibraryPolicy.LOAN_DAYS_HOME).with(LocalTime.of(23, 59));
             lblDueDatePreview.setText("Hạn trả dự kiến: " + due.format(dtf) + " (Thời hạn 14 ngày)");
         } else {
@@ -532,7 +551,7 @@ public class ReaderBorrowRegistrationView extends JPanel {
                     } else {
                         currentCopies.addAll(copies);
                         for (BookCopyInfo cp : copies) {
-                            cmbAvailableCopies.addItem(cp.copyId() + " (" + cp.shelfLocation() + ")");
+                            cmbAvailableCopies.addItem(cp.copyId());
                         }
                         lblBookLocation.setText("Vị trí kệ: " + copies.get(0).shelfLocation() + " (Còn " + copies.size() + " cuốn sẵn sàng)");
                         lblBookLocation.setForeground(new Color(13, 148, 136));
@@ -594,7 +613,7 @@ public class ReaderBorrowRegistrationView extends JPanel {
         }
 
         BookCopyInfo copy = currentCopies.get(selectedIdx);
-        LoanType loanType = radVeNha.isSelected() ? LoanType.VE_NHA : LoanType.TAI_CHO;
+        LoanType loanType = btnVeNha.isSelected() ? LoanType.VE_NHA : LoanType.TAI_CHO;
         String notes = txtNotes.getText().trim();
         if (notes.isEmpty()) {
             notes = "Độc giả đặt mượn online qua App";

@@ -29,6 +29,9 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.net.URL;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -37,6 +40,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
+import javax.imageio.ImageIO;
 
 /**
  * ReaderHomePanel: Trang chủ vận hành dành cho Độc giả theo phong cách Libby / Goodreads.
@@ -208,7 +212,18 @@ public class ReaderHomePanel extends JPanel {
         btnAlertAction.setBackground(UITheme.DANGER_TEXT);
         btnAlertAction.setFocusPainted(false);
         btnAlertAction.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnAlertAction.addActionListener(e -> showFineDetailsModal());
+        btnAlertAction.addActionListener(e -> {
+            User currentUser = UserSession.getCurrentUser();
+            String userId = (currentUser != null) ? currentUser.getId() : "";
+            ReaderDashboardDto.ReaderDashboardData data = dashboardService.getReaderDashboardData(userId);
+            if (data != null && data.summary() != null && data.summary().overdueLoansCount() > 0) {
+                if (navigationCallback != null) {
+                    navigationCallback.accept("Phiếu mượn của tôi");
+                }
+                return;
+            }
+            showFineDetailsModal();
+        });
         alertBanner.add(btnAlertAction, BorderLayout.EAST);
     }
 
@@ -311,6 +326,9 @@ public class ReaderHomePanel extends JPanel {
                 StringBuilder msg = new StringBuilder("Bạn có ");
                 if (summary.overdueLoansCount() > 0) {
                     msg.append(summary.overdueLoansCount()).append(" cuốn sách quá hạn. ");
+                    btnAlertAction.setText("Xem phiếu & Trả sách");
+                } else {
+                    btnAlertAction.setText("Chi tiết nợ phạt");
                 }
                 if (summary.unpaidFineAmount() != null && summary.unpaidFineAmount().compareTo(java.math.BigDecimal.ZERO) > 0) {
                     msg.append("Tiền phạt chưa đóng: ").append(currencyFormatter.format(summary.unpaidFineAmount())).append(". ");
@@ -381,16 +399,27 @@ public class ReaderHomePanel extends JPanel {
         card.setBackground(UITheme.CARD_BG);
         card.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(UITheme.BORDER, 1, true),
-            BorderFactory.createEmptyBorder(12, 16, 12, 16)
+            BorderFactory.createEmptyBorder(10, 16, 10, 16)
         ));
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+        card.setPreferredSize(new Dimension(0, 96));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 98));
 
-        // Bìa sách nhỏ (2:3 ~ 46x69px)
-        BookCoverTile coverTile = new BookCoverTile(
-            loan.coverImage(), loan.bookTitle(), loan.authorName(), 1,
-            () -> openBookDetail(loan.bookId())
-        );
-        card.add(coverTile, BorderLayout.WEST);
+        // Bìa sách nhỏ (2:3 ~ 50x75px)
+        JLabel lblCover = new JLabel();
+        lblCover.setPreferredSize(new Dimension(50, 75));
+        lblCover.setMinimumSize(new Dimension(50, 75));
+        lblCover.setMaximumSize(new Dimension(50, 75));
+        lblCover.setBorder(BorderFactory.createLineBorder(UITheme.BORDER, 1));
+        lblCover.setHorizontalAlignment(SwingConstants.CENTER);
+        lblCover.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        lblCover.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                openBookDetail(loan.bookId());
+            }
+        });
+        loadMiniCoverAsync(lblCover, loan.coverImage(), loan.bookTitle());
+        card.add(lblCover, BorderLayout.WEST);
 
         // Chi tiết ở giữa
         JPanel centerPanel = new JPanel();
@@ -426,8 +455,8 @@ public class ReaderHomePanel extends JPanel {
 
         card.add(centerPanel, BorderLayout.CENTER);
 
-        // Bên phải: Badge hạn + Nút gia hạn
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
+        // Bên phải: Badge hạn + Nút gia hạn + Nút trả sách
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
         rightPanel.setOpaque(false);
 
         JLabel lblBadge = new JLabel(loan.classification().displayText());
@@ -465,8 +494,68 @@ public class ReaderHomePanel extends JPanel {
         }
         rightPanel.add(btnRenew);
 
+        JButton btnReturn = UITheme.createPillButton("Trả sách", UITheme.TINT, UITheme.ON_TINT);
+        btnReturn.setFont(UITheme.FONT_REGULAR.deriveFont(11f));
+        btnReturn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnReturn.addActionListener(e -> {
+            if (navigationCallback != null) {
+                navigationCallback.accept("Phiếu mượn của tôi");
+            }
+        });
+        rightPanel.add(btnReturn);
+
         card.add(rightPanel, BorderLayout.EAST);
         return card;
+    }
+
+    private void loadMiniCoverAsync(JLabel label, String path, String title) {
+        int w = 50, h = 75;
+        BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = img.createGraphics();
+        g2.setColor(UITheme.PASTEL);
+        g2.fillRect(0, 0, w, h);
+        g2.setColor(UITheme.ON_PASTEL);
+        g2.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        String initial = (title != null && !title.isBlank()) ? String.valueOf(title.charAt(0)).toUpperCase() : "B";
+        FontMetrics fm = g2.getFontMetrics();
+        g2.drawString(initial, (w - fm.stringWidth(initial)) / 2, (h + fm.getAscent() - fm.getDescent()) / 2);
+        g2.dispose();
+        label.setIcon(new ImageIcon(img));
+
+        if (path == null || path.isBlank()) return;
+
+        new SwingWorker<ImageIcon, Void>() {
+            @Override
+            protected ImageIcon doInBackground() {
+                try {
+                    BufferedImage raw = null;
+                    String resPath = path.startsWith("/") ? path : "/assets/covers/" + path;
+                    URL url = getClass().getResource(resPath);
+                    if (url != null) raw = ImageIO.read(url);
+                    if (raw == null) {
+                        File f = new File(path);
+                        if (f.exists()) raw = ImageIO.read(f);
+                    }
+                    if (raw == null) {
+                        File fRes = new File("sources/src/main/resources/assets/covers/" + new File(path).getName());
+                        if (fRes.exists()) raw = ImageIO.read(fRes);
+                    }
+                    if (raw != null) {
+                        Image scaled = raw.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                        return new ImageIcon(scaled);
+                    }
+                } catch (Exception ignored) {}
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    ImageIcon icon = get();
+                    if (icon != null) label.setIcon(icon);
+                } catch (Exception ignored) {}
+            }
+        }.execute();
     }
 
     private void handleRenewLoan(ReaderDashboardDto.ReaderActiveLoan loan) {

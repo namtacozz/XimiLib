@@ -73,7 +73,17 @@ public class BookDetailModalPanel extends JPanel {
 
         JLabel lblAuthor = new JLabel("Tác giả: " + (book.getAuthor() != null ? book.getAuthor() : "Không rõ"));
         lblAuthor.setFont(UITheme.FONT_SMALL);
-        lblAuthor.setForeground(UITheme.TEXT_MUTED);
+        lblAuthor.setForeground(UITheme.PRIMARY);
+        lblAuthor.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        lblAuthor.setToolTipText("Lọc sách theo tác giả");
+        lblAuthor.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (book.getAuthor() != null && !book.getAuthor().trim().isEmpty()) {
+                    filterCatalog(book.getAuthor());
+                }
+            }
+        });
 
         JLabel lblCategory = new JLabel("Thể loại: " + (book.getCategoryName() != null ? book.getCategoryName() : "Không rõ"));
         lblCategory.setFont(UITheme.FONT_SMALL);
@@ -170,13 +180,16 @@ public class BookDetailModalPanel extends JPanel {
 
         if (book.getAvailableCopies() > 0) {
             contentPanel.add(Box.createVerticalStrut(12));
+            JPanel btnWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+            btnWrap.setOpaque(false);
+            btnWrap.setAlignmentX(Component.LEFT_ALIGNMENT);
+            btnWrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
             JButton btnBorrow = UITheme.createPillButton("Đăng Ký Mượn Sách", UITheme.PRIMARY, Color.WHITE);
             btnBorrow.setFont(UITheme.FONT_BOLD);
-            btnBorrow.setAlignmentX(Component.LEFT_ALIGNMENT);
-            btnBorrow.setPreferredSize(new Dimension(280, 36));
-            btnBorrow.setMaximumSize(new Dimension(300, 36));
+            btnBorrow.setPreferredSize(new Dimension(220, 36));
             btnBorrow.addActionListener(e -> handleBorrowBook());
-            contentPanel.add(btnBorrow);
+            btnWrap.add(btnBorrow);
+            contentPanel.add(btnWrap);
         }
 
         JScrollPane scroll = new JScrollPane(contentPanel);
@@ -202,6 +215,15 @@ public class BookDetailModalPanel extends JPanel {
 
         JLabel lblZone = new JLabel("• Vị trí: Khu vực A - Tầng 2, Kệ sách chuyên ngành PBL");
         lblZone.setFont(UITheme.FONT_REGULAR);
+        lblZone.setForeground(UITheme.PRIMARY);
+        lblZone.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        lblZone.setToolTipText("Lọc sách theo vị trí kệ");
+        lblZone.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                filterCatalog(book.getCategoryName() != null ? book.getCategoryName() : "Khu vực A");
+            }
+        });
         panel.add(lblZone);
 
         JLabel lblStock = new JLabel(String.format("• Số lượng: %d cuốn tổng cộng (%d cuốn có sẵn tại quầy)",
@@ -212,22 +234,28 @@ public class BookDetailModalPanel extends JPanel {
 
         if (book.getAvailableCopies() > 0) {
             panel.add(Box.createVerticalStrut(14));
+            JPanel btnWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+            btnWrap.setOpaque(false);
+            btnWrap.setAlignmentX(Component.LEFT_ALIGNMENT);
+            btnWrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
             JButton btnBorrow = UITheme.createPillButton("Đăng Ký Mượn Sách", UITheme.PRIMARY, Color.WHITE);
             btnBorrow.setFont(UITheme.FONT_BOLD);
-            btnBorrow.setAlignmentX(Component.LEFT_ALIGNMENT);
-            btnBorrow.setPreferredSize(new Dimension(280, 38));
-            btnBorrow.setMaximumSize(new Dimension(300, 38));
+            btnBorrow.setPreferredSize(new Dimension(220, 38));
             btnBorrow.addActionListener(e -> handleBorrowBook());
-            panel.add(btnBorrow);
+            btnWrap.add(btnBorrow);
+            panel.add(btnWrap);
         } else {
             panel.add(Box.createVerticalStrut(14));
+            JPanel btnWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+            btnWrap.setOpaque(false);
+            btnWrap.setAlignmentX(Component.LEFT_ALIGNMENT);
+            btnWrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
             JButton btnReserve = UITheme.createPillButton("Đặt Trước Sách (Khi có lại)", UITheme.TINT, UITheme.ON_TINT);
             btnReserve.setFont(UITheme.FONT_BOLD);
-            btnReserve.setAlignmentX(Component.LEFT_ALIGNMENT);
-            btnReserve.setPreferredSize(new Dimension(280, 38));
-            btnReserve.setMaximumSize(new Dimension(300, 38));
+            btnReserve.setPreferredSize(new Dimension(240, 38));
             btnReserve.addActionListener(e -> handleReserveBook());
-            panel.add(btnReserve);
+            btnWrap.add(btnReserve);
+            panel.add(btnWrap);
         }
 
         return panel;
@@ -388,6 +416,7 @@ public class BookDetailModalPanel extends JPanel {
                             commentsListPanel.add(createCommentCard(item));
                             commentsListPanel.add(Box.createVerticalStrut(6));
                         }
+                        commentsListPanel.add(Box.createVerticalGlue());
                     }
                     commentsListPanel.revalidate();
                     commentsListPanel.repaint();
@@ -436,7 +465,15 @@ public class BookDetailModalPanel extends JPanel {
 
         card.add(header, BorderLayout.NORTH);
         card.add(lblText, BorderLayout.CENTER);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, card.getPreferredSize().height + 14));
         return card;
+    }
+
+    private void filterCatalog(String keyword) {
+        UiModalHelper.closeModal("BOOK_DETAIL");
+        if (com.ximilib.presentation.view.MainDashboardFrame.getInstance() != null) {
+            com.ximilib.presentation.view.MainDashboardFrame.getInstance().searchCatalog(keyword);
+        }
     }
 
     private String getShortBookSynopsis(BookSummaryDto book) {

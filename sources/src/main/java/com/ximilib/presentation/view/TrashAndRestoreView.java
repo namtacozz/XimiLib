@@ -87,9 +87,13 @@ public class TrashAndRestoreView extends JPanel {
         titleBox.add(Box.createVerticalStrut(4));
         titleBox.add(lblStatus);
 
-        JButton btnRefresh = UITheme.createPillButton("Làm mới", UITheme.PRIMARY_TINT, UITheme.ON_TINT);
-        btnRefresh.setFont(UITheme.FONT_BOLD);
-        btnRefresh.setPreferredSize(new Dimension(110, 36));
+        JButton btnRefresh = new JButton(IconFactory.createRefreshIcon(UITheme.ON_TINT, 16));
+        btnRefresh.setPreferredSize(new Dimension(38, 38));
+        btnRefresh.setBackground(UITheme.TINT);
+        btnRefresh.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
+        btnRefresh.setFocusPainted(false);
+        btnRefresh.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnRefresh.setToolTipText("Làm mới danh sách thùng rác");
         btnRefresh.addActionListener(e -> loadTrashDataAsync());
 
         headerPanel.add(titleBox, BorderLayout.WEST);
@@ -125,15 +129,14 @@ public class TrashAndRestoreView extends JPanel {
         trashTable.getTableHeader().setBackground(UITheme.PRIMARY_TINT);
         trashTable.getTableHeader().setForeground(UITheme.TEXT_MUTED);
 
-        trashTable.getColumnModel().getColumn(0).setPreferredWidth(100);
-        trashTable.getColumnModel().getColumn(1).setPreferredWidth(320);
+        trashTable.getColumnModel().getColumn(0).setPreferredWidth(380);
+        trashTable.getColumnModel().getColumn(1).setPreferredWidth(220);
         trashTable.getColumnModel().getColumn(2).setPreferredWidth(180);
-        trashTable.getColumnModel().getColumn(3).setPreferredWidth(160);
-        trashTable.getColumnModel().getColumn(4).setPreferredWidth(120);
+        trashTable.getColumnModel().getColumn(3).setPreferredWidth(100);
 
         ActionCell cell = new ActionCell();
-        trashTable.getColumnModel().getColumn(4).setCellRenderer(cell);
-        trashTable.getColumnModel().getColumn(4).setCellEditor(cell);
+        trashTable.getColumnModel().getColumn(3).setCellRenderer(cell);
+        trashTable.getColumnModel().getColumn(3).setCellEditor(cell);
 
         JScrollPane scroll = new JScrollPane(trashTable);
         scroll.setBorder(null);
@@ -197,7 +200,7 @@ public class TrashAndRestoreView extends JPanel {
     }
 
     private class TrashTableModel extends AbstractTableModel {
-        private final String[] cols = {"Mã sách", "Tên sách", "Tác giả", "Thể loại", "Thao tác"};
+        private final String[] cols = {"Tên sách", "Tác giả", "Thể loại", "Thao tác"};
         private final List<BookSummaryDto> books = new ArrayList<>();
 
         public void setBooks(List<BookSummaryDto> list) {
@@ -209,17 +212,16 @@ public class TrashAndRestoreView extends JPanel {
         @Override public int getRowCount() { return books.size(); }
         @Override public int getColumnCount() { return cols.length; }
         @Override public String getColumnName(int c) { return cols[c]; }
-        @Override public boolean isCellEditable(int r, int c) { return c == 4; }
+        @Override public boolean isCellEditable(int r, int c) { return c == 3; }
 
         @Override
         public Object getValueAt(int r, int c) {
             BookSummaryDto b = books.get(r);
             return switch (c) {
-                case 0 -> b.getBookId();
-                case 1 -> b.getTitle();
-                case 2 -> b.getAuthor();
-                case 3 -> b.getCategoryName();
-                case 4 -> b;
+                case 0 -> b.getTitle();
+                case 1 -> b.getAuthor();
+                case 2 -> b.getCategoryName();
+                case 3 -> b;
                 default -> null;
             };
         }
@@ -227,13 +229,18 @@ public class TrashAndRestoreView extends JPanel {
 
     private class ActionCell extends AbstractCellEditor implements javax.swing.table.TableCellRenderer, javax.swing.table.TableCellEditor {
         private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 6));
-        private final JButton btnRestore = UITheme.createPillButton("Khôi phục", UITheme.SUCCESS_BG, UITheme.SUCCESS_TEXT);
+        private final JButton btnRestore = new JButton();
         private BookSummaryDto currentBook;
 
         ActionCell() {
             panel.setOpaque(false);
-            btnRestore.setFont(UITheme.FONT_BADGE);
-            btnRestore.setPreferredSize(new Dimension(84, 28));
+            btnRestore.setIcon(IconFactory.createRestoreIcon(UITheme.SUCCESS_TEXT, 14));
+            btnRestore.setBackground(UITheme.SUCCESS_BG);
+            btnRestore.setPreferredSize(new Dimension(32, 32));
+            btnRestore.setFocusPainted(false);
+            btnRestore.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            btnRestore.setToolTipText("Khôi phục đầu sách");
+            btnRestore.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
             btnRestore.addActionListener(e -> {
                 fireEditingStopped();
                 if (currentBook != null) handleRestore(currentBook);
