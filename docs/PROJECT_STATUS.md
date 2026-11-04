@@ -36,6 +36,33 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 
 ## 3. Nhật ký Thay đổi Dự án (Changelog)
 
+### [Sprint 24 — Cải Tiến Toàn Diện Trải Nghiệm Người Dùng (Guest, Admin, Thủ Thư, Độc Giả)] - 2026-11-04
+#### Feat & UI/UX Overhaul (4 Roles)
+- **Khách (Guest)**:
+  * Kho Sách: Đổi tên tab "Khám phá sách" -> "Kho Sách" toàn hệ thống, tự động chuyển vào Kho Sách khi đăng nhập khách.
+  * Banner lời mời: Gỡ bỏ 2 nút đăng nhập/đăng ký trùng lặp, thay ký tự tofu "✕" bằng icon vector SVG `IconFactory.createCloseIcon`.
+  * Bố cục lưới sách: Chuyển dạng lưới dọc nhiều dòng tự động xuống hàng theo kích thước màn hình, khóa trượt ngang.
+  * Nút chuyển chế độ xem (lưới/danh sách): Thu gọn viền bo, chỉ giữ icon và neo sát lề phải.
+  * Điều hướng & Thông báo: Loại bỏ Hộp thư góp ý khỏi menu Khách theo SRS; chuẩn hóa thông báo yêu cầu đăng nhập ngắn gọn qua `UiModalHelper.showMessage`.
+- **Quản trị viên (Admin)**:
+  * Trang chủ nhân viên: Khắc phục lỗi giật/đè hình bìa sách mới trên carousel ngang.
+  * Quản lý bạn đọc (`PatronManagementView`): Bỏ cột "Mã ĐG" và "Số Thẻ TV"; chuyển đổi các nút thao tác thành nút icon vector SVG kèm tooltip (Khóa/Mở, Gia hạn, Chỉnh sửa); thêm modal chỉnh sửa chi tiết hồ sơ độc giả và kích hoạt/vô hiệu hóa tài khoản.
+  * Báo cáo & Thống kê (`ReportsDashboardView`): Thay thế toàn bộ nút tác vụ chữ bằng nút icon SVG kèm tooltip (Làm mới, Cập nhật trạng thái, Xuất Excel, In báo cáo).
+  * Quản trị hệ thống (`UserRoleManagementView`): Bỏ cột "Mã ND", chuyển cột "Vai trò" ra cột đầu tiên, làm sạch nhãn vai trò ("Quản trị viên", "Thủ thư", "Độc giả"); đổi các nút sang icon SVG (Phân quyền, Khóa/Mở, Đổi mật khẩu).
+- **Thủ thư (Librarian)**:
+  * Thùng rác sách (`TrashAndRestoreView`): Bỏ cột "Mã sách", chuyển các nút Làm mới và Khôi phục thành nút icon SVG kèm tooltip.
+  * Bàn lưu hành quầy (`CirculationDeskView`): Mở rộng không gian thao tác (420px), thu gọn header các bước 1, 2, 3; Bước 1 tìm bạn đọc có dropdown auto-suggest, thẻ bạn đọc tinh gọn chỉ hiện tên, số thẻ, trạng thái hợp lệ; Bước 2 chuyển hình thức mượn sang 2 toggle buttons (Mang về | Tại chỗ); Bước 3 nút Thêm hỗ trợ tìm kiếm cả tên sách lẫn mã vạch.
+  * Xử lý trả sách & bồi hoàn (`ReturnAndCompensationView`): Quy trình 2 cột trực quan: Chọn độc giả -> Chọn sách trả -> Xác nhận tình trạng; thông tin phiếu mượn hiển thị bên phải; khối tài chính chỉ hiện khi phát sinh phạt/mất/hỏng; nút "XÁC NHẬN" cố định góc phải dưới; tích hợp thanh toán VietQR Napas247 khóa SePay API.
+- **Độc giả (Reader)**:
+  * Trang chủ độc giả (`ReaderHomePanel`): Khắc phục lỗi ảnh bìa 218px đè tràn viền thẻ mượn; bổ sung nút "Trả sách" ở góc phải thẻ mượn chuyển thẳng đến "Phiếu mượn của tôi"; banner cảnh báo nợ phạt điều hướng chính xác.
+  * Chi tiết đầu sách (`BookDetailModalPanel`): Căn nút "Đăng Ký Mượn Sách" sang phải; khắc phục kéo dãn thẻ bình luận ngắn; hỗ trợ bấm vào tên tác giả hoặc vị trí kệ/chuyên ngành để tự động lọc Kho Sách.
+  * Đăng ký mượn online (`ReaderBorrowRegistrationView`): Danh sách cuốn sách chỉ hiển thị mã vạch, bỏ dấu ngoặc thừa; hình thức mượn chuyển sang 2 toggle buttons (Về nhà | Tại chỗ); đổi tên "Sách của tôi" -> "Phiếu mượn của tôi".
+  * Hồ sơ cá nhân (`UserProfileModalPanel`): Căn nút "Cập nhật mật khẩu" sang bên trái.
+- **Kiểm thử & Đóng gói**:
+  * 121/121 test cases JUnit 5 (Unit + Integration + Architecture) xanh 100%.
+  * `StyleRuleTest` đạt chuẩn phong cách sinh viên low-code (chuỗi tiếng Việt UI trong định mức).
+  * Đóng gói bản phát hành `dist/XimiLib.jar` thành công.
+
 ### [Sprint 23 — Chuẩn Hóa Phong Cách Sinh Viên Low-Code, Bộ Component & Cẩm Nang Vấn Đáp] - 2026-11-04
 #### Feat & Enhanced (Architecture, Style & Viva Readiness)
 - **Thiết lập Bộ Luật A - D & Phong cách Sinh viên Low-Code**:
