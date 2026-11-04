@@ -1,4 +1,4 @@
-# Version: 1.1 | Last updated: 2026-10-27 | Owner: Architecture Team | Related files: ../AGENTS.md, ARCHITECTURE.md, BUSINESS_RULES.md, PROJECT_STATUS.md
+# Version: 1.2 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: ../AGENTS.md, ARCHITECTURE.md, BUSINESS_RULES.md, PROJECT_STATUS.md, TRACEABILITY.md
 
 # DATABASE_SCHEMA.md — Đặc tả Cơ sở Dữ liệu XimiLib (MySQL 8.0+)
 
@@ -16,29 +16,33 @@
   - Chỉ mục (Index): `idx_<bảng>_<cột>`.
 - **Cột Audit & Đồng bộ chuẩn:** Bảng `cuonsach` bổ sung cột `updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP` phục vụ đồng bộ Observer đa máy.
 
-## 2. Ma trận 6 Phân hệ × 20 Bảng
+## 2. Ma trận 7 Phân hệ × 23 Bảng Chuẩn
 | STT | Phân hệ (Module) | Tên bảng (Table) | Mô tả tóm tắt nghiệp vụ |
 |---|---|---|---|
 | 1 | **Phân quyền & Người dùng** | `vaitro` | Danh mục vai trò trong hệ thống (ADMIN, LIBRARIAN, READER). |
-| 2 | | `nguoidung` | Tài khoản, mật khẩu băm BCrypt và thông tin cá nhân. |
-| 3 | | `thethuvien` | Thẻ thư viện liên kết 1-1 với tài khoản độc giả. |
+| 2 | | `nguoidung` | Tài khoản, mật khẩu băm BCrypt, thông tin cá nhân (CCCD AES-256), theo dõi khóa đăng nhập (`solansai`, `khoaden`). |
+| 3 | | `thethuvien` | Thẻ thư viện liên kết 1-1 với tài khoản độc giả (`LIB-YYYY-XXXXX`). |
 | 4 | | `thongbao` | Hộp thư thông báo nhắc hạn, quá hạn và phạt cho độc giả. |
 | 5 | **Danh mục Sách** | `theloai` | Danh mục thể loại sách (Khoa học, Văn học, Công nghệ,...). |
 | 6 | | `tacgia` | Thông tin tiểu sử các tác giả. |
 | 7 | | `nhaxuatban` | Thông tin liên hệ các Nhà xuất bản. |
-| 8 | | `sach` | Thông tin đầu sách (tên, ISBN, giá bìa, soft-delete). |
+| 8 | | `sach` | Thông tin đầu sách (tên, ISBN, giá bìa, soft-delete `IsDeleted`). |
 | 9 | | `sach_tacgia` | Bảng quan hệ Nhiều - Nhiều giữa đầu sách và tác giả. |
 | 10 | **Kho & Vị trí** | `khuvuc` | Phân khu trong thư viện (Tầng 1, Khu Tự nhiên, Khu Xã hội). |
 | 11 | | `kesach` | Kệ sách đặt tại từng khu vực cụ thể. |
-| 12 | | `cuonsach` | Từng cuốn sách vật lý cụ thể (mã vạch, tình trạng, vị trí kệ). |
-| 13 | **Mượn trả & Đặt chỗ** | `phieumuon` | Phiếu mượn sách tổng hợp theo đợt của độc giả. |
-| 14 | | `chitietphieumuon` | Chi tiết từng cuốn sách mượn, ngày trả thực tế và tiền phạt. |
-| 15 | | `giahanmuon` | Lịch sử yêu cầu gia hạn thời gian mượn sách (tối đa 1 lần). |
-| 16 | | `datcho` | Hàng đợi đặt trước đầu sách khi thư viện tạm hết sách sẵn có. |
-| 17 | **Phạt & Thanh toán** | `phieuphat` | Bản ghi ghi nhận vi phạm trễ hạn hoặc bồi thường mất/hỏng. |
-| 18 | | `thanhtoan` | Lịch sử thanh toán phạt tiền mặt hoặc chuyển khoản VietQR. |
+| 12 | | `cuonsach` | Từng cuốn sách vật lý cụ thể (mã vạch, tình trạng, vị trí kệ, updated_at). |
+| 13 | **Mượn trả & Đặt chỗ** | `phieumuon` | Phiếu mượn sách tổng hợp (hình thức `TAI_CHO` / `VE_NHA`, FSM 7 trạng thái). |
+| 14 | | `chitietphieumuon` | Chi tiết từng cuốn sách mượn, ngày trả thực tế và tiền phạt riêng. |
+| 15 | | `giahanmuon` | Lịch sử yêu cầu gia hạn thời gian mượn sách (+7 ngày, tối đa 1 lần). |
+| 16 | | `datcho` | Hàng đợi đặt trước đầu sách khi tạm hết sách (giữ 24 giờ). |
+| 17 | **Phạt & Thanh toán** | `phieuphat` | Bản ghi ghi nhận vi phạm trễ hạn hoặc bồi thường mất/hỏng (BR-06, BR-08). |
+| 18 | | `thanhtoan` | Lịch sử thanh toán phạt tiền mặt hoặc chuyển khoản VietQR Napas247. |
 | 19 | **Nhập sách (Kho)** | `nhapsach` | Phiếu nhập lô sách mới từ Nhà cung cấp do thủ thư lập. |
 | 20 | | `chitietnhapsach` | Chi tiết số lượng và đơn giá nhập từng đầu sách. |
+| 21 | **Cộng đồng & Đánh giá** | `binhluan` | Nhận xét, cảm nhận và đánh giá sao (1-5 ⭐) của bạn đọc (UC 3.2.8, YC-08). |
+| 22 | | `gopy` | Hộp thư tiếp nhận phản ánh, ý kiến đóng góp của người dùng (F-10). |
+| 23 | **Cấu hình Hệ thống** | `cauhinh` | Cấu hình động quy định thư viện (hạn mượn, mức phạt, số sách tối đa) (YC-10, YC-14). |
+*(Bảng thứ 24: `auditlog` được bổ sung trong Migration V5 phục vụ lưu vết nhật ký kiểm toán xuất báo cáo tập trung theo DEV-04)*
 
 ## 3. Sơ đồ Thực thể Liên kết (Mermaid ERD)
 ```mermaid
@@ -82,15 +86,20 @@ erDiagram
   - `Tenvaitro` (`NVARCHAR(50)`, NOT NULL): Tên hiển thị vai trò.
   - `Mota` (`TEXT`, NULL): Mô tả thẩm quyền.
 - **`nguoidung`**:
-  - `ID` (`VARCHAR(50)`, PK, NOT NULL): Mã người dùng duy nhất.
+  - `ID` (`VARCHAR(50)`, PK, NOT NULL): Mã người dùng duy nhất (`ND...`).
   - `Tendangnhap` (`VARCHAR(50)`, UNIQUE, NOT NULL): Tên đăng nhập.
-  - `Matkhau` (`VARCHAR(255)`, NOT NULL): Mật khẩu băm an toàn BCrypt.
+  - `Matkhau` (`VARCHAR(255)`, NOT NULL): Mật khẩu băm an toàn BCrypt (BR-01, BR-10).
   - `Hoten` (`NVARCHAR(100)`, NOT NULL): Họ và tên đầy đủ.
-  - `Email` (`VARCHAR(100)`, UNIQUE, NULL): Địa chỉ email liên hệ.
+  - `Email` (`VARCHAR(100)`, UNIQUE, NULL): Địa chỉ email liên hệ (UC 3.2.2).
   - `Gioitinh` (`BOOLEAN`, NULL): Giới tính (1: Nam, 0: Nữ).
-  - `Sdt` (`VARCHAR(20)`, NULL): Số điện thoại liên hệ.
-  - `Mavaitro` (`VARCHAR(50)`, FK → `vaitro.Mavaitro`, NOT NULL).
+  - `Ngaysinh` (`DATE`, NULL): Ngày sinh của người dùng (UC 3.2.2).
+  - `Diachi` (`NVARCHAR(255)`, NULL): Địa chỉ cư trú (UC 3.2.2).
+  - `Cccd` (`VARCHAR(255)`, NULL): Số CCCD 9 hoặc 12 chữ số mã hóa AES-256 (BR-11).
+  - `Sdt` (`VARCHAR(20)`, UNIQUE, NULL): Số điện thoại liên hệ (hỗ trợ đăng nhập DEV-02).
+  - `Mavaitro` (`VARCHAR(50)`, FK → `vaitro.Mavaitro`, NOT NULL): Vai trò người dùng.
   - `Trangthai` (`INT`, NOT NULL, DEFAULT 1): Trạng thái tài khoản (1: Hoạt động, 0: Khóa).
+  - `solansai` (`INT`, NOT NULL, DEFAULT 0): Số lần nhập sai mật khẩu liên tiếp (BR-01).
+  - `khoaden` (`DATETIME`, NULL): Thời điểm kết thúc khóa tạm 15 phút (BR-01).
 - **`thethuvien`**:
   - `Mathe` (`VARCHAR(50)`, PK, NOT NULL): Số thẻ thư viện vật lý/điện tử.
   - `ID` (`VARCHAR(50)`, FK → `nguoidung.ID`, NOT NULL): Mã độc giả sở hữu.
@@ -161,13 +170,22 @@ erDiagram
 
 ### 4.4 Phân hệ 4: Mượn trả & Đặt chỗ
 - **`phieumuon`**:
-  - `Maphieumuon` (`VARCHAR(50)`, PK, NOT NULL): Mã phiếu mượn.
+  - `Maphieumuon` (`VARCHAR(50)`, PK, NOT NULL): Mã phiếu mượn (`PM...`).
   - `ID` (`VARCHAR(50)`, FK → `nguoidung.ID`, NOT NULL): Độc giả mượn.
   - `Mathe` (`VARCHAR(50)`, FK → `thethuvien.Mathe`, NOT NULL): Thẻ thư viện sử dụng.
+  - `Hinhthuc` (`ENUM('TAI_CHO','VE_NHA')`, NOT NULL, DEFAULT 'VE_NHA'): Hình thức mượn (đọc tại chỗ trả trước 17:00 hoặc mượn về nhà 14 ngày).
   - `Ngaymuon` (`DATE`, NOT NULL): Ngày lập phiếu mượn.
   - `Ngaytra` (`DATE`, NULL): Hạn trả dự kiến toàn phiếu (14 ngày đối với mượn về nhà).
-  - `Trangthai` (`INT`, NOT NULL, DEFAULT 1): Trạng thái phiếu (1: Đang mượn, 2: Đã trả, 3: Quá hạn).
-  - `Ghichuphieu` (`NVARCHAR(255)`, NULL): Ghi chú thủ thư.
+  - `Hantranhan` (`DATETIME`, NULL): Hạn giữ sách trực tuyến 24h (với `CHO_DUYET`) hoặc mốc giờ trả tại chỗ 17:00 (với `TAI_CHO`).
+  - `Trangthai` (`INT`, NOT NULL, DEFAULT 0): FSM 7 trạng thái chuẩn:
+    * `0`: `CHO_DUYET` (Độc giả đặt mượn qua App, giữ 24h)
+    * `1`: `DANG_MUON` (Thủ thư xuất mượn, sách đang được giữ)
+    * `2`: `DA_TRA` (Đã hoàn trả đủ sách nguyên vẹn)
+    * `3`: `QUA_HAN` (Quá ngày hẹn trả, bị tính phạt trễ 2.000đ/ngày)
+    * `4`: `CHO_XU_LY_BOI_THUONG` (Đã báo mất/hỏng, chờ nộp tiền đền bù)
+    * `5`: `DA_MAT` (Đã nộp đủ tiền bồi thường, chính thức đóng phiếu)
+    * `6`: `DA_HUY` (Hủy đặt mượn do quá 24h hoặc độc giả hủy)
+  - `Ghichuphieu` (`NVARCHAR(255)`, NULL): Ghi chú của thủ thư.
 - **`chitietphieumuon`**:
   - `Machitiet` (`VARCHAR(50)`, PK, NOT NULL): Mã dòng chi tiết.
   - `Maphieumuon` (`VARCHAR(50)`, FK → `phieumuon.Maphieumuon`, NOT NULL): Khóa ngoại phiếu mượn.
@@ -256,8 +274,9 @@ erDiagram
 | `UserStatus` | `nguoidung.Trangthai` | INT | `1`: Hoạt động, `0`: Bị khóa | Trạng thái tài khoản người dùng. |
 | `CardStatus` | `thethuvien.Trangthai` | INT | `1`: Hợp lệ, `0`: Hết hạn / Khóa | Tình trạng hiệu lực của thẻ thư viện. |
 | `BookCopyStatus` | `cuonsach.Trangthaisach` | NVARCHAR | `KHA_DUNG`<br>`DANG_MUON`<br>`DANG_DAT_TRUOC`<br>`HONG_MAT` | Vòng đời cuốn sách vật lý. |
-| `LoanTicketStatus`| `phieumuon.Trangthai` | INT | `1`: Đang mượn, `2`: Đã trả, `3`: Quá hạn | Trạng thái tiến trình mượn sách. |
-| `ReservationStatus`| `datcho.Trangthai` | INT | `1`: Đang chờ nhận, `2`: Đã nhận, `0`: Đã hủy/Hết hạn | Trạng thái yêu cầu đặt giữ sách. |
+| `LoanTicketStatus`| `phieumuon.Trangthai` | INT | `0`: CHO_DUYET<br>`1`: DANG_MUON<br>`2`: DA_TRA<br>`3`: QUA_HAN<br>`4`: CHO_XU_LY_BOI_THUONG<br>`5`: DA_MAT<br>`6`: DA_HUY | FSM 7 trạng thái tiến trình mượn sách chuẩn SRS. |
+| `LoanType` | `phieumuon.Hinhthuc` | ENUM | `TAI_CHO`, `VE_NHA` | Hình thức mượn sách (UC 3.2.5, BR-04). |
+| `ReservationStatus`| `datcho.Trangthai` | INT | `1`: Đang chờ nhận, `2`: Đã nhận, `0`: Đã hủy/Hết hạn | Trạng thái yêu cầu đặt giữ sách 24h. |
 | `FineStatus` | `phieuphat.Trangthai` | INT | `0`: Chưa nộp, `1`: Đã thanh toán | Trạng thái xử lý tiền phạt/bồi thường. |
 | `PaymentMethod` | `thanhtoan.Phuongthuc` | NVARCHAR | `Tiền mặt`, `Chuyển khoản VietQR` | Hình thức giao dịch tài chính. |
 
@@ -310,7 +329,7 @@ Các chỉ mục đề xuất tiếp theo:
 6. `idx_datcho_expiring`: Bảng `datcho(Trangthai, Ngayhethan)` tối ưu hóa job quét tự động hủy lượt đặt trước quá 24h.
 7. `idx_cuonsach_sync`: Bảng `cuonsach(updated_at)` phục vụ Observer polling scheduler quét bản ghi mới sửa đổi.
 
-## 8. Open Issues (Vấn đề Mở)
-- `[OPEN-DB-01]`: Bảng `phieumuon` có trường `Ngaytra` kiểu `DATE`, trong khi bảng `chitietphieumuon` có `Ngaytra` kiểu `DATETIME`. Cần thống nhất quy ước: `phieumuon.Ngaytra` là hạn trả hợp đồng (dueDate), còn `chitietphieumuon.Ngaytra` là thời điểm thực trả (returnedAt).
-- `[OPEN-DB-02]`: Bảng `thethuvien` hiện đang dùng `Mathe` làm PK dạng `VARCHAR(50)`. Cần đảm bảo hệ thống sinh chuỗi mã thẻ có định dạng chuẩn (ví dụ `LIB-YYYY-XXXXX`) để dễ in mã vạch/thẻ vật lý.
-- `[OPEN-DB-03]`: Soft-delete cho `theloai` CHƯA làm vì `theloai` chưa có cột `IsDeleted`, đang chờ nhóm quyết định. Các thao tác xóa phân loại/khu vực/kệ hiện tại thực hiện kiểm tra ràng buộc toàn vẹn dữ liệu (chặn nếu còn sách/kệ liên kết) trước khi xóa trực tiếp.
+## 8. Trạng thái Các Vấn đề Kỹ thuật (Đã Thống Nhất Theo SRS)
+- `[OPEN-DB-01] ĐÃ GIẢI QUYẾT`: Thống nhất `phieumuon.Ngaytra` là hạn trả hợp đồng (`DATE`), `phieumuon.Hantranhan` là thời điểm hết hạn giữ trực tuyến 24h hoặc mốc giờ trả tại chỗ 17:00 (`DATETIME`), còn `chitietphieumuon.Ngaytra` là thời điểm thực tế độc giả mang sách đến quầy trả (`DATETIME`).
+- `[OPEN-DB-02] ĐÃ GIẢI QUYẾT`: Chuỗi mã thẻ thư viện được tự động sinh theo định dạng chuẩn `LIB-YYYY-XXXXX` khi độc giả hoàn tất đăng ký tài khoản (UC 3.2.2).
+- `[OPEN-DB-03] ĐÃ GIẢI QUYẾT`: Theo SRS UC 3.2.3, soft-delete chỉ áp dụng bắt buộc cho đầu sách (`sach.IsDeleted`). Các bảng danh mục hỗ trợ (`theloai`, `khuvuc`, `kesach`) sử dụng kiểm tra toàn vẹn ràng buộc (chặn xóa nếu còn bản ghi sách/kệ liên kết) trước khi thao tác trực tiếp.

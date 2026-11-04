@@ -1,4 +1,4 @@
-# Version: 1.1 | Last updated: 2026-10-27 | Owner: Architecture Team | Related files: ../AGENTS.md, DATABASE_SCHEMA.md, BUSINESS_RULES.md, PROJECT_STATUS.md
+# Version: 1.2 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: ../AGENTS.md, DATABASE_SCHEMA.md, BUSINESS_RULES.md, PROJECT_STATUS.md, TRACEABILITY.md
 
 # ARCHITECTURE.md — Kiến trúc Hệ thống XimiLib (Clean Architecture)
 
@@ -21,8 +21,19 @@ sources/src/main/java/com/ximilib/
 │   │                                       # [ĐẶT]: Transaction boundary, DTO transformation; [CẤM]: GUI components
 │   ├── dto/                                # Data Transfer Objects (Request/Response giữa Presentation & Application)
 │   │                                       # [ĐẶT]: Request/Response POJO/Records; [CẤM]: Entity domain trực tiếp
-│   └── port/                               # Interfaces giao tiếp cổng thanh toán ngoại vi (PaymentGateway)
-│                                           # [ĐẶT]: Outbound ports; [CẤM]: Mã triển khai thư viện bên ngoài
+│   └── port/                               # Interfaces cổng kết nối dịch vụ ngoại vi & Query Ports
+│       ├── BookQueryPort.java              # Cổng truy vấn thông tin sách và phân trang
+│       ├── CirculationQueryPort.java       # Cổng truy vấn phiếu mượn, nợ phạt và thống kê lưu thông
+│       ├── UserQueryPort.java              # Cổng truy vấn tài khoản người dùng và bạn đọc
+│       ├── DashboardQueryPort.java         # Cổng trích xuất KPI và chỉ số tổng quan
+│       ├── StorageQueryPort.java           # Cổng truy vấn phân khu, kệ sách và vị trí lưu trữ
+│       ├── ReportPort.java                 # Cổng xuất dữ liệu báo cáo thống kê
+│       ├── ReportExporter.java             # Cổng xuất file Excel (.xlsx POI)
+│       ├── FeedbackPort.java               # Cổng xử lý hộp thư góp ý bạn đọc
+│       ├── BookCommentPort.java            # Cổng bình luận và đánh giá sách cộng đồng (UC 3.2.8)
+│       ├── SystemSettingsPort.java         # Cổng cấu hình động quy định thư viện (YC-10, DEV-06)
+│       ├── PasswordHasher.java             # Cổng băm mật khẩu BCrypt & mã hóa CCCD AES-256 (R-08)
+│       └── TransactionCoordinator.java     # Cổng điều phối giao dịch an toàn (TransactionContext)
 ├── infrastructure/                         # Triển khai kỹ thuật cụ thể (Database, External APIs, Config)
 │   ├── persistence/                        # Triển khai Repository bằng JDBC thuần (DriverManager)
 │   │   ├── impl/                           # BookRepositoryImpl, LoanRepositoryImpl (Thực thi interface từ domain)
@@ -352,11 +363,13 @@ public interface PaymentGateway {
 ### 6.2 Quy trình Thanh toán & Đối soát
 - **Bước (a) Sinh VietQR động:** Khi độc giả nộp phạt hoặc bồi thường, Client tạo mã `paymentCode = "XML" + maphieuphat`. URL ảnh mã QR được tạo từ template VietQR chuẩn:
   `https://qr.sepay.vn/img?acc={accountNumber}&bank={bankCode}&amount={amount}&des={paymentCode}`.
-- **Bước (b) Đối soát giao dịch:** Do Client Desktop nằm sau mạng NAT/Firewall không thể nhận trực tiếp Webhook, hệ thống sử dụng **Long-polling API SePay**:
-  1. Hộp thoại hiển thị mã QR động mở bằng In-App Modal Overlay (`ModalDialog.showModal(parent, new SimpleModalBorder(qrPanel, "Thanh Toán VietQR SePay", ...))`).
-  2. Bật timer quét API bất đồng bộ: `GET https://my.sepay.vn/userapi/transactions/list` (mỗi 3 giây, tối đa 3 phút).
-  3. Khi API trả về giao dịch khớp đúng `paymentCode` và `amount >= requiredAmount`, hệ thống ghi nhận bản ghi vào bảng `thanhtoan` và cập nhật `phieuphat` sang `DA_THANH_TOAN`.
-  4. Cập nhật UI thông báo thành công tức thời qua `UiModalHelper.showToastSuccess(parent, "Giao dịch thành công!")` và tự động đóng modal.
+- **Bước (b) Đối soát giao dịch an toàn:** Do Client Desktop nằm sau mạng NAT/Firewall không thể nhận trực tiếp Webhook, hệ thống sử dụng **Long-polling API SePay** kết hợp regex so khớp nghiêm ngặt:
+  1. Hộp thoại hiển thị mã QR động mở bằng In-App Modal Overlay (`ModalDialog.showModal(...)`).
+  2. Bật timer quét API bất đồng bộ: `GET https://my.sepay.vn/userapi/transactions/list` (mỗi 3 giây, tối đa 3 phút). API token được nạp an toàn từ biến môi trường `SEPAY_API_TOKEN` hoặc file `config/db.properties`, tuyệt đối không hardcode trong code.
+  3. **So khớp mã chính xác (Boundary Regex):** Tránh lỗi so khớp chuỗi con giả mạo (ví dụ `XML1` bị khớp nhầm vào `XML10` hoặc `XML105`). Hệ thống dùng biểu thức chính quy:
+     `Pattern.compile("(?<![A-Za-z0-9])" + Pattern.quote(paymentCode) + "(?![A-Za-z0-9])")`
+  4. **Kiểm tra số tiền & Chống ghi nhận trùng:** Chỉ chấp nhận khi số tiền thực chuyển `tx.getAmount().compareTo(expectedAmount) >= 0`. Toàn bộ thao tác ghi nhận `thanhtoan`, cập nhật `phieuphat.Trangthai = 1` và đóng phiếu mượn được bao bọc trong 1 transaction ACID duy nhất. Bảng `thanhtoan` có ràng buộc UNIQUE trên mã giao dịch ngân hàng để chống ghi nhận lặp lại.
+  5. Cập nhật UI thông báo thành công tức thời qua `UiModalHelper.showToastSuccess(parent, "Giao dịch thành công!")` và tự động đóng modal.
 
 ## 7. Coding Standards & Thực hành Kỹ thuật
 ### 7.1 Quy ước Đặt tên (Naming Conventions)
@@ -376,23 +389,25 @@ Sử dụng kiến trúc Custom Unchecked Exceptions kế thừa từ `XimiExcep
 | `LOAN_003` | `CardExpiredException` | Thẻ thư viện hết hạn (BR-07) | "Thẻ thư viện đã hết hạn. Vui lòng liên hệ thủ thư gia hạn thẻ." |
 | `COPY_001` | `ConcurrentHoldException` | Cuốn sách vừa bị người khác giữ | "Rất tiếc, cuốn sách vừa được độc giả khác mượn hoặc giữ chỗ." |
 
-### 7.3 Ranh giới Transaction Thủ công (Manual JDBC Transaction Boundary)
-Toàn bộ thao tác cập nhật liên quan từ 2 bảng trở lên bắt buộc thực hiện thủ công qua Transaction Context:
+### 7.3 Ranh giới Transaction Quản lý Tập trung (TransactionCoordinator & TransactionManager)
+Tuân thủ nghiêm ngặt Quy tắc R-01 và Clean Architecture: Các lớp Repository KHÔNG được phép gọi `commit()`, `rollback()` hay `setAutoCommit()`. Việc điều phối giao dịch được thực hiện tại tầng Application Service thông qua `TransactionCoordinator` hoặc `TransactionManager`:
+
 ```java
-Connection conn = connectionManager.getConnection();
-try {
-    conn.setAutoCommit(false);
-    // 1. Thực hiện các thao tác SQL với PreparedStatement truyền conn vào
-    // 2. Commit transaction
-    conn.commit();
-} catch (Exception e) {
-    conn.rollback();
-    throw new BusinessRuleException("Giao dịch thất bại, đã hoàn tác dữ liệu", e);
-} finally {
-    conn.setAutoCommit(true);
-    conn.close();
-}
+// Điều phối giao dịch bằng TransactionCoordinator tại Application Service
+transactionCoordinator.executeInTransaction(context -> {
+    // 1. Khóa bi quan và đổi trạng thái cuốn sách
+    copyRepository.updateStatus(copyId, BookCopyStatus.DANG_MUON);
+    // 2. Tạo phiếu mượn và chi tiết phiếu mượn
+    loanRepository.createLoan(loanTicket);
+    // 3. Ghi log kiểm toán
+    auditLogger.log(userId, "BORROW_BOOK", "Mượn cuốn " + copyId);
+    return true;
+});
 ```
+
+Cơ chế này đảm bảo:
+1. Tính nguyên tử (Atomicity): Nếu bất kỳ thao tác nào gặp lỗi, toàn bộ transaction lập tức được rollback tự động.
+2. Độc lập hạ tầng: Repositories chỉ tập trung vào câu lệnh SQL đơn lẻ, hoàn toàn không dính líu đến logic quản lý vòng đời giao dịch.
 
 ### 7.4 Quy định Logging
 - Sử dụng chuẩn `SLF4J` kết hợp `Logback`.

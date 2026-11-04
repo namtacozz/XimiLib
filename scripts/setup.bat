@@ -30,8 +30,8 @@ if defined JAVA_VER (
 rem 2. Kiem tra MySQL client
 where mysql >nul 2>nul
 if %errorlevel% neq 0 (
-    echo [LOI] Khong tim thay lenh 'mysql' (MySQL Client) tren he thong!
-    echo Vui long cai dat MySQL Client hoac MySQL Server (phien ban 8.0 tro len) va them vao PATH.
+    echo [LOI] Khong tim thay lenh 'mysql' [MySQL Client] tren he thong!
+    echo Vui long cai dat MySQL Client hoac MySQL Server [phien ban 8.0 tro len] va them vao PATH.
     exit /b 1
 )
 echo [OK] MySQL Client da san sang.
@@ -97,7 +97,7 @@ for /f %%A in ('mysql -u root -D "%DB_NAME%" -N -s -e "SELECT COUNT(*) FROM info
 )
 
 if %TABLE_COUNT% gtr 0 (
-    echo [2/4] Co so du lieu '%DB_NAME%' da co %TABLE_COUNT% bang. Bo qua buoc nap schema va seed (idempotent).
+    echo [2/4] Co so du lieu '%DB_NAME%' da co %TABLE_COUNT% bang. Bo qua buoc nap schema va seed [idempotent].
 ) else (
     echo [2/4] Nap cau truc bang qua migrations (V1 -^> V2 -^> V3 -^> V4)...
     mysql -u root -D "%DB_NAME%" < "db\migrations\V1__initial_schema.sql"

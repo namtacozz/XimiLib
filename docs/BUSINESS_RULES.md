@@ -1,4 +1,4 @@
-# Version: 1.1 | Last updated: 2026-10-27 | Owner: Architecture Team | Related files: ../AGENTS.md, ARCHITECTURE.md, DATABASE_SCHEMA.md, PROJECT_STATUS.md
+# Version: 1.2 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: ../AGENTS.md, ARCHITECTURE.md, DATABASE_SCHEMA.md, PROJECT_STATUS.md, TRACEABILITY.md
 
 # BUSINESS_RULES.md — Quy tắc Nghiệp vụ & Máy Trạng thái XimiLib
 
@@ -28,7 +28,8 @@ stateDiagram-v2
 #### Bảng Chuyển trạng thái Phiếu mượn:
 | Trạng thái nguồn | Sự kiện kích hoạt | Điều kiện kiểm tra (Guard) | Trạng thái đích | Hành động kèm theo |
 |---|---|---|---|---|
-| `[*]` | Đặt mượn Online | Độc giả thỏa mãn V-01..V-05 | `0` (`CHO_DUYET`) | Khóa bi quan 1 cuốn `KHA_DUNG` $ightarrow$ `DANG_DAT_TRUOC` (giữ 24h). |
+| `[*]` | Đặt mượn Online | Độc giả thỏa mãn V-01..V-05 | `0` (`CHO_DUYET`) | Khóa bi quan 1 cuốn `KHA_DUNG` $
+ightarrow$ `DANG_DAT_TRUOC` (giữ 24h). |
 | `[*]` | Mượn tại quầy | Độc giả thỏa mãn V-01..V-05 | `1` (`DANG_MUON`) | Quét mã vạch, chuyển cuốn sang `DANG_MUON`, hạn 14 ngày (`VE_NHA`) hoặc 17:00 (`TAI_CHO`). |
 | `0` (`CHO_DUYET`) | Xuất sách tại quầy | Độc giả trình thẻ nhận sách trong 24h | `1` (`DANG_MUON`) | Cuốn chuyển `DANG_MUON`, gửi `thongbao` xác nhận. |
 | `0` (`CHO_DUYET`) | Quá hạn 24 giờ | Quá thời điểm `Hantranhan` | `6` (`DA_HUY`) | Background job tự hủy phiếu, chuyển cuốn về lại `KHA_DUNG`. |
@@ -79,14 +80,17 @@ stateDiagram-v2
   $$\text{TienPhatQuaHan} = \text{Số ngày trễ} \times 2.000 \times \text{Số cuốn quá hạn}$$
 
 ### 2.2 Công thức Bồi thường Mất hoặc Hỏng Sách (BR-08)
-Khi một cuốn sách bị mất hoặc hư hỏng không thể phục hồi, phiếu mượn được đóng (`DA_TRA`) và hệ thống lập một phiếu phạt/đền bù riêng theo công thức:
+Khi một cuốn sách bị mất hoặc hư hỏng không thể phục hồi (SRS UC-9), quy trình chuyển trạng thái 2 bước diễn ra như sau:
+1. **Bước 1 (Ghi nhận mất mát):** Phiếu mượn chuyển sang trạng thái `CHO_XU_LY_BOI_THUONG (4)`. Cuốn sách vật lý được đánh dấu `HONG_MAT` và loại khỏi lưu thông. Hệ thống lập một biên lai phạt/đền bù theo công thức:
 
 $$\text{TienBoiThuong} = (200\% \times \text{Giabia}) + \text{PhiKyThuat} + (\text{Số ngày trễ} \times 2.000)$$
 
 Trong đó:
 - `Giabia`: Giá bìa niêm yết trong bảng `sach` (kiểu `DECIMAL(12,2)`).
 - `PhiKyThuat`: Phí cố định xử lý biên mục và đóng mã là `20.000 VNĐ`.
-- `Số ngày trễ`: Tính từ hạn trả đến ngày độc giả chính thức báo mất.
+- `Số ngày trễ`: Tính từ hạn trả đến ngày độc giả chính thức báo mất (dừng tính tiền phạt trễ từ lúc báo mất).
+
+2. **Bước 2 (Hoàn tất bồi thường & Đóng phiếu):** Sau khi độc giả nộp đủ tiền đền bù (tiền mặt tại quầy hoặc chuyển khoản VietQR) và thủ thư xác nhận "Đã nộp phạt", phiếu mượn mới chính thức đóng sang `DA_MAT (5)`. Độc giả được khôi phục quyền mượn sách nếu thẻ thư viện còn hạn.
 
 #### 3 Ví dụ Số Cụ thể:
 1. **Ví dụ 1 (Mất sách trong hạn):**
@@ -167,6 +171,7 @@ Trước khi thủ thư hoặc hệ thống tạo phiếu mượn, toàn bộ 5 
 | **V-03** | Hạn mức số lượng mượn | $\text{Số sách đang mượn} + \text{Số sách mượn mới} \le 3$ | `BorrowLimitExceededException` (`LOAN_001`) | Cảnh báo quá giới hạn 3 cuốn (BR-02). |
 | **V-04** | Trạng thái cuốn sách | `cuonsach.Trangthaisach = 'KHA_DUNG'` | `BookNotAvailableException` | Khóa bi quan phát hiện sách đang được mượn/hỏng. |
 | **V-05** | Ưu tiên hàng đợi đặt chỗ | Cuốn sách không bị người khác giữ chỗ trong 24h | `ReservedBookException` | Nếu có hàng đợi `datcho`, chỉ độc giả đứng đầu FIFO mới được mượn. |
+| **V-06** | Sách quá hạn chưa trả | Không có phiếu mượn nào ở trạng thái `QUA_HAN` | `OverdueBookExistsException` (`LOAN_004`) | Chặn mượn tiếp (UC 3.2.5 ngoại lệ a): "Bạn có sách quá hạn chưa hoàn trả. Vui lòng trả sách trước khi mượn tiếp". |
 
 ---
 
@@ -204,14 +209,30 @@ Trước khi thủ thư hoặc hệ thống tạo phiếu mượn, toàn bộ 5 
   1. Thẻ thư viện đã quá ngày hết hạn (`Ngayhethan < CURRENT_DATE`).
   2. Độc giả còn bất kỳ khoản nợ phạt nào chưa thanh toán (`phieuphat.Trangthai = 0`).
 
-### `BR-08`: Bồi thường Mất hoặc Hỏng Sách
-- Khi sách bị mất hoặc hư hỏng hoàn toàn: Đóng phiếu mượn (`DA_TRA`), chuyển trạng thái cuốn sách sang `HONG_MAT`, đồng thời lập phiếu phạt bồi thường độc lập:
+### `BR-08`: Bồi thường Mất hoặc Hỏng Sách (Chuẩn FSM 2 bước theo SRS UC-9)
+- **Bước 1:** Khi độc giả báo mất hoặc sách hư hỏng hoàn toàn: Chuyển phiếu mượn sang `CHO_XU_LY_BOI_THUONG (4)`, chuyển cuốn sách vật lý sang `HONG_MAT`, lập biên lai bồi thường theo công thức:
   $$\text{Số tiền} = 200\% \times \text{Giá bìa} + 20.000\text{ VNĐ (Phí biên mục)} + \text{Phạt trễ hạn (nếu có)}$$
 - Tiền phạt trễ hạn ngừng tính kể từ thời điểm độc giả thông báo mất sách cho thủ thư.
+- **Bước 2:** Độc giả nộp phạt (tiền mặt / VietQR) và thủ thư xác nhận "Đã nộp phạt" $\rightarrow$ Phiếu mượn chính thức đóng sang `DA_MAT (5)`. Khôi phục quyền mượn sách nếu thẻ còn hạn.
 
 ### `BR-09`: Xóa Sách An toàn (Soft-Delete)
-- Đầu sách xóa khỏi hệ thống chỉ được đánh dấu cờ xóa mềm (`IsDeleted = TRUE` hoặc `trangthai = 'DA_XOA'`).
-- Tuyệt đối cấm xóa đầu sách nếu vẫn còn cuốn sách vật lý đang trong trạng thái `DANG_MUON` hoặc đang có phiếu mượn chưa đóng.
+- Đầu sách xóa khỏi hệ thống chỉ được đánh dấu cờ xóa mềm (`IsDeleted = TRUE`).
+- Tuyệt đối cấm xóa đầu sách nếu vẫn còn cuốn sách vật lý đang trong trạng thái `DANG_MUON` hoặc đang có phiếu mượn chưa đóng (UC 3.2.3: "Không thể xóa đầu sách đang có độc giả mượn").
+
+### `BR-10`: Chính sách Mật khẩu Người dùng (SRS UC 3.2.2)
+- Mật khẩu tài khoản phải có độ dài tối thiểu **8 ký tự**, bao gồm ít nhất **1 chữ in hoa**, **1 chữ số** và **1 ký tự đặc biệt**.
+
+### `BR-11`: Định dạng Số Định danh Cá nhân (CCCD/CMND) (SRS UC 3.2.2)
+- Số CMND/CCCD của độc giả phải chuẩn định dạng **9 chữ số** (CMND cũ) hoặc **12 chữ số** (CCCD gắn chip). Giá trị được mã hóa AES-256 trong CSDL.
+
+### `BR-12`: Quy chuẩn Nhập kho (SRS UC 3.2.3)
+- Số lượng sách nhập vào kho phải là số nguyên dương >= 1.
+
+### `BR-13`: Tính Duy nhất của Mã sách (SRS UC 3.2.3)
+- Mã đầu sách (`Masach`) được hệ thống tự động sinh và đảm bảo tính duy nhất tuyệt đối trên toàn hệ thống.
+
+### `BR-14`: Quét Báo cáo Quá hạn Tự động (SRS UC 3.2.7)
+- Báo cáo và danh sách độc giả nợ sách quá hạn được hệ thống tự động quét và cập nhật lại vào mỗi **00:00 hàng ngày**.
 
 ---
 

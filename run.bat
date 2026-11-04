@@ -8,7 +8,7 @@ echo   DANG KHOI CHAY UNG DUNG THU VIEN XIMILIB...
 echo ===================================================
 
 if not exist "config\db.properties" (
-    echo [LOI] Chua cau hinh co so du lieu (thieu file config\db.properties)!
+    echo [LOI] Chua cau hinh co so du lieu - thieu file config\db.properties!
     echo Vui long chay script thiet lap moi truong:
     echo   scripts\setup.bat
     echo hoac sao chep config\db.properties.demo sang config\db.properties.
@@ -26,7 +26,7 @@ if %errorlevel% equ 0 (
 
 if not exist "dist\XimiLib.jar" (
     echo [CANH BAO] File dist\XimiLib.jar chua ton tai.
-    echo Dang thuc hien build tu dong (mvn clean package -DskipTests)...
+    echo Dang thuc hien build tu dong [mvn clean package -DskipTests]...
     call mvn clean package -f sources\pom.xml -DskipTests
     if not exist "dist\XimiLib.jar" (
         echo [LOI] Build that bai, khong the tao dist\XimiLib.jar!

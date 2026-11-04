@@ -2,7 +2,7 @@
 
 > **Đồ án PBL3:** Hệ thống Quản lý Thư viện Desktop đa nền tảng (Windows / macOS / Linux)  
 > **Khoa Công nghệ Thông tin — Trường Đại học Bách Khoa, Đại học Đà Nẵng**  
-> **Phiên bản:** `1.0.0` | **Nền tảng:** `Java 17 (Swing FlatLaf)` + `MySQL 8.0+` (JDBC thuần `DriverManager`)
+> **Phiên bản:** `1.1.0` | **Nền tảng:** `Java 17 (Swing FlatLaf)` + `MySQL 8.0+` (JDBC thuần `DriverManager`)
 
 ---
 
@@ -12,7 +12,7 @@
 |:---:|---|:---:|---|
 | 1 | **Nguyễn Việt Nhật** | **Tech Lead** | Kiến trúc hệ thống Clean Architecture, Phân quyền RBAC, Code Review & Điều phối dự án. |
 | 2 | **Lê Võ Thành Nam** | **Backend (BE)** | Xử lý nghiệp vụ Mượn - Trả, FSM, Tích hợp cổng thanh toán VietQR (SePay API). |
-| 3 | **Phan Vũ Xuân Kiên** | **Frontend & DB (FE/DB)** | Thiết kế CSDL 20 bảng MySQL, Xây dựng giao diện Desktop FlatLaf, Digital Card. |
+| 3 | **Phan Vũ Xuân Kiên** | **Frontend & DB (FE/DB)** | Thiết kế CSDL 23 bảng MySQL, Xây dựng giao diện Desktop FlatLaf, Digital Card. |
 
 ---
 
@@ -54,14 +54,14 @@ run.bat
 *Script `setup` sẽ tự động kiểm tra JDK 17+, MySQL client, hỏi mật khẩu root MySQL ẩn danh, tạo cơ sở dữ liệu `ximilib_db`, cấp quyền tài khoản `ximilib_app`, nạp chuỗi migrations V1 -> V2 -> V3 -> V4, nạp 221 đầu sách mẫu và tạo sẵn file `config/db.properties` từ bản demo.*
 
 ### 3. Danh sách tài khoản thử nghiệm (Demo Accounts)
-Mật khẩu đã được mã hóa bằng chuẩn BCrypt trong cơ sở dữ liệu mẫu:
+Mật khẩu đã được mã hóa bằng chuẩn BCrypt trong cơ sở dữ liệu mẫu, tuân thủ chính sách mật khẩu SRS (tối thiểu 8 ký tự, gồm ít nhất 1 chữ hoa, 1 số và 1 ký tự đặc biệt theo BR-10):
 
-| Tài khoản | Mật khẩu | Vai trò | Quyền hạn chính |
-|---|---|---|---|
-| `admin` | `admin123` | **Admin** (Quản trị viên) | Toàn quyền hệ thống, cấu hình tham số, quản lý người dùng, xem báo cáo |
-| `kien.phan` | `123456` | **Thủ thư** (Librarian) | Quản lý kho sách, lập phiếu mượn/trả, gia hạn, xử lý bồi thường phạt |
-| `nam.le` | `123456` | **Thủ thư** (Librarian) | Quản lý kho sách, lập phiếu mượn/trả, gia hạn, xử lý bồi thường phạt |
-| `sinhvien` | `123456` | **Độc giả** (Reader) | Tra cứu sách, xem lịch sử mượn trả cá nhân, xuất thẻ thư viện QR |
+| Tài khoản | Mật khẩu chuẩn SRS | Mật khẩu cũ (tương thích) | Vai trò | Quyền hạn chính |
+|---|---|---|---|---|
+| `admin` | `Admin@123` | `admin123` | **Admin** (Quản trị viên) | Toàn quyền hệ thống, cấu hình tham số, quản lý người dùng, xem báo cáo |
+| `kien.phan` | `Kien@123456` | `123456` | **Thủ thư** (Librarian) | Quản lý kho sách, lập phiếu mượn/trả, gia hạn, xử lý bồi thường phạt |
+| `nam.le` | `Nam@123456` | `123456` | **Thủ thư** (Librarian) | Quản lý kho sách, lập phiếu mượn/trả, gia hạn, xử lý bồi thường phạt |
+| `sinhvien` | `Sinhvien@123` | `123456` | **Độc giả** (Reader) | Tra cứu sách, xem lịch sử mượn trả cá nhân, xuất thẻ thư viện QR |
 
 ### 4. Quy trình thiết lập thủ công thay thế (Manual Setup)
 Nếu bạn muốn tự thiết lập từng bước thay vì dùng script:
@@ -121,9 +121,10 @@ XimiLib/                                        # [ROOT] Thư mục gốc dự �
 │
 ├── docs/                                       # TÀI LIỆU KỸ THUẬT SSOT (LIVING DOCUMENTATION)
 │   ├── ARCHITECTURE.md                         # Clean Architecture, DI Wiring, Observer đa máy, SePay
-│   ├── DATABASE_SCHEMA.md                      # Lược đồ 20 bảng, Mermaid ERD, Pessimistic Lock, Indexes
-│   ├── BUSINESS_RULES.md                       # Máy trạng thái FSM, Công thức phạt/đền bù, BR-01..BR-09
-│   ├── PROJECT_STATUS.md                       # Ma trận F-01..F-11 MoSCoW, DoD, Changelog Week 10
+│   ├── DATABASE_SCHEMA.md                      # Lược đồ 23 bảng, Mermaid ERD, Pessimistic Lock, Indexes
+│   ├── BUSINESS_RULES.md                       # Máy trạng thái FSM, Công thức phạt & bồi thường (BR-01..BR-14)
+│   ├── PROJECT_STATUS.md                       # Ma trận F-01..F-12 MoSCoW, DoD, Changelog Week 10
+│   ├── TRACEABILITY.md                         # Ma trận truy vết YC-01..YC-14, UC 3.2.1..3.2.9, Deviation Register
 │   └── academic/                               # Báo cáo và tài liệu học thuật đồ án PBL
 │       ├── BaoCao_TienDo_GiuaKi_PBL_Nhom1.docx # Báo cáo tiến độ giữa kỳ
 │       ├── Dac_Ta_SRS_XimiLib.docx             # Đặc tả yêu cầu phần mềm chuẩn IEEE 830
@@ -167,7 +168,8 @@ Toàn bộ quy chuẩn phát triển và ràng buộc kiến trúc được quy 
 
 - **Hướng dẫn cho AI Agent:** [AGENTS.md](AGENTS.md) — Điểm vào bắt buộc cho AI Coder, 12 điều răn bất khả xâm phạm.
 - **Kiến trúc phần mềm:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Clean Architecture, Pure DI Container, SePay Gateway, Observer đa máy.
-- **Lược đồ cơ sở dữ liệu:** [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) — Ma trận 20 bảng, Mermaid ERD, Từ điển dữ liệu, Khóa bi quan.
-- **Quy tắc nghiệp vụ:** [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md) — Máy trạng thái FSM Phiếu mượn/Cuốn sách, Công thức phạt & bồi thường (BR-01..BR-09).
-- **Tiến độ dự án:** [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) — Ma trận tính năng F-01..F-11, DoD, Nhật ký Sprint Week 10.
+- **Lược đồ cơ sở dữ liệu:** [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) — Ma trận 23 bảng, Mermaid ERD, Từ điển dữ liệu, Khóa bi quan.
+- **Quy tắc nghiệp vụ:** [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md) — Máy trạng thái FSM Phiếu mượn/Cuốn sách, Công thức phạt & bồi thường (BR-01..BR-14).
+- **Tiến độ dự án:** [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) — Ma trận tính năng F-01..F-12, DoD, Nhật ký Sprint Week 10.
+- **Ma trận truy vết & Sai lệch:** [docs/TRACEABILITY.md](docs/TRACEABILITY.md) — Ánh xạ YC-01..YC-14, UC 3.2.1..3.2.9 và Deviation Register DEV-01..DEV-10.
 - **Công cụ PBL Workspace:** Mở trực tiếp [docs/academic/pbl_workspace.html](docs/academic/pbl_workspace.html) trên trình duyệt để quản lý tiến độ nhóm và sơ đồ thực thể tương tác.
