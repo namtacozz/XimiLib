@@ -126,6 +126,20 @@ public class UserRepositoryImpl implements UserRepository, UserQueryPort {
     }
 
     @Override
+    public boolean existsByCccd(String cccd) {
+        if (cccd == null || cccd.trim().isEmpty()) return false;
+        String raw = cccd.trim();
+        String encrypted = "";
+        try {
+            encrypted = com.ximilib.infrastructure.security.SecurityUtil.encryptAes(raw);
+        } catch (Exception ignored) {}
+        if (encrypted.isEmpty() || encrypted.equals(raw)) {
+            return checkExists("SELECT 1 FROM nguoidung WHERE Cccd = ?", raw);
+        }
+        return checkExists("SELECT 1 FROM nguoidung WHERE Cccd = ? OR Cccd = ?", raw, encrypted);
+    }
+
+    @Override
     public boolean existsByPhone(String phone) {
         return checkExists("SELECT 1 FROM nguoidung WHERE Sdt = ?", phone.trim());
     }
@@ -219,10 +233,12 @@ public class UserRepositoryImpl implements UserRepository, UserQueryPort {
         }
     }
 
-    private boolean checkExists(String sql, String param) {
+    private boolean checkExists(String sql, String... params) {
         try (Connection conn = connectionManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, param);
+            for (int i = 0; i < params.length; i++) {
+                ps.setString(i + 1, params[i]);
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }

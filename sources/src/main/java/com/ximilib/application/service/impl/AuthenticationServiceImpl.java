@@ -199,8 +199,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (repo.existsByUsername(username)) {
             throw new IllegalArgumentException("Tên đăng nhập này đã tồn tại trong hệ thống.");
         }
-        if (repo.existsByEmail(email)) {
-            throw new IllegalArgumentException("Địa chỉ email này đã được đăng ký.");
+        if (repo.existsByEmail(email) || (!cccd.isEmpty() && repo.existsByCccd(cccd))) {
+            throw new IllegalArgumentException("Số CMND/CCCD hoặc Email đã được đăng ký trên hệ thống");
         }
         if (!phone.isEmpty() && repo.existsByPhone(phone)) {
             throw new IllegalArgumentException("Số điện thoại này đã được đăng ký.");

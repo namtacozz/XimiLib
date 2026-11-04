@@ -195,6 +195,24 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("TC-AUTH-09B: Trùng Email hoặc CCCD trả về đúng câu thông báo SRS UC 3.2.2 ngoại lệ a")
+    void testRegisterDuplicateEmailOrCccdFails() {
+        RegisterRequestDto reqEmail = new RegisterRequestDto(
+            "reader.dupemail",
+            "Matkhau@123",
+            "Độc Giả Trùng Email",
+            "nhat.nguyen@dut.udn.vn",
+            "0912345679",
+            "012345678902",
+            "Đà Nẵng",
+            LocalDate.of(2003, 5, 20)
+        );
+
+        IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class, () -> authService.register(reqEmail));
+        assertEquals("Số CMND/CCCD hoặc Email đã được đăng ký trên hệ thống", ex1.getMessage());
+    }
+
+    @Test
     @DisplayName("TC-AUTH-10: CSDL chứa mật khẩu thô (plaintext) - Chặn hoàn toàn, tuyệt đối không đăng nhập được")
     void testPlaintextPasswordInDatabaseFailsToLogin() {
         // Tài khoản plain.user có mật khẩu lưu trực tiếp là "123456" (chưa băm BCrypt)
@@ -355,6 +373,11 @@ class AuthenticationServiceTest {
         @Override
         public boolean existsByEmail(String email) {
             return userMap.values().stream().anyMatch(u -> u.getEmail().equalsIgnoreCase(email));
+        }
+
+        @Override
+        public boolean existsByCccd(String cccd) {
+            return userMap.values().stream().anyMatch(u -> cccd.equals(u.getCccd()));
         }
 
         @Override

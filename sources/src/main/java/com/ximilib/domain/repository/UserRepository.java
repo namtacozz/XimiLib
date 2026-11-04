@@ -24,6 +24,10 @@ public interface UserRepository {
 
     boolean existsByEmail(String email);
 
+    default boolean existsByCccd(String cccd) {
+        return false;
+    }
+
     boolean existsByPhone(String phone);
 
     void registerReader(User user, String cardNumber, LocalDate issueDate, LocalDate expiryDate);
