@@ -189,12 +189,12 @@ public class CirculationDeskView extends JPanel {
 
         btnMangVe = new JToggleButton(UiText.TOGGLE_HOME_LOAN);
         btnTaiCho = new JToggleButton(UiText.TOGGLE_ONSITE_LOAN);
-        btnMangVe.setFont(UITheme.FONT_BOLD);
-        btnTaiCho.setFont(UITheme.FONT_BOLD);
+        btnMangVe.setFont(UITheme.FONT_SMALL);
+        btnTaiCho.setFont(UITheme.FONT_SMALL);
         btnMangVe.setFocusPainted(false);
         btnTaiCho.setFocusPainted(false);
-        btnMangVe.setPreferredSize(new Dimension(185, 36));
-        btnTaiCho.setPreferredSize(new Dimension(185, 36));
+        btnMangVe.setMargin(new Insets(4, 4, 4, 4));
+        btnTaiCho.setMargin(new Insets(4, 4, 4, 4));
         btnMangVe.putClientProperty("JComponent.roundRect", true);
         btnTaiCho.putClientProperty("JComponent.roundRect", true);
         btnMangVe.setSelected(true);
@@ -206,9 +206,11 @@ public class CirculationDeskView extends JPanel {
         btnMangVe.addActionListener(e -> updateLoanTypeToggleUI());
         btnTaiCho.addActionListener(e -> updateLoanTypeToggleUI());
 
-        JPanel loanTypeRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        JPanel loanTypeRow = new JPanel(new GridLayout(1, 2, 8, 0));
         loanTypeRow.setOpaque(false);
         loanTypeRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        loanTypeRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        loanTypeRow.setPreferredSize(new Dimension(320, 42));
         loanTypeRow.add(btnMangVe);
         loanTypeRow.add(btnTaiCho);
         card.add(loanTypeRow);

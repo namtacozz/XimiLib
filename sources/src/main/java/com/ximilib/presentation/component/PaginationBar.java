@@ -76,6 +76,10 @@ public class PaginationBar extends JPanel {
         this.onPageSizeChange = listener;
     }
 
+    public void setPageSizeSelectorVisible(boolean visible) {
+        cmbPageSize.setVisible(visible);
+    }
+
     public void updatePagination(int currentPage, int totalPages, int pageSize, int totalElements) {
         this.currentPage = Math.max(1, currentPage);
         this.totalPages = Math.max(1, totalPages);

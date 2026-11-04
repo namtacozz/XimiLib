@@ -4,6 +4,7 @@ import com.ximilib.application.dto.BorrowTicketDto;
 import com.ximilib.application.service.CirculationService;
 import com.ximilib.domain.model.LoanTicketStatus;
 import com.ximilib.presentation.util.UITheme;
+import com.ximilib.presentation.util.IconFactory;
 import com.ximilib.presentation.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
@@ -70,8 +71,11 @@ public class ReaderMyLoansView extends JPanel {
         titleBox.add(Box.createVerticalStrut(4));
         titleBox.add(lblSub);
 
-        JButton btnRefresh = UITheme.createPillButton("Làm mới", UITheme.PRIMARY_TINT, UITheme.ON_TINT);
-        btnRefresh.setPreferredSize(new Dimension(110, 36));
+        JButton btnRefresh = UITheme.createPillButton("", UITheme.PRIMARY_TINT, UITheme.ON_TINT);
+        btnRefresh.setIcon(IconFactory.createRefreshIcon(UITheme.PRIMARY, 16));
+        btnRefresh.setToolTipText("Làm mới danh sách phiếu mượn");
+        btnRefresh.setPreferredSize(new Dimension(36, 36));
+        btnRefresh.setMargin(new Insets(0, 0, 0, 0));
         btnRefresh.addActionListener(e -> loadDataAsync());
 
         headerPanel.add(titleBox, BorderLayout.WEST);
@@ -113,8 +117,8 @@ public class ReaderMyLoansView extends JPanel {
         loanTable.getColumnModel().getColumn(3).setPreferredWidth(120);
         loanTable.getColumnModel().getColumn(4).setPreferredWidth(140);
         loanTable.getColumnModel().getColumn(4).setCellRenderer(new StatusBadgeRenderer());
-        loanTable.getColumnModel().getColumn(5).setPreferredWidth(230);
-        loanTable.getColumnModel().getColumn(5).setMinWidth(210);
+        loanTable.getColumnModel().getColumn(5).setPreferredWidth(120);
+        loanTable.getColumnModel().getColumn(5).setMinWidth(100);
 
         loanTable.getColumnModel().getColumn(5).setCellRenderer(new ActionRenderer());
         loanTable.getColumnModel().getColumn(5).setCellEditor(new ActionEditor());
@@ -395,21 +399,30 @@ public class ReaderMyLoansView extends JPanel {
     }
 
     private class ActionRenderer implements javax.swing.table.TableCellRenderer {
-        private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 8));
-        private final JButton btnRenew = UITheme.createPillButton("Gia hạn (+7d)", UITheme.PRIMARY_TINT, UITheme.ON_TINT);
-        private final JButton btnReportLoss = UITheme.createPillButton("Báo mất", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
-        private final JButton btnPay = UITheme.createPillButton("Nộp phạt VietQR", UITheme.PRIMARY, Color.WHITE);
+        private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 8));
+        private final JButton btnRenew = UITheme.createPillButton("", UITheme.PRIMARY_TINT, UITheme.ON_TINT);
+        private final JButton btnReportLoss = UITheme.createPillButton("", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
+        private final JButton btnPay = UITheme.createPillButton("", UITheme.PRIMARY, Color.WHITE);
         private final JLabel lblDone = new JLabel("Hoàn tất", SwingConstants.CENTER);
         private final JLabel lblWaiting = new JLabel("Chờ nhận tại quầy", SwingConstants.CENTER);
 
         ActionRenderer() {
             panel.setOpaque(false);
-            btnRenew.setFont(UITheme.FONT_BADGE);
-            btnReportLoss.setFont(UITheme.FONT_BADGE);
-            btnPay.setFont(UITheme.FONT_BADGE);
-            btnRenew.setPreferredSize(new Dimension(105, 30));
-            btnReportLoss.setPreferredSize(new Dimension(75, 30));
-            btnPay.setPreferredSize(new Dimension(130, 30));
+            btnRenew.setIcon(IconFactory.createClockIcon(UITheme.PRIMARY, 16));
+            btnRenew.setToolTipText("Gia hạn mượn sách (+7 ngày)");
+            btnRenew.setPreferredSize(new Dimension(34, 30));
+            btnRenew.setMargin(new Insets(0, 0, 0, 0));
+
+            btnReportLoss.setIcon(IconFactory.createWarningIcon(UITheme.DANGER_TEXT, 16));
+            btnReportLoss.setToolTipText("Báo mất sách & xử lý bồi thường");
+            btnReportLoss.setPreferredSize(new Dimension(34, 30));
+            btnReportLoss.setMargin(new Insets(0, 0, 0, 0));
+
+            btnPay.setIcon(IconFactory.createCreditCardIcon(Color.WHITE, 16));
+            btnPay.setToolTipText("Nộp phạt bồi thường qua VietQR");
+            btnPay.setPreferredSize(new Dimension(34, 30));
+            btnPay.setMargin(new Insets(0, 0, 0, 0));
+
             lblDone.setFont(UITheme.FONT_BADGE);
             lblDone.setForeground(UITheme.TEXT_MUTED);
             lblWaiting.setFont(UITheme.FONT_BADGE);
@@ -440,22 +453,31 @@ public class ReaderMyLoansView extends JPanel {
     }
 
     private class ActionEditor extends AbstractCellEditor implements javax.swing.table.TableCellEditor {
-        private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 8));
-        private final JButton btnRenew = UITheme.createPillButton("Gia hạn (+7d)", UITheme.PRIMARY_TINT, UITheme.ON_TINT);
-        private final JButton btnReportLoss = UITheme.createPillButton("Báo mất", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
-        private final JButton btnPay = UITheme.createPillButton("Nộp phạt VietQR", UITheme.PRIMARY, Color.WHITE);
+        private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 8));
+        private final JButton btnRenew = UITheme.createPillButton("", UITheme.PRIMARY_TINT, UITheme.ON_TINT);
+        private final JButton btnReportLoss = UITheme.createPillButton("", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
+        private final JButton btnPay = UITheme.createPillButton("", UITheme.PRIMARY, Color.WHITE);
         private final JLabel lblDone = new JLabel("Hoàn tất", SwingConstants.CENTER);
         private final JLabel lblWaiting = new JLabel("Chờ nhận tại quầy", SwingConstants.CENTER);
         private BorrowTicketDto currentTicket;
 
         ActionEditor() {
             panel.setOpaque(false);
-            btnRenew.setFont(UITheme.FONT_BADGE);
-            btnReportLoss.setFont(UITheme.FONT_BADGE);
-            btnPay.setFont(UITheme.FONT_BADGE);
-            btnRenew.setPreferredSize(new Dimension(105, 30));
-            btnReportLoss.setPreferredSize(new Dimension(75, 30));
-            btnPay.setPreferredSize(new Dimension(130, 30));
+            btnRenew.setIcon(IconFactory.createClockIcon(UITheme.PRIMARY, 16));
+            btnRenew.setToolTipText("Gia hạn mượn sách (+7 ngày)");
+            btnRenew.setPreferredSize(new Dimension(34, 30));
+            btnRenew.setMargin(new Insets(0, 0, 0, 0));
+
+            btnReportLoss.setIcon(IconFactory.createWarningIcon(UITheme.DANGER_TEXT, 16));
+            btnReportLoss.setToolTipText("Báo mất sách & xử lý bồi thường");
+            btnReportLoss.setPreferredSize(new Dimension(34, 30));
+            btnReportLoss.setMargin(new Insets(0, 0, 0, 0));
+
+            btnPay.setIcon(IconFactory.createCreditCardIcon(Color.WHITE, 16));
+            btnPay.setToolTipText("Nộp phạt bồi thường qua VietQR");
+            btnPay.setPreferredSize(new Dimension(34, 30));
+            btnPay.setMargin(new Insets(0, 0, 0, 0));
+
             lblDone.setFont(UITheme.FONT_BADGE);
             lblDone.setForeground(UITheme.TEXT_MUTED);
             lblWaiting.setFont(UITheme.FONT_BADGE);

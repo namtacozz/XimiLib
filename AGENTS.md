@@ -67,6 +67,11 @@ Hệ thống sử dụng bộ 3 thư viện DJ-Raven trên nền FlatLaf tập t
    - Dùng cho popup thông tin nhanh (Thẻ thư viện điện tử QR, Hộp thư thông báo chuông, Profile).
 3. **DateTime Picker (`io.github.dj-raven:swing-datetime-picker`):**
    - Chuẩn hóa 100% đầu vào ngày tháng năm (`LocalDate`) với format `dd/MM/yyyy`. Cấm cho người dùng gõ chuỗi ngày tự do vào `JTextField`.
+4. **Quy chuẩn Icon Vector (SVG Chuẩn - CẤM TỰ VẼ BẰNG TỌA ĐỘ):**
+   - **Tuyệt đối cấm** AI tự viết code vẽ vector/icon thủ công bằng tọa độ Graphics2D (`drawLine`, `drawArc`, `drawPolygon`). Mã tự vẽ dễ méo mó, lệch pixel, vỡ hình.
+   - **Bắt buộc 100%** sử dụng các file SVG vector chuẩn (Lucide / Feather / morphicons) lưu tại thư mục `src/main/resources/icons/svg/*.svg`.
+   - Nạp icon qua `FlatSVGIcon` (`flatlaf-extras`) với `ColorFilter` đổi màu động, quản lý tập trung qua lớp `IconFactory`.
+   - Cấm sử dụng các ký tự biểu tượng Unicode đặc biệt (như `✓`, `★`, emoji) trực tiếp trong chuỗi text hiển thị vì gây lỗi ô vuông (tofu glyph `▯`) trên font Windows mặc định. Dùng SVG icon tương ứng hoặc chữ thuần.
 
 ## 7. Quy trình sau mỗi thay đổi
 1. Chạy `mvn test`; nghiệp vụ mới phải có test tương ứng trong bộ TC-01..TC-14.

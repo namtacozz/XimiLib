@@ -140,9 +140,9 @@ public final class UiText {
     public static final String LBL_DUE_EMPTY = "Hạn hoàn trả: -";
     public static final String LBL_STATUS_EMPTY = "Tình trạng: -";
     public static final String TITLE_FINANCE_DUTY = "Nghĩa Vụ Tài Chính";
-    public static final String NOTICE_CLEAN_RETURN = "✓ Sách đạt tiêu chuẩn trong hạn. Không phát sinh chi phí hoàn trả.";
+    public static final String NOTICE_CLEAN_RETURN = "Sách đạt tiêu chuẩn trong hạn. Không phát sinh chi phí hoàn trả.";
     public static final String NOTICE_SCAN_PROMPT = "Vui lòng chọn hoặc quét cuốn sách để kiểm tra.";
-    public static final String NOTICE_CLEAN_OK = "✓ Sách đạt chuẩn trong hạn. Không phát sinh chi phí.";
+    public static final String NOTICE_CLEAN_OK = "Sách đạt chuẩn trong hạn. Không phát sinh chi phí.";
     public static final String LBL_FINE_DETAIL_INIT = "Chi tiết: Trễ hạn 0đ + Phí 0đ";
     public static final String LBL_TOTAL_AMOUNT_INIT = "TỔNG TIỀN PHẢI NỘP: 0 VNĐ";
     public static final String BTN_CONFIRM_UPPER = "XÁC NHẬN";

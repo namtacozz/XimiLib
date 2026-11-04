@@ -206,7 +206,7 @@ public class PatronManagementView extends JPanel {
         form.add(btnDelete);
 
         UiModalHelper.showCustomModal(
-            this,
+            SwingUtilities.getWindowAncestor(this) != null ? SwingUtilities.getWindowAncestor(this) : this,
             "PATRON_EDIT",
             "Chi tiết & Chỉnh sửa hồ sơ độc giả",
             form,
@@ -272,16 +272,19 @@ public class PatronManagementView extends JPanel {
             styleIconButton(btnEdit, UITheme.TINT, "Chỉnh sửa & Chi tiết hồ sơ");
 
             btnLock.addActionListener(e -> {
+                PatronDto p = currentPatron;
                 fireEditingStopped();
-                if (currentPatron != null) toggleLockCard(currentPatron);
+                if (p != null) SwingUtilities.invokeLater(() -> toggleLockCard(p));
             });
             btnExtend.addActionListener(e -> {
+                PatronDto p = currentPatron;
                 fireEditingStopped();
-                if (currentPatron != null) extendCard(currentPatron);
+                if (p != null) SwingUtilities.invokeLater(() -> extendCard(p));
             });
             btnEdit.addActionListener(e -> {
+                PatronDto p = currentPatron;
                 fireEditingStopped();
-                if (currentPatron != null) showEditPatronModal(currentPatron);
+                if (p != null) SwingUtilities.invokeLater(() -> showEditPatronModal(p));
             });
 
             panel.add(btnLock);
@@ -303,10 +306,10 @@ public class PatronManagementView extends JPanel {
                 currentPatron = p;
                 boolean isLocked = "KHOA".equalsIgnoreCase(p.getCardStatus()) || "0".equals(p.getCardStatus());
                 btnLock.setIcon(isLocked
-                    ? IconFactory.createUnlockIcon(UITheme.SUCCESS_TEXT, 14)
-                    : IconFactory.createLockIcon(UITheme.DANGER_TEXT, 14));
-                btnLock.setBackground(isLocked ? UITheme.SUCCESS_BG : UITheme.DANGER_BG);
-                btnLock.setToolTipText(isLocked ? "Mở khóa thẻ" : "Khóa thẻ");
+                    ? IconFactory.createLockIcon(UITheme.DANGER_TEXT, 14)
+                    : IconFactory.createUnlockIcon(UITheme.SUCCESS_TEXT, 14));
+                btnLock.setBackground(isLocked ? UITheme.DANGER_BG : UITheme.SUCCESS_BG);
+                btnLock.setToolTipText(isLocked ? "Thẻ đang khóa - Bấm để mở khóa" : "Thẻ đang mở khóa - Bấm để khóa thẻ");
                 btnExtend.setIcon(IconFactory.createClockIcon(UITheme.SUCCESS_TEXT, 14));
                 btnEdit.setIcon(IconFactory.createEditIcon(UITheme.PRIMARY, 14));
             }
@@ -318,10 +321,10 @@ public class PatronManagementView extends JPanel {
                 currentPatron = p;
                 boolean isLocked = "KHOA".equalsIgnoreCase(p.getCardStatus()) || "0".equals(p.getCardStatus());
                 btnLock.setIcon(isLocked
-                    ? IconFactory.createUnlockIcon(UITheme.SUCCESS_TEXT, 14)
-                    : IconFactory.createLockIcon(UITheme.DANGER_TEXT, 14));
-                btnLock.setBackground(isLocked ? UITheme.SUCCESS_BG : UITheme.DANGER_BG);
-                btnLock.setToolTipText(isLocked ? "Mở khóa thẻ" : "Khóa thẻ");
+                    ? IconFactory.createLockIcon(UITheme.DANGER_TEXT, 14)
+                    : IconFactory.createUnlockIcon(UITheme.SUCCESS_TEXT, 14));
+                btnLock.setBackground(isLocked ? UITheme.DANGER_BG : UITheme.SUCCESS_BG);
+                btnLock.setToolTipText(isLocked ? "Thẻ đang khóa - Bấm để mở khóa" : "Thẻ đang mở khóa - Bấm để khóa thẻ");
                 btnExtend.setIcon(IconFactory.createClockIcon(UITheme.SUCCESS_TEXT, 14));
                 btnEdit.setIcon(IconFactory.createEditIcon(UITheme.PRIMARY, 14));
             }

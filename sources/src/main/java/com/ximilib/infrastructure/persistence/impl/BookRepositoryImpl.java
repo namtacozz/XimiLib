@@ -52,12 +52,11 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
         List<Object> params = new ArrayList<>();
 
         if (!keyword.isEmpty()) {
-            whereClause.append(" AND (LOWER(s.Tensach) LIKE ? OR LOWER(s.Masach) LIKE ? OR LOWER(tg.Tentacgia) LIKE ? OR s.Isbn LIKE ?) ");
+            whereClause.append(" AND (LOWER(s.Tensach) LIKE ? OR LOWER(s.Masach) LIKE ? OR LOWER(tg.Tentacgia) LIKE ? OR s.Isbn LIKE ? OR LOWER(t.Tentheloai) LIKE ? OR LOWER(ks.Tenkesach) LIKE ? OR LOWER(ks.Makesach) LIKE ? OR LOWER(kv.Tenkhuvuc) LIKE ? OR LOWER(kv.Makhuvuc) LIKE ?) ");
             String kwParam = "%" + keyword.toLowerCase() + "%";
-            params.add(kwParam);
-            params.add(kwParam);
-            params.add(kwParam);
-            params.add(kwParam);
+            for (int i = 0; i < 9; i++) {
+                params.add(kwParam);
+            }
         }
 
         if (categoryId != null && categoryId > 0) {
@@ -80,6 +79,9 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                         + "LEFT JOIN nhaxuatban nxb ON s.Manxb = nxb.manxb "
                         + "LEFT JOIN sach_tacgia st ON s.Masach = st.Masach "
                         + "LEFT JOIN tacgia tg ON st.Matacgia = tg.Matacgia "
+                        + "LEFT JOIN cuonsach cs ON s.Masach = cs.Masach "
+                        + "LEFT JOIN kesach ks ON cs.Makesach = ks.Makesach "
+                        + "LEFT JOIN khuvuc kv ON ks.Makhuvuc = kv.Makhuvuc "
                         + whereClause;
 
         int totalItems = 0;
@@ -99,15 +101,18 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
 
         // 2. Truy vấn dữ liệu phân trang
         String dataSql = "SELECT s.Masach, s.Tensach, s.Matheloai, MAX(t.Tentheloai) AS Tentheloai, s.Manxb, MAX(nxb.tennxb) AS tennxb, "
-                       + "       GROUP_CONCAT(tg.Tentacgia SEPARATOR ', ') AS Tentacgia, s.Isbn, s.Namxb, s.Giabia, s.Hinhanh, s.Motasach, s.IsDeleted, "
+                       + "       GROUP_CONCAT(DISTINCT tg.Tentacgia SEPARATOR ', ') AS Tentacgia, s.Isbn, s.Namxb, s.Giabia, s.Hinhanh, s.Motasach, s.IsDeleted, "
                        + "       " + copiesSubquery + " AS available_copies, "
-                       + "       COALESCE((SELECT COUNT(*) FROM cuonsach cs WHERE cs.Masach = s.Masach), 0) AS total_copies, "
-                       + "       COALESCE((SELECT COUNT(*) FROM cuonsach cs WHERE cs.Masach = s.Masach AND cs.Trangthaisach = 'DANG_MUON'), 0) AS active_loans "
+                       + "       COALESCE((SELECT COUNT(*) FROM cuonsach cs2 WHERE cs2.Masach = s.Masach), 0) AS total_copies, "
+                       + "       COALESCE((SELECT COUNT(*) FROM cuonsach cs2 WHERE cs2.Masach = s.Masach AND cs2.Trangthaisach = 'DANG_MUON'), 0) AS active_loans "
                        + "FROM sach s "
                        + "LEFT JOIN theloai t ON s.Matheloai = t.Matheloai "
                        + "LEFT JOIN nhaxuatban nxb ON s.Manxb = nxb.manxb "
                        + "LEFT JOIN sach_tacgia st ON s.Masach = st.Masach "
                        + "LEFT JOIN tacgia tg ON st.Matacgia = tg.Matacgia "
+                       + "LEFT JOIN cuonsach cs ON s.Masach = cs.Masach "
+                       + "LEFT JOIN kesach ks ON cs.Makesach = ks.Makesach "
+                       + "LEFT JOIN khuvuc kv ON ks.Makhuvuc = kv.Makhuvuc "
                        + whereClause
                        + "GROUP BY s.Masach "
                        + "ORDER BY CAST(SUBSTRING(s.Masach, 3) AS UNSIGNED) DESC "

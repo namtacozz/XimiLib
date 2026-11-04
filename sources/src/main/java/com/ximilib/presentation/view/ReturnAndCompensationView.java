@@ -10,6 +10,7 @@ import com.ximilib.domain.repository.CirculationRepository.BorrowDetailInfo;
 import com.ximilib.presentation.component.VietQrModalPanel;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UiText;
+import com.ximilib.presentation.util.IconFactory;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UiModalHelper;
 
@@ -278,6 +279,8 @@ public class ReturnAndCompensationView extends JPanel {
         centerBox.add(Box.createVerticalStrut(10));
 
         lblCleanReturnNotice = new JLabel(UiText.NOTICE_CLEAN_RETURN);
+        lblCleanReturnNotice.setIcon(IconFactory.createCheckIcon(UITheme.SUCCESS_GREEN, 16));
+        lblCleanReturnNotice.setIconTextGap(8);
         lblCleanReturnNotice.setFont(UITheme.FONT_REGULAR);
         lblCleanReturnNotice.setForeground(UITheme.SUCCESS_TEXT);
         lblCleanReturnNotice.setAlignmentX(Component.LEFT_ALIGNMENT);

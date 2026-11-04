@@ -71,16 +71,17 @@ public class BookDetailModalPanel extends JPanel {
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblTitle.setForeground(UITheme.TEXT_MAIN);
 
-        JLabel lblAuthor = new JLabel("Tác giả: " + (book.getAuthor() != null ? book.getAuthor() : "Không rõ"));
+        JLabel lblAuthor = new JLabel("<html>Tác giả: <u>" + (book.getAuthor() != null ? book.getAuthor() : "Không rõ") + "</u> ↗</html>");
         lblAuthor.setFont(UITheme.FONT_SMALL);
         lblAuthor.setForeground(UITheme.PRIMARY);
         lblAuthor.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        lblAuthor.setToolTipText("Lọc sách theo tác giả");
+        lblAuthor.setToolTipText("Bấm để lọc sách cùng tác giả");
         lblAuthor.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (book.getAuthor() != null && !book.getAuthor().trim().isEmpty()) {
-                    filterCatalog(book.getAuthor());
+                    String authorToSearch = book.getAuthor().split(",")[0].trim();
+                    filterCatalog(authorToSearch);
                 }
             }
         });
@@ -202,6 +203,22 @@ public class BookDetailModalPanel extends JPanel {
         return panel;
     }
 
+    private String getShelfNameForBook() {
+        int catId = book.getCategoryId() != null ? book.getCategoryId() : 0;
+        if (catId == 1 || catId == 3) {
+            return "Kệ A1 - Toán & Tự nhiên";
+        } else if (catId == 2 || catId == 8) {
+            return "Kệ B1 - Văn học kinh điển";
+        } else if (catId == 6 || catId == 7) {
+            return "Kệ B2 - Kỹ năng sống & Xã hội";
+        } else if (catId == 9) {
+            return "Kệ C1 - Lập trình & CNTT";
+        } else if (catId == 10) {
+            return "Kệ C2 - Ngoại ngữ & Từ điển";
+        }
+        return "Kệ A2 - Cơ khí & Kỹ thuật";
+    }
+
     private JPanel createShelfLocationPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -213,15 +230,17 @@ public class BookDetailModalPanel extends JPanel {
         panel.add(lblLocHeader);
         panel.add(Box.createVerticalStrut(8));
 
-        JLabel lblZone = new JLabel("• Vị trí: Khu vực A - Tầng 2, Kệ sách chuyên ngành PBL");
+        String shelfName = getShelfNameForBook();
+        JLabel lblZone = new JLabel("<html>• Vị trí: <u>" + shelfName + "</u> ↗</html>");
         lblZone.setFont(UITheme.FONT_REGULAR);
         lblZone.setForeground(UITheme.PRIMARY);
         lblZone.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        lblZone.setToolTipText("Lọc sách theo vị trí kệ");
+        lblZone.setToolTipText("Bấm để xem các cuốn sách cùng kệ này");
         lblZone.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
-                filterCatalog(book.getCategoryName() != null ? book.getCategoryName() : "Khu vực A");
+                String shelfKeyword = shelfName.split("-")[0].trim();
+                filterCatalog(shelfKeyword);
             }
         });
         panel.add(lblZone);

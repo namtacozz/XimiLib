@@ -60,7 +60,7 @@ public class BookCatalogView extends JPanel {
     // Search state
     private javax.swing.Timer searchDebounceTimer;
     private int currentPage = 1;
-    private int pageSize = 10;
+    private int pageSize = 50;
     private final Set<String> selectedBookIds = new HashSet<>();
     private DomainEventListener<BookStockChangedEvent> stockEventListener;
 
@@ -293,6 +293,7 @@ public class BookCatalogView extends JPanel {
         card.add(tableContainer, BorderLayout.CENTER);
 
         paginationBar = new PaginationBar();
+        paginationBar.setPageSizeSelectorVisible(false);
         paginationBar.setOnPageChange(page -> {
             this.currentPage = page;
             loadDataAsync();
@@ -415,7 +416,9 @@ public class BookCatalogView extends JPanel {
 
     public void setSearchKeyword(String keyword) {
         if (txtSearch != null) {
+            this.currentPage = 1;
             txtSearch.setText(keyword != null ? keyword : "");
+            loadDataAsync();
         }
     }
 

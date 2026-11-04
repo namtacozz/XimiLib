@@ -216,11 +216,11 @@ public class UserProfileModalPanel extends GlassPaneChild {
         gbc.weightx = 1.0;
         passCard.add(txtConfirmPass, gbc);
 
-        // Hàng 4: Nút Cập nhật mật khẩu (bo viền ôm sát chữ, căn trái)
+        // Hàng 4: Nút Cập nhật mật khẩu (bo viền ôm sát chữ, căn phải)
         gbc.gridx = 0; gbc.gridy = 3;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.anchor = GridBagConstraints.EAST;
         gbc.insets = new Insets(12, 4, 4, 4);
         JButton btnChangePass = UITheme.createPillButton("Cập Nhật Mật Khẩu", UITheme.TINT, UITheme.ON_TINT);
         btnChangePass.setFont(UITheme.FONT_SMALL);

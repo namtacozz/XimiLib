@@ -1,611 +1,195 @@
 package com.ximilib.presentation.util;
 
-import java.awt.*;
-import java.awt.geom.Path2D;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
 import javax.swing.Icon;
 
-/**
- * IconFactory: Tạo các icon vector phẳng trực tiếp bằng Graphics2D.
- * Giải quyết triệt để 100% lỗi font không hỗ trợ Emoji trên Windows gây ra ô vuông (tofu glyph '▯').
- * Tác giả: Phan Vũ Xuân Kiên (GUI / DB)
- */
 public class IconFactory {
 
     public interface DynamicIcon extends Icon {
         void setColor(Color c);
     }
 
-    /**
-     * Tạo icon kính lúp (Tìm kiếm)
-     */
-    public static Icon createSearchIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.8f));
-            int r = (w - 7) / 2;
-            int cx = 2 + r;
-            int cy = 2 + r;
-            g2.drawOval(cx - r, cy - r, r * 2, r * 2);
-            g2.drawLine(cx + r - 1, cy + r - 1, w - 2, h - 2);
-        });
-    }
+    private static class SvgDynamicIcon implements DynamicIcon {
+        private final FlatSVGIcon svgIcon;
+        private Color currentColor;
 
-    /**
-     * Tạo icon Ngôi Nhà 2D (Trang chủ) nhìn thẳng trực diện phẳng,
-     * tối giản, hiện đại và đồng bộ với giao diện 2D.
-     */
-    public static Icon createHomeIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            
-            int cx = w / 2;
-
-            // 1. Ống khói nhỏ 2D trên mái nhà
-            g2.fillRect(w - 5, 2, 2, 3);
-
-            // 2. Mái nhà 2D tam giác phẳng
-            int[] roofX = {cx, 1, w - 1};
-            int[] roofY = {2, 7, 7};
-            g2.drawPolygon(roofX, roofY, 3);
-
-            // 3. Thân nhà 2D hình chữ nhật
-            g2.drawRect(3, 7, w - 6, h - 8);
-
-            // 4. Cửa chính 2D ở giữa
-            int doorW = 4;
-            int doorH = 5;
-            g2.drawRect(cx - doorW / 2, h - 1 - doorH, doorW, doorH);
-            g2.fillRect(cx + 1, h - 1 - doorH / 2, 1, 1); // Núm tay nắm cửa
-        });
-    }
-
-    /**
-     * Tạo icon cuốn sách (Kho sách)
-     */
-    public static Icon createBookIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.8f));
-            // 2 trang sách mở
-            g2.drawRoundRect(2, 3, w / 2 - 2, h - 6, 3, 3);
-            g2.drawRoundRect(w / 2, 3, w / 2 - 2, h - 6, 3, 3);
-            // Các dòng chữ mô phỏng
-            g2.drawLine(4, 7, w / 2 - 3, 7);
-            g2.drawLine(4, 10, w / 2 - 3, 10);
-            g2.drawLine(w / 2 + 3, 7, w - 4, 7);
-            g2.drawLine(w / 2 + 3, 10, w - 4, 10);
-        });
-    }
-
-    /**
-     * Tạo icon nhãn thẻ (Thể loại)
-     */
-    public static Icon createTagIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.8f));
-            int[] xs = {3, w - 6, w - 2, w - 6, 3};
-            int[] ys = {3, 3, h / 2, h - 3, h - 3};
-            g2.drawPolygon(xs, ys, 5);
-            g2.fillOval(5, h / 2 - 2, 3, 3);
-        });
-    }
-
-    /**
-     * Tạo icon người dùng / độc giả
-     */
-    public static Icon createUsersIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.8f));
-            // Đầu
-            g2.drawOval(w / 2 - 3, 2, 6, 6);
-            // Vai
-            g2.drawArc(2, h / 2 + 1, w - 4, h / 2, 0, 180);
-        });
-    }
-
-    /**
-     * Tạo icon người dùng đơn (User Silhouette) dạng đặc cho Avatar Khách
-     */
-    public static Icon createUserIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            int headR = Math.max(3, (int) (w * 0.22));
-            int headCx = w / 2;
-            int headCy = (int) (h * 0.32);
-            g2.fillOval(headCx - headR, headCy - headR, headR * 2, headR * 2);
-
-            int bodyW = (int) (w * 0.75);
-            int bodyH = (int) (h * 0.42);
-            int bodyX = (w - bodyW) / 2;
-            int bodyY = (int) (h * 0.58);
-            g2.fillRoundRect(bodyX, bodyY, bodyW, bodyH, bodyW / 2, bodyH / 2);
-        });
-    }
-
-    /**
-     * Tạo icon Lưới (Grid) 2x2 ô vuông
-     */
-    public static Icon createGridIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            int box = (w - 3) / 2;
-            g2.fillRect(0, 0, box, box);
-            g2.fillRect(box + 3, 0, box, box);
-            g2.fillRect(0, box + 3, box, box);
-            g2.fillRect(box + 3, box + 3, box, box);
-        });
-    }
-
-    /**
-     * Tạo icon Danh sách (List/Table) 3 vạch ngang kèm chấm đầu dòng
-     */
-    public static Icon createListIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.8f));
-            int gap = h / 4;
-            for (int i = 1; i <= 3; i++) {
-                int y = i * gap;
-                g2.fillOval(1, y - 2, 3, 3);
-                g2.drawLine(6, y, w - 2, y);
+        public SvgDynamicIcon(String name, Color color, int size) {
+            this.svgIcon = new FlatSVGIcon("icons/svg/" + name + ".svg", size, size);
+            this.currentColor = color;
+            if (color != null) {
+                this.svgIcon.setColorFilter(new FlatSVGIcon.ColorFilter(c -> this.currentColor));
             }
-        });
-    }
-
-    /**
-     * Tạo icon Mặt Trên Bàn Chế Tạo 2D (Crafting Grid 3x3) của Bàn Lưu Hành.
-     * Tái hiện chính xác 100% mặt trên cùng của khối Crafting Table người dùng gửi:
-     * Khung vuông viền gỗ với 4 chốt góc và lưới chế tạo 3x3 (9 ô vuông phẳng).
-     */
-    public static Icon createCirculationIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            
-            int pad = 1;
-            int boxSize = Math.min(w, h) - pad * 2 - 1;
-            int startX = (w - boxSize) / 2;
-            int startY = (h - boxSize) / 2;
-
-            // 1. Viền ngoài của mặt bàn 2D
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.drawRect(startX, startY, boxSize, boxSize);
-
-            // 2. Lưới chế tạo 3x3 (9 ô vuông như mặt trên khối Minecraft)
-            g2.setStroke(new BasicStroke(1.0f));
-            int step = boxSize / 3;
-            
-            // 2 đường dọc chia 3 cột
-            g2.drawLine(startX + step, startY, startX + step, startY + boxSize);
-            g2.drawLine(startX + step * 2, startY, startX + step * 2, startY + boxSize);
-            
-            // 2 đường ngang chia 3 hàng
-            g2.drawLine(startX, startY + step, startX + boxSize, startY + step);
-            g2.drawLine(startX, startY + step * 2, startX + boxSize, startY + step * 2);
-
-            // 3. Bốn chốt đinh tán gỗ đặc trưng ở 4 góc của mặt trên Crafting Table
-            g2.fillRect(startX + 1, startY + 1, 2, 2);
-            g2.fillRect(startX + boxSize - 3, startY + 1, 2, 2);
-            g2.fillRect(startX + 1, startY + boxSize - 3, 2, 2);
-            g2.fillRect(startX + boxSize - 3, startY + boxSize - 3, 2, 2);
-        });
-    }
-
-    /**
-     * Tạo icon xử lý trả & bồi hoàn (dấu tích trong ô)
-     */
-    public static Icon createCheckIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.8f));
-            g2.drawRoundRect(2, 2, w - 4, h - 4, 4, 4);
-            g2.drawLine(4, h / 2, w / 2 - 1, h - 5);
-            g2.drawLine(w / 2 - 1, h - 5, w - 4, 5);
-        });
-    }
-
-    /**
-     * Tạo icon danh sách / lịch sử phiếu mượn
-     */
-    public static Icon createHistoryIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.8f));
-            g2.drawRoundRect(2, 2, w - 4, h - 4, 3, 3);
-            g2.drawLine(5, 5, w - 5, 5);
-            g2.drawLine(5, 8, w - 5, 8);
-            g2.drawLine(5, 11, w - 7, 11);
-        });
-    }
-
-    /**
-     * Tạo icon biểu đồ cột (Thống kê)
-     */
-    public static Icon createChartIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            // Trục tọa độ
-            g2.drawLine(2, h - 2, w - 2, h - 2);
-            // 3 cột
-            g2.fillRect(4, h - 7, 3, 5);
-            g2.fillRect(9, h - 11, 3, 9);
-            g2.fillRect(14, h - 14, 3, 12);
-        });
-    }
-
-    /**
-     * Tạo icon thùng rác & khôi phục
-     */
-    public static Icon createTrashIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f));
-            // Nắp thùng
-            g2.drawLine(3, 4, w - 3, 4);
-            g2.drawLine(w / 2 - 2, 2, w / 2 + 2, 2);
-            // Thân thùng
-            g2.drawRoundRect(4, 5, w - 8, h - 7, 2, 2);
-            g2.drawLine(w / 2 - 2, 7, w / 2 - 2, h - 4);
-            g2.drawLine(w / 2 + 2, 7, w / 2 + 2, h - 4);
-        });
-    }
-
-    /**
-     * Tạo icon bánh răng (Cài đặt quy định)
-     */
-    /**
-     * Tạo icon cây bút chì / chỉnh sửa (Edit/Action)
-     */
-    public static Icon createEditIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            int x1 = 3, y1 = h - 4;
-            int x2 = w - 4, y2 = 3;
-            g2.drawLine(x1 + 3, y1, x2, y2 + 3);
-            g2.drawLine(x1, y1 - 3, x2 - 3, y2);
-            g2.drawLine(x2 - 3, y2, x2, y2 + 3);
-            g2.drawLine(x1, y1 - 3, x1, y1);
-            g2.drawLine(x1 + 3, y1, x1, y1);
-            g2.drawLine(x1, h - 1, w - 2, h - 1);
-        });
-    }
-
-    /**
-     * Tạo icon Tam Giác Cảnh Báo (Warning) vector Graphics2D.
-     * Giải quyết triệt để lỗi ô vuông (tofu glyph '▯') khi hiển thị emoji ⚠️ trên Windows.
-     */
-    public static Icon createWarningIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
-            // Vẽ viền tam giác cảnh báo
-            int[] xs = {w / 2, 1, w - 2};
-            int[] ys = {1, h - 2, h - 2};
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.drawPolygon(xs, ys, 3);
-            
-            // Dấu chấm than !
-            int cx = w / 2;
-            g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.drawLine(cx, 5, cx, h - 7);
-            g2.fillOval(cx - 1, h - 5, 2, 2);
-        });
-    }
-
-    /**
-     * Tạo icon Ngôi Sao (Đánh giá) 5 cánh vẽ trực tiếp bằng Graphics2D Path2D.
-     * Giải quyết triệt để lỗi ô vuông (tofu glyph) trên mọi hệ điều hành.
-     */
-    public static Icon createStarIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            double cx = w / 2.0;
-            double cy = h / 2.0;
-            double rOuter = Math.min(w, h) / 2.0 - 0.5;
-            double rInner = rOuter * 0.42;
-
-            Path2D.Double path = new Path2D.Double();
-            double angle = -Math.PI / 2.0;
-            double dAngle = Math.PI / 5.0;
-
-            for (int i = 0; i < 10; i++) {
-                double r = (i % 2 == 0) ? rOuter : rInner;
-                double x = cx + Math.cos(angle) * r;
-                double y = cy + Math.sin(angle) * r;
-                if (i == 0) {
-                    path.moveTo(x, y);
-                } else {
-                    path.lineTo(x, y);
-                }
-                angle += dAngle;
-            }
-            path.closePath();
-            g2.fill(path);
-        });
-    }
-
-    /**
-     * Tạo icon mũi tên sang trái (Chevron Left cho Phân trang)
-     */
-    public static Icon createChevronLeftIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            int cx = w / 2;
-            int cy = h / 2;
-            g2.drawLine(cx + 2, cy - 4, cx - 2, cy);
-            g2.drawLine(cx - 2, cy, cx + 2, cy + 4);
-        });
-    }
-
-    /**
-     * Tạo icon mũi tên sang phải (Chevron Right cho Phân trang)
-     */
-    public static Icon createChevronRightIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            int cx = w / 2;
-            int cy = h / 2;
-            g2.drawLine(cx - 2, cy - 4, cx + 2, cy);
-            g2.drawLine(cx + 2, cy, cx - 2, cy + 4);
-        });
-    }
-
-    public static Icon createSettingsIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.8f));
-            g2.drawOval(4, 4, w - 8, h - 8);
-            // Các chấu răng
-            for (int i = 0; i < 4; i++) {
-                double rad = Math.toRadians(i * 45);
-                int cx = w / 2;
-                int cy = h / 2;
-                int x1 = (int) (cx + Math.cos(rad) * (w / 2 - 1));
-                int y1 = (int) (cy + Math.sin(rad) * (h / 2 - 1));
-                int x2 = (int) (cx - Math.cos(rad) * (w / 2 - 1));
-                int y2 = (int) (cy - Math.sin(rad) * (h / 2 - 1));
-                g2.drawLine(x1, y1, x2, y2);
-            }
-            g2.setColor(UITheme.CARD_BG);
-            g2.fillOval(w / 2 - 2, h / 2 - 2, 5, 5);
-        });
-    }
-
-    /**
-     * Tạo icon hỏi chấm tròn (Hướng dẫn)
-     */
-    public static Icon createHelpIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f));
-            g2.drawOval(2, 2, w - 4, h - 4);
-            g2.setFont(new Font("Segoe UI", Font.BOLD, 10));
-            FontMetrics fm = g2.getFontMetrics();
-            g2.drawString("?", (w - fm.stringWidth("?")) / 2, h - 4);
-        });
-    }
-
-    /**
-     * Tạo icon chuông thông báo vector phẳng hiện đại với đường viền khép kín,
-     * kết nối liền mạch giữa vòm trên, hai bên thân và vành chuông bên dưới.
-     */
-    public static void drawBell(Graphics2D g2, int x, int y, int size, Color color) {
-        g2.setColor(color);
-        g2.setStroke(new BasicStroke(Math.max(1.5f, size * 0.09f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-
-        double s = size / 24.0;
-
-        // Vòng nhỏ đỉnh chuông
-        g2.drawOval((int) Math.round(x + 10.5 * s), (int) Math.round(y + 0.8 * s),
-                    (int) Math.round(3.0 * s), (int) Math.round(3.0 * s));
-
-        // Thân chuông kết nối liền mạch từ vòm trên qua hai thành viền xuống vành xòe dưới
-        Path2D.Double bell = new Path2D.Double();
-        bell.moveTo(x + 7.0 * s, y + 8.5 * s);
-        // Vòm đỉnh chuông
-        bell.curveTo(x + 7.0 * s, y + 4.5 * s, x + 9.0 * s, y + 3.2 * s, x + 12.0 * s, y + 3.2 * s);
-        bell.curveTo(x + 15.0 * s, y + 3.2 * s, x + 17.0 * s, y + 4.5 * s, x + 17.0 * s, y + 8.5 * s);
-        // Viền bên phải nối từ vòm xuống vành xòe bên dưới
-        bell.curveTo(x + 17.0 * s, y + 14.0 * s, x + 20.5 * s, y + 15.5 * s, x + 20.5 * s, y + 17.5 * s);
-        // Vành ngang đáy chuông
-        bell.lineTo(x + 3.5 * s, y + 17.5 * s);
-        // Viền bên trái nối từ vành đáy xòe trở lên vòm trên
-        bell.curveTo(x + 3.5 * s, y + 15.5 * s, x + 7.0 * s, y + 14.0 * s, x + 7.0 * s, y + 8.5 * s);
-        bell.closePath();
-        g2.draw(bell);
-
-        // Quả lắc chuông phía dưới
-        Path2D.Double clapper = new Path2D.Double();
-        clapper.moveTo(x + 9.8 * s, y + 19.5 * s);
-        clapper.curveTo(x + 10.2 * s, y + 22.0 * s, x + 13.8 * s, y + 22.0 * s, x + 14.2 * s, y + 19.5 * s);
-        g2.draw(clapper);
-    }
-
-    public static Icon createCloseIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            int pad = Math.max(3, size / 4);
-            g2.drawLine(pad, pad, w - pad, h - pad);
-            g2.drawLine(w - pad, pad, pad, h - pad);
-        });
-    }
-
-    public static Icon createLockIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            int bodyY = h / 2 - 1;
-            int bodyW = w - 4;
-            int bodyH = h / 2;
-            g2.drawRoundRect(2, bodyY, bodyW, bodyH, 3, 3);
-            int shackleW = w / 2;
-            int shackleX = (w - shackleW) / 2;
-            g2.drawArc(shackleX, 2, shackleW, bodyY * 2 - 2, 0, 180);
-            g2.fillRect(w / 2 - 1, bodyY + 3, 2, 4);
-        });
-    }
-
-    public static Icon createUnlockIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            int bodyY = h / 2 - 1;
-            int bodyW = w - 4;
-            int bodyH = h / 2;
-            g2.drawRoundRect(2, bodyY, bodyW, bodyH, 3, 3);
-            int shackleW = w / 2;
-            int shackleX = (w - shackleW) / 2 + 3;
-            g2.drawArc(shackleX, 1, shackleW, bodyY * 2 - 2, 0, 180);
-            g2.fillRect(w / 2 - 1, bodyY + 3, 2, 4);
-        });
-    }
-
-    public static Icon createClockIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.drawOval(2, 2, w - 4, h - 4);
-            int cx = w / 2;
-            int cy = h / 2;
-            g2.drawLine(cx, cy, cx, cy - (h / 4));
-            g2.drawLine(cx, cy, cx + (w / 4), cy);
-        });
-    }
-
-    public static Icon createRefreshIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.drawArc(3, 3, w - 6, h - 6, 45, 270);
-            int arrowX = w / 2 + (w / 4);
-            int arrowY = 3;
-            g2.drawLine(arrowX, arrowY, arrowX - 3, arrowY + 4);
-            g2.drawLine(arrowX, arrowY, arrowX + 4, arrowY + 3);
-        });
-    }
-
-    public static Icon createExcelIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.drawRoundRect(2, 2, w - 4, h - 4, 3, 3);
-            g2.drawLine(2, h / 3 + 1, w - 3, h / 3 + 1);
-            g2.drawLine(2, (h * 2) / 3, w - 3, (h * 2) / 3);
-            g2.drawLine(w / 2, 2, w / 2, h - 3);
-        });
-    }
-
-    public static Icon createPrintIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.drawRect(4, 2, w - 8, 4);
-            g2.drawRoundRect(2, 6, w - 4, h - 10, 3, 3);
-            g2.drawRect(4, h - 6, w - 8, 4);
-            g2.drawLine(w - 6, 9, w - 5, 9);
-        });
-    }
-
-    public static Icon createAddUserIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            int headR = w / 5;
-            g2.drawOval(w / 3 - headR, 2, headR * 2, headR * 2);
-            g2.drawArc(1, h / 2, (w * 2) / 3, h / 2, 0, 180);
-            int px = w - 4;
-            int py = h / 2;
-            g2.drawLine(px - 3, py, px + 3, py);
-            g2.drawLine(px, py - 3, px, py + 3);
-        });
-    }
-
-    public static Icon createKeyIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            int r = w / 4;
-            g2.drawOval(2, 2, r * 2, r * 2);
-            g2.drawLine(2 + r * 2, 2 + r, w - 2, 2 + r);
-            g2.drawLine(w - 4, 2 + r, w - 4, 2 + r + 3);
-            g2.drawLine(w - 8, 2 + r, w - 8, 2 + r + 3);
-        });
-    }
-
-    public static Icon createShieldIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            Path2D.Double path = new Path2D.Double();
-            path.moveTo(w / 2.0, 2);
-            path.lineTo(w - 3.0, 4);
-            path.curveTo(w - 3.0, h * 0.6, w / 2.0, h - 2, w / 2.0, h - 2);
-            path.curveTo(w / 2.0, h - 2, 3.0, h * 0.6, 3.0, 4);
-            path.closePath();
-            g2.draw(path);
-        });
-    }
-
-    public static Icon createRestoreIcon(Color color, int size) {
-        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
-            g2.setColor(c);
-            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.drawArc(3, 4, w - 6, h - 6, 90, 260);
-            int ax = 3;
-            int ay = 4;
-            g2.drawLine(ax, ay, ax + 4, ay - 2);
-            g2.drawLine(ax, ay, ax + 2, ay + 4);
-        });
-    }
-
-    /**
-     * Lớp VectorIcon nội bộ
-     */
-    private static class VectorIcon implements DynamicIcon {
-        private final int width;
-        private final int height;
-        private Color color;
-        private final Painter painter;
-
-        public VectorIcon(int width, int height, Color color, Painter painter) {
-            this.width = width;
-            this.height = height;
-            this.color = color;
-            this.painter = painter;
         }
 
         @Override
         public void setColor(Color c) {
-            this.color = c;
+            this.currentColor = c;
+            if (c != null) {
+                this.svgIcon.setColorFilter(new FlatSVGIcon.ColorFilter(orig -> this.currentColor));
+            }
         }
 
         @Override
         public void paintIcon(Component c, Graphics g, int x, int y) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.translate(x, y);
-            painter.paint(g2, width, height, color);
-            g2.dispose();
+            svgIcon.paintIcon(c, g, x, y);
         }
 
         @Override
-        public int getIconWidth() { return width; }
+        public int getIconWidth() {
+            return svgIcon.getIconWidth();
+        }
 
         @Override
-        public int getIconHeight() { return height; }
+        public int getIconHeight() {
+            return svgIcon.getIconHeight();
+        }
     }
 
-    @FunctionalInterface
-    public interface Painter {
-        void paint(Graphics2D g2, int w, int h, Color color);
+    private static Icon CreateSvgIcon(String name, Color color, int size) {
+        return new SvgDynamicIcon(name, color, size);
+    }
+
+    public static Icon createSearchIcon(Color color, int size) {
+        return CreateSvgIcon("search", color, size);
+    }
+
+    public static Icon createHomeIcon(Color color, int size) {
+        return CreateSvgIcon("home", color, size);
+    }
+
+    public static Icon createBookIcon(Color color, int size) {
+        return CreateSvgIcon("book", color, size);
+    }
+
+    public static Icon createTagIcon(Color color, int size) {
+        return CreateSvgIcon("tag", color, size);
+    }
+
+    public static Icon createUsersIcon(Color color, int size) {
+        return CreateSvgIcon("users", color, size);
+    }
+
+    public static Icon createUserIcon(Color color, int size) {
+        return CreateSvgIcon("user", color, size);
+    }
+
+    public static Icon createGridIcon(Color color, int size) {
+        return CreateSvgIcon("grid", color, size);
+    }
+
+    public static Icon createListIcon(Color color, int size) {
+        return CreateSvgIcon("list", color, size);
+    }
+
+    public static Icon createCirculationIcon(Color color, int size) {
+        return CreateSvgIcon("repeat", color, size);
+    }
+
+    public static Icon createCheckIcon(Color color, int size) {
+        return CreateSvgIcon("check", color, size);
+    }
+
+    public static Icon createHistoryIcon(Color color, int size) {
+        return CreateSvgIcon("history", color, size);
+    }
+
+    public static Icon createChartIcon(Color color, int size) {
+        return CreateSvgIcon("bar-chart", color, size);
+    }
+
+    public static Icon createTrashIcon(Color color, int size) {
+        return CreateSvgIcon("trash", color, size);
+    }
+
+    public static Icon createEditIcon(Color color, int size) {
+        return CreateSvgIcon("edit", color, size);
+    }
+
+    public static Icon createWarningIcon(Color color, int size) {
+        return CreateSvgIcon("alert-triangle", color, size);
+    }
+
+    public static Icon createStarIcon(Color color, int size) {
+        return CreateSvgIcon("star", color, size);
+    }
+
+    public static Icon createChevronLeftIcon(Color color, int size) {
+        return CreateSvgIcon("chevron-left", color, size);
+    }
+
+    public static Icon createChevronRightIcon(Color color, int size) {
+        return CreateSvgIcon("chevron-right", color, size);
+    }
+
+    public static Icon createSettingsIcon(Color color, int size) {
+        return CreateSvgIcon("settings", color, size);
+    }
+
+    public static Icon createHelpIcon(Color color, int size) {
+        return CreateSvgIcon("help-circle", color, size);
+    }
+
+    public static Icon createCloseIcon(Color color, int size) {
+        return CreateSvgIcon("x", color, size);
+    }
+
+    public static Icon createLockIcon(Color color, int size) {
+        return CreateSvgIcon("lock", color, size);
+    }
+
+    public static Icon createUnlockIcon(Color color, int size) {
+        return CreateSvgIcon("unlock", color, size);
+    }
+
+    public static Icon createClockIcon(Color color, int size) {
+        return CreateSvgIcon("clock", color, size);
+    }
+
+    public static Icon createRefreshIcon(Color color, int size) {
+        return CreateSvgIcon("refresh-cw", color, size);
+    }
+
+    public static Icon createExcelIcon(Color color, int size) {
+        return CreateSvgIcon("file-spreadsheet", color, size);
+    }
+
+    public static Icon createPrintIcon(Color color, int size) {
+        return CreateSvgIcon("printer", color, size);
+    }
+
+    public static Icon createAddUserIcon(Color color, int size) {
+        return CreateSvgIcon("user-plus", color, size);
+    }
+
+    public static Icon createKeyIcon(Color color, int size) {
+        return CreateSvgIcon("key", color, size);
+    }
+
+    public static Icon createShieldIcon(Color color, int size) {
+        return CreateSvgIcon("shield", color, size);
+    }
+
+    public static Icon createRestoreIcon(Color color, int size) {
+        return CreateSvgIcon("rotate-ccw", color, size);
+    }
+
+    public static Icon createCreditCardIcon(Color color, int size) {
+        return CreateSvgIcon("credit-card", color, size);
+    }
+
+    public static Icon createEyeIcon(Color color, int size) {
+        return CreateSvgIcon("eye", color, size);
+    }
+
+    public static Icon createBellIcon(Color color, int size) {
+        return CreateSvgIcon("bell", color, size);
+    }
+
+    public static void drawBell(java.awt.Graphics2D g2, int x, int y, int size, Color color) {
+        Icon bell = createBellIcon(color, size);
+        bell.paintIcon(null, g2, x, y);
     }
 }
