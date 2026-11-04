@@ -19,18 +19,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * DatabaseInitializer: Khởi tạo CSDL bằng cách chạy các script migration V1–V3.
- * <p>
- * Logic kiểm tra:
- * <ul>
- *   <li>count &lt; 1 → chạy V1 → V2 → V3</li>
- *   <li>1 ≤ count &lt; 20 → bỏ V1, chạy V2 → V3 (V1 đã chạy một phần)</li>
- *   <li>count &gt;= 20 → bỏ qua toàn bộ migration</li>
- * </ul>
- * Script được đọc từ file system (đường dẫn tương đối so với thư mục làm việc).
- * Ghi log ra {@code logs/db-init-<timestamp>.log}.
- */
 public class DatabaseInitializer {
 
     private static final String V1_PATH = "db/migrations/V1__initial_schema.sql";
@@ -49,12 +37,6 @@ public class DatabaseInitializer {
                 "DatabaseConnectionManager không được null");
     }
 
-    /**
-     * Thực hiện kiểm tra và migration CSDL nếu cần.
-     * Toàn bộ thông tin được ghi ra log file trong thư mục {@code logs/}.
-     *
-     * @throws RuntimeException nếu không thể kết nối CSDL hoặc migration thất bại
-     */
     public void initialize() {
         String logFileName = "logs/db-init-" + LocalDateTime.now().format(LOG_TS_FMT) + ".log";
         File logDir = new File("logs");
@@ -86,7 +68,6 @@ public class DatabaseInitializer {
                 return;
             }
 
-            // Xác định danh sách script cần chạy
             List<String> scriptsToRun = new ArrayList<>();
             if (tableCount == 0) {
                 log("[INFO] CSDL trống, chạy V1 → V2 → V3 → V4 → V5.", log);
@@ -106,7 +87,6 @@ public class DatabaseInitializer {
                 scriptsToRun.add(V5_PATH);
             }
 
-            // Chạy từng script trên một connection riêng
             for (String scriptPath : scriptsToRun) {
                 log("[INFO] Bắt đầu chạy script: " + scriptPath, log);
                 runScript(scriptPath, log);
@@ -116,14 +96,10 @@ public class DatabaseInitializer {
             log("=== DatabaseInitializer HOÀN TẤT THÀNH CÔNG ===", log);
 
         } catch (IOException e) {
-            // Không thể ghi log → vẫn tiếp tục, không ném exception vì log chỉ là thông tin phụ
+
             System.err.println("[DatabaseInitializer] Không thể ghi log: " + e.getMessage());
         }
     }
-
-    // -------------------------------------------------------------------------
-    // Private helpers
-    // -------------------------------------------------------------------------
 
     private int countTables(Connection conn) throws SQLException {
         String sql = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()";
@@ -161,12 +137,11 @@ public class DatabaseInitializer {
             throw new RuntimeException(msg, e);
         }
 
-        // Tách thành từng statement (DDL/DML) theo dấu ;
         String[] rawStatements = content.split(";\\s*(?:\\r?\\n|$)");
 
         boolean fkChecksDisabled = false;
         try (Connection conn = connectionManager.getConnection()) {
-            // Tắt autocommit để có thể rollback toàn bộ script khi lỗi
+
             conn.setAutoCommit(false);
 
             try (Statement st = conn.createStatement()) {
@@ -176,7 +151,6 @@ public class DatabaseInitializer {
                         continue;
                     }
 
-                    // Theo dõi FOREIGN_KEY_CHECKS = 0 để đảm bảo khôi phục trong finally
                     String lower = stmt.toLowerCase();
                     if (lower.contains("foreign_key_checks") && lower.contains("0")) {
                         fkChecksDisabled = true;
@@ -192,12 +166,12 @@ public class DatabaseInitializer {
                 conn.commit();
 
             } catch (SQLException e) {
-                try { conn.rollback(); } catch (SQLException ex) { /* bỏ qua */ }
+                try { conn.rollback(); } catch (SQLException ex) {   }
                 String msg = "Script " + scriptPath + " thất bại: " + e.getMessage();
                 log("[LỖI] " + msg, log);
                 throw new RuntimeException(msg, e);
             } finally {
-                // Đảm bảo FOREIGN_KEY_CHECKS luôn được khôi phục = 1 nếu bị tắt
+
                 if (fkChecksDisabled) {
                     try (Statement st2 = conn.createStatement()) {
                         st2.execute("SET FOREIGN_KEY_CHECKS = 1");
@@ -206,7 +180,7 @@ public class DatabaseInitializer {
                         log("[WARNING] Không thể khôi phục FOREIGN_KEY_CHECKS: " + ex.getMessage(), log);
                     }
                 }
-                try { conn.setAutoCommit(true); } catch (SQLException ex) { /* bỏ qua */ }
+                try { conn.setAutoCommit(true); } catch (SQLException ex) {   }
             }
 
         } catch (SQLException e) {

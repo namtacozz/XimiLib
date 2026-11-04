@@ -4,9 +4,6 @@ import com.ximilib.domain.repository.TransactionContext;
 import java.sql.Connection;
 import java.util.Objects;
 
-/**
- * JdbcTransactionContext: Triển khai JDBC của TransactionContext, bao bọc Connection nội bộ.
- */
 public class JdbcTransactionContext implements TransactionContext {
 
     private final Connection connection;

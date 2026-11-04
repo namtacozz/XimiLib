@@ -5,9 +5,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * ReaderDashboardDto: Dữ liệu vận hành Trang chủ dành cho Độc giả (Goodreads / Libby style).
- */
 public class ReaderDashboardDto {
 
     public record ReaderSummary(

@@ -20,14 +20,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 
-/**
- * RegisterForm: Giao diện Đăng Ký Tài Khoản Bạn Đọc Thư Viện (SRS UC-2, BR-10, BR-11).
- * - Bố cục phân 3 nhóm: Thông tin cá nhân, Thông tin liên hệ, Tài khoản.
- * - Hàng ghép cặp thông minh (Ngày sinh // CCCD, Email // SĐT, Mật khẩu // Nhập lại).
- * - PasswordPolicyChecklist kiểm tra mật khẩu thời gian thực (8 ký tự, hoa, số, ký tự đặc biệt).
- * - Xác thực inline (outline đỏ khi sai, tự xóa khi gõ lại).
- * - Tuân thủ R-01, R-06, R-08, R-11.
- */
 public class RegisterForm extends JFrame {
 
     private final AuthenticationService authService;
@@ -91,7 +83,6 @@ public class RegisterForm extends JFrame {
         card.setPreferredSize(new Dimension(620, 710));
         card.setMaximumSize(new Dimension(640, 730));
 
-        // 1. Tiêu đề chính
         JLabel lblHeading = new JLabel("Đăng Ký Tài Khoản Bạn Đọc");
         lblHeading.setFont(UITheme.FONT_TITLE_LARGE);
         lblHeading.setForeground(UITheme.TEXT_MAIN);
@@ -107,10 +98,8 @@ public class RegisterForm extends JFrame {
         card.add(lblSub);
         card.add(Box.createVerticalStrut(12));
 
-        // 2. Khởi tạo các trường nhập
         initInputFields();
 
-        // 3. Nhóm 1: THÔNG TIN CÁ NHÂN
         card.add(createSectionHeader("1. Thông tin cá nhân"));
         card.add(Box.createVerticalStrut(6));
         card.add(createFieldGroup("Họ và tên *", txtFullName));
@@ -121,7 +110,6 @@ public class RegisterForm extends JFrame {
         ));
         card.add(Box.createVerticalStrut(10));
 
-        // 4. Nhóm 2: THÔNG TIN LIÊN HỆ
         card.add(createSectionHeader("2. Thông tin liên hệ"));
         card.add(Box.createVerticalStrut(6));
         card.add(createFieldGroup("Địa chỉ cư trú hiện tại", txtAddress));
@@ -132,7 +120,6 @@ public class RegisterForm extends JFrame {
         ));
         card.add(Box.createVerticalStrut(10));
 
-        // 5. Nhóm 3: TÀI KHOẢN & BẢO MẬT
         card.add(createSectionHeader("3. Tài khoản & Bảo mật"));
         card.add(Box.createVerticalStrut(6));
         card.add(createFieldGroup("Tên đăng nhập *", txtUsername));
@@ -143,11 +130,9 @@ public class RegisterForm extends JFrame {
         ));
         card.add(Box.createVerticalStrut(6));
 
-        // Checklist kiểm tra độ mạnh mật khẩu (SRS UC-2, BR-10)
         policyChecklist.setAlignmentX(Component.CENTER_ALIGNMENT);
         card.add(policyChecklist);
 
-        // 6. Thông báo lỗi inline
         lblError = new JLabel(" ");
         lblError.setFont(UITheme.FONT_SMALL);
         lblError.setForeground(UITheme.DANGER_TEXT);
@@ -155,7 +140,6 @@ public class RegisterForm extends JFrame {
         card.add(Box.createVerticalStrut(6));
         card.add(lblError);
 
-        // 7. Nút Đăng ký chính
         btnRegister = UITheme.createPillButton("TẠO TÀI KHOẢN", UITheme.PRIMARY, Color.WHITE);
         btnRegister.setFont(UITheme.FONT_BOLD);
         btnRegister.setPreferredSize(new Dimension(360, 42));
@@ -165,7 +149,6 @@ public class RegisterForm extends JFrame {
         card.add(Box.createVerticalStrut(6));
         card.add(btnRegister);
 
-        // 8. Liên kết quay lại đăng nhập
         JPanel loginLinkRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 0));
         loginLinkRow.setOpaque(false);
         JLabel lblHaveAcc = new JLabel("Đã có tài khoản?");
@@ -201,7 +184,6 @@ public class RegisterForm extends JFrame {
         txtBirthDate.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "dd/MM/yyyy");
         txtBirthDate.putClientProperty(FlatClientProperties.STYLE, "arc: 10;");
         birthDatePicker = UiModalHelper.createDatePicker(txtBirthDate, false);
-        // Không set ngày mặc định để bắt buộc chọn qua lịch
 
         txtCccd = createTextField("9 hoặc 12 chữ số");
         txtAddress = createTextField("Địa chỉ cư trú hiện tại");
@@ -214,7 +196,6 @@ public class RegisterForm extends JFrame {
 
         policyChecklist = new PasswordPolicyChecklist();
 
-        // Lắng nghe gõ mật khẩu để cập nhật checklist theo thời gian thực
         txtPassword.getDocument().addDocumentListener(new DocumentListener() {
             @Override public void insertUpdate(DocumentEvent e) { updateChecklist(); }
             @Override public void removeUpdate(DocumentEvent e) { updateChecklist(); }
@@ -227,7 +208,6 @@ public class RegisterForm extends JFrame {
             }
         });
 
-        // Xóa viền đỏ khi người dùng gõ lại vào ô
         registerClearOutlineOnType(txtFullName);
         registerClearOutlineOnType(txtBirthDate);
         registerClearOutlineOnType(txtCccd);
@@ -237,7 +217,6 @@ public class RegisterForm extends JFrame {
         registerClearOutlineOnType(txtUsername);
         registerClearOutlineOnType(txtConfirmPassword);
 
-        // Xác thực inline khi rời ô (Focus Lost)
         txtEmail.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
@@ -382,7 +361,6 @@ public class RegisterForm extends JFrame {
         String pass = new String(txtPassword.getPassword()).trim();
         String confirm = new String(txtConfirmPassword.getPassword()).trim();
 
-        // 1. Kiểm tra rỗng
         if (fullName.isEmpty()) {
             markError(txtFullName, "Vui lòng nhập họ và tên đầy đủ!");
             return;
@@ -441,7 +419,6 @@ public class RegisterForm extends JFrame {
 
         RegisterRequestDto req = new RegisterRequestDto(username, pass, fullName, email, phone, cccd, address, birthDate);
 
-        // Khóa form và hiển thị trạng thái đang xử lý
         setFormInteractive(false);
         btnRegister.setText("Đang đăng ký...");
 

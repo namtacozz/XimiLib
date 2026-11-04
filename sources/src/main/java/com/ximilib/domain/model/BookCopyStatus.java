@@ -1,9 +1,5 @@
 package com.ximilib.domain.model;
 
-/**
- * BookCopyStatus: Trạng thái của cuốn sách vật lý (cuonsach.Trangthaisach)
- * Khớp với FSM trong BUSINESS_RULES.md và DATABASE_SCHEMA.md.
- */
 public enum BookCopyStatus {
     KHA_DUNG("Khả dụng"),
     DANG_MUON("Đang mượn"),

@@ -24,10 +24,6 @@ import com.ximilib.infrastructure.persistence.impl.DashboardRepositoryImpl;
 import com.ximilib.infrastructure.persistence.impl.UserRepositoryImpl;
 import com.ximilib.infrastructure.security.SecurityUtil;
 
-/**
- * AppContainer: Pure DI Container (Composition Root) khởi tạo và liên kết các thành phần hệ thống.
- * Tuân thủ mục 4 trong ARCHITECTURE.md.
- */
 public class AppContainer {
 
     private static AppContainer instance;

@@ -30,18 +30,12 @@ import java.util.*;
 import java.util.List;
 import javax.swing.*;
 
-/**
- * BookCatalogView: Màn hình "Kho sách" (Use Case UC-3, UC-4).
- * Bố cục phân tầng trực quan, phân trang, lọc theo thể loại và tình trạng tồn kho.
- * Quy tắc: R-01, R-03, R-06, R-08, BR-09.
- */
 public class BookCatalogView extends JPanel {
 
     private final BookCatalogService bookCatalogService;
     private final User currentUser;
     private final boolean canManage;
 
-    // Components UI
     private SearchField txtSearch;
     private JComboBox<CategoryItem> cmbCategory;
     private JComboBox<AvailabilityItem> cmbAvailability;
@@ -57,7 +51,6 @@ public class BookCatalogView extends JPanel {
     private JButton btnViewToggle;
     private List<BookSummaryDto> lastLoadedBooks = new ArrayList<>();
 
-    // Search state
     private javax.swing.Timer searchDebounceTimer;
     private int currentPage = 1;
     private int pageSize = 50;
@@ -101,7 +94,6 @@ public class BookCatalogView extends JPanel {
 
         add(centerWrap, BorderLayout.CENTER);
 
-        // Phím tắt Ctrl+F nhảy nhanh vào thanh tìm kiếm
         registerKeyboardAction(
             e -> {
                 if (txtSearch != null) {
@@ -133,7 +125,6 @@ public class BookCatalogView extends JPanel {
         banner.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 12));
         banner.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
 
-        // Trái: Icon + Thông điệp
         JPanel leftBox = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         leftBox.setOpaque(false);
 
@@ -145,7 +136,6 @@ public class BookCatalogView extends JPanel {
         leftBox.add(lblIcon);
         leftBox.add(lblMsg);
 
-        // Phải: Nút đóng X vector
         JPanel rightBox = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         rightBox.setOpaque(false);
 
@@ -509,7 +499,7 @@ public class BookCatalogView extends JPanel {
             bookTable.getColumnModel().getColumn(7).setCellRenderer(new ActionCellRenderer(tableModel, selectedBookIds));
             bookTable.getColumnModel().getColumn(7).setCellEditor(new ActionCellEditor(tableModel, this::handleDeleteBook, this::handleEditBook));
         } else {
-            // Khách hoặc Độc giả: Ẩn cột Thao tác (7) và ẩn cột Checkbox (0) (R-08)
+
             bookTable.getColumnModel().removeColumn(bookTable.getColumnModel().getColumn(7));
             bookTable.getColumnModel().removeColumn(bookTable.getColumnModel().getColumn(0));
         }
@@ -573,7 +563,6 @@ public class BookCatalogView extends JPanel {
         paginationBar.updatePagination(result.getPage(), result.getTotalPages(), result.getPageSize(), result.getTotalElements());
         updateBulkDeleteButton();
 
-        // Hiển thị theo chế độ đã lưu trong UserSession
         showCardView(UserSession.getCatalogViewMode());
     }
 
@@ -626,35 +615,29 @@ public class BookCatalogView extends JPanel {
                 int startY = 14;
                 int rows = 3;
 
-                Color shimmerBg = new Color(248, 250, 252); // slate 50
-                Color shimmerBar = new Color(226, 232, 240); // slate 200
+                Color shimmerBg = new Color(248, 250, 252);
+                Color shimmerBar = new Color(226, 232, 240);
 
                 for (int i = 0; i < rows; i++) {
                     int y = startY + i * (rowHeight + 10);
                     int w = getWidth() - 28;
                     if (w <= 0) w = 600;
 
-                    // Khung hàng xám mờ
                     g2.setColor(shimmerBg);
                     g2.fillRoundRect(14, y, w, rowHeight, 10, 10);
 
-                    // Thumbnail ảnh bìa
                     g2.setColor(shimmerBar);
                     g2.fillRoundRect(26, y + 7, 32, 40, 6, 6);
 
-                    // Thanh tiêu đề dài
                     g2.fillRoundRect(72, y + 14, Math.min(260, w / 3), 12, 6, 6);
 
-                    // Thanh tác giả
-                    g2.setColor(new Color(203, 213, 225)); // slate 300
+                    g2.setColor(new Color(203, 213, 225));
                     g2.fillRoundRect(72, y + 32, Math.min(150, w / 5), 8, 4, 4);
 
-                    // Thanh thể loại
                     g2.setColor(shimmerBar);
                     g2.fillRoundRect(Math.max(300, w - 210), y + 18, 80, 16, 8, 8);
 
-                    // Thanh tồn kho
-                    g2.setColor(new Color(254, 205, 211, 160)); // soft pink
+                    g2.setColor(new Color(254, 205, 211, 160));
                     g2.fillRoundRect(Math.max(400, w - 100), y + 16, 70, 20, 10, 10);
                 }
                 g2.dispose();

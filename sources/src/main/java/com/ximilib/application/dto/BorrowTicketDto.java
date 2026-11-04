@@ -4,9 +4,6 @@ import com.ximilib.domain.model.LoanTicketStatus;
 import com.ximilib.domain.model.LoanType;
 import java.time.LocalDateTime;
 
-/**
- * BorrowTicketDto: Đối tượng truyền dữ liệu phiếu mượn sách.
- */
 public class BorrowTicketDto {
     private String ticketId;
     private String userId;

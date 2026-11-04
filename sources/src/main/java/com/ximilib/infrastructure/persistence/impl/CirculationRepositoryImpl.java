@@ -13,10 +13,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
-/**
- * CirculationRepositoryImpl: Hiện thực thao tác CSDL cho Lưu hành mượn trả và bồi hoàn sách.
- * Tuân thủ R-01, R-04, R-05 (Transaction, Locking), R-07 (PreparedStatement).
- */
 public class CirculationRepositoryImpl implements CirculationRepository, CirculationQueryPort {
 
     private final DatabaseConnectionManager connectionManager;
@@ -65,7 +61,7 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
         if (barcode == null || barcode.trim().isEmpty()) return Optional.empty();
         String term = barcode.trim();
         String normalizedBookId = term;
-        // Chuẩn hóa mã sách nếu người dùng gõ thiếu số 0 (ví dụ: MS1 -> MS0001, MS07 -> MS0007, MS007 -> MS0007)
+
         if (term.toUpperCase().matches("^MS\\d{1,3}$")) {
             int num = Integer.parseInt(term.substring(2));
             normalizedBookId = String.format("MS%04d", num);
@@ -222,10 +218,10 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
         }
 
         List<String> sortedCopyIds = new ArrayList<>(copyIds);
-        Collections.sort(sortedCopyIds); // Khóa theo thứ tự id tăng dần tránh deadlock (R-05)
+        Collections.sort(sortedCopyIds);
 
         boolean isOnlineOrder = (notes != null && (notes.toLowerCase().contains("online") || notes.toLowerCase().contains("app") || notes.toLowerCase().contains("đặt mượn")));
-        int initialStatus = isOnlineOrder ? 0 : 1; // 0 = CHO_DUYET (Chờ nhận sách), 1 = DANG_MUON
+        int initialStatus = isOnlineOrder ? 0 : 1;
 
         String insertTicketSql = """
             INSERT INTO phieumuon (Maphieumuon, ID, Mathe, Hinhthuc, Ngaymuon, Hantranhan, Trangthai, Ghichuphieu)
@@ -239,7 +235,7 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
 
         Connection conn = ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection();
         try {
-            // Khóa bi quan SELECT ... FOR UPDATE (R-05)
+
             for (String cid : sortedCopyIds) {
                 try (PreparedStatement lockPs = conn.prepareStatement("SELECT Trangthaisach FROM cuonsach WHERE Macuonsach = ? FOR UPDATE")) {
                     lockPs.setString(1, cid);
@@ -595,7 +591,7 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
             WHERE f.Maphieuphat = ? OR p.Maphieumuon = ? OR p.Maphieumuon = ?
             LIMIT 1
         """;
-        String closeLossSql = "UPDATE phieumuon SET Trangthai = 5, Ngaytra = ? WHERE Maphieumuon = ?"; // 5 = DA_MAT
+        String closeLossSql = "UPDATE phieumuon SET Trangthai = 5, Ngaytra = ? WHERE Maphieumuon = ?";
 
         Connection conn = ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection();
         try {
@@ -625,7 +621,6 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
                     psLoss.executeUpdate();
                 }
 
-                // Đồng bộ đóng toàn bộ các khoản phạt trùng lặp (nếu có) cho phiếu mượn này
                 String closeAllFinesSql = """
                     UPDATE phieuphat f
                     JOIN chitietphieumuon ct ON f.Machitiet = ct.Machitiet
@@ -638,7 +633,6 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
                 }
             }
 
-            // Ghi nhận thanh toán vào bảng thanhtoan (Bảng 18)
             String payId = "PAY-" + System.currentTimeMillis();
             String insertPaymentSql = """
                 INSERT INTO thanhtoan (Mathanhtoan, Maphieuphat, Ngaythanhtoan, Sotien, Phuongthuc, Trangthai)

@@ -17,16 +17,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-/**
- * AuthenticationServiceImpl: Triển khai nghiệp vụ xác thực và đăng ký bạn đọc.
- * Tuân thủ R-01, R-08, BR-01 và SRS UC-1, UC-2.
- */
 public class AuthenticationServiceImpl implements AuthenticationService {
 
     private static final Pattern PWD_PATTERN = Pattern.compile("^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,}$");
     private static final Pattern CCCD_PATTERN = Pattern.compile("^(\\d{9}|\\d{12})$");
 
-    // Bộ nhớ đệm theo dõi số lần đăng nhập sai và khóa tạm thời đảm bảo độ chính xác tuyệt đối
     private static final java.util.concurrent.ConcurrentHashMap<String, Integer> FAILED_ATTEMPTS_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
     private static final java.util.concurrent.ConcurrentHashMap<String, LocalDateTime> LOCKED_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -67,7 +62,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         LocalDateTime cachedLock = LOCKED_CACHE.get(normKey);
         LocalDateTime now = LocalDateTime.now();
 
-        // 1. Kiểm tra khóa tạm thời trong bộ nhớ đệm
         if (cachedLock != null) {
             if (cachedLock.isAfter(now)) {
                 long remainingMinutes = Math.max(1, Duration.between(now, cachedLock).toMinutes() + 1);
@@ -88,12 +82,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         User user = userOpt.get();
 
-        // 2. Kiểm tra tài khoản bị vô hiệu hóa / khóa bởi thủ thư (SRS UC 3.2.1 ngoại lệ)
         if (user.isDeleted()) {
             return LoginResult.fail("AUTH_004", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ thủ thư");
         }
 
-        // 3. Kiểm tra khóa tạm thời từ CSDL
         LocalDateTime dbLock = user.getLockedUntil();
         if (dbLock != null) {
             if (dbLock.isAfter(now)) {
@@ -110,7 +102,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
         }
 
-        // 4. Kiểm tra mật khẩu bằng BCrypt
         boolean passwordMatches = false;
         try {
             passwordMatches = getHasher().matches(password, user.getPassword());
@@ -148,7 +139,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
         }
 
-        // 5. Đăng nhập thành công: Đặt lại toàn bộ số lần sai
         FAILED_ATTEMPTS_CACHE.remove(normKey);
         LOCKED_CACHE.remove(normKey);
         try {
@@ -242,7 +232,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void logout() {
-        // Presentation layer tự quản lý trạng thái phiên làm việc (UserSession)
+
     }
 
     @Override

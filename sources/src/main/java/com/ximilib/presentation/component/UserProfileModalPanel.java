@@ -13,11 +13,6 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import raven.popup.component.GlassPaneChild;
 
-/**
- * UserProfileModalPanel: Popup thông tin tài khoản & đổi mật khẩu
- * kế thừa GlassPaneChild (In-App Overlay chuẩn GlassPanePopup).
- * Khắc phục triệt để hiện tượng tắt ngay khi click trên thanh Header.
- */
 public class UserProfileModalPanel extends GlassPaneChild {
 
     private final JFrame parentFrame;
@@ -68,7 +63,6 @@ public class UserProfileModalPanel extends GlassPaneChild {
         container.setBorder(BorderFactory.createEmptyBorder(16, 22, 16, 22));
         container.setPreferredSize(new Dimension(450, 520));
 
-        // 0. Top Bar của Popup: Tiêu đề + Nút Đóng vector 'X'
         JPanel topHeader = new JPanel(new BorderLayout());
         topHeader.setOpaque(false);
         topHeader.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
@@ -82,7 +76,6 @@ public class UserProfileModalPanel extends GlassPaneChild {
         topHeader.add(lblHeaderTitle, BorderLayout.WEST);
         topHeader.add(btnCloseX, BorderLayout.EAST);
 
-        // 1. Thẻ Avatar & Thông tin cơ bản
         JPanel profileHeader = new JPanel();
         profileHeader.setOpaque(false);
         profileHeader.setLayout(new BoxLayout(profileHeader, BoxLayout.Y_AXIS));
@@ -132,7 +125,6 @@ public class UserProfileModalPanel extends GlassPaneChild {
         profileHeader.add(Box.createVerticalStrut(4));
         profileHeader.add(lblContact);
 
-        // 2. Nút xem Thẻ Thư Viện Điện Tử (Nếu là Độc Giả)
         boolean isReader = (currentUser != null && currentUser.isReader());
         JButton btnViewCard = null;
         if (isReader) {
@@ -147,7 +139,6 @@ public class UserProfileModalPanel extends GlassPaneChild {
             });
         }
 
-        // 3. Form Đổi Mật Khẩu (Các nhãn và ô nhập nằm trên cùng 1 hàng, tiêu đề căn giữa)
         JPanel passCard = new JPanel(new GridBagLayout());
         passCard.setOpaque(false);
         passCard.setBorder(BorderFactory.createCompoundBorder(
@@ -169,7 +160,6 @@ public class UserProfileModalPanel extends GlassPaneChild {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 4, 5, 4);
 
-        // Hàng 1: Mật khẩu hiện tại
         gbc.gridx = 0; gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.weightx = 0;
@@ -185,7 +175,6 @@ public class UserProfileModalPanel extends GlassPaneChild {
         gbc.weightx = 1.0;
         passCard.add(txtCurrentPass, gbc);
 
-        // Hàng 2: Mật khẩu mới
         gbc.gridx = 0; gbc.gridy = 1;
         gbc.fill = GridBagConstraints.NONE;
         gbc.weightx = 0;
@@ -201,7 +190,6 @@ public class UserProfileModalPanel extends GlassPaneChild {
         txtNewPass.setToolTipText("Mật khẩu mới có tối thiểu 6 ký tự");
         passCard.add(txtNewPass, gbc);
 
-        // Hàng 3: Xác nhận mật khẩu mới
         gbc.gridx = 0; gbc.gridy = 2;
         gbc.fill = GridBagConstraints.NONE;
         gbc.weightx = 0;
@@ -216,7 +204,6 @@ public class UserProfileModalPanel extends GlassPaneChild {
         gbc.weightx = 1.0;
         passCard.add(txtConfirmPass, gbc);
 
-        // Hàng 4: Nút Cập nhật mật khẩu (bo viền ôm sát chữ, căn phải)
         gbc.gridx = 0; gbc.gridy = 3;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.NONE;
@@ -229,7 +216,6 @@ public class UserProfileModalPanel extends GlassPaneChild {
         btnChangePass.addActionListener(e -> handleChangePassword());
         passCard.add(btnChangePass, gbc);
 
-        // 4. Hàng nút Thao tác dưới cùng: Đăng xuất & Đóng
         JPanel bottomRow = new JPanel(new GridLayout(1, 2, 10, 0));
         bottomRow.setOpaque(false);
         bottomRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
@@ -245,7 +231,6 @@ public class UserProfileModalPanel extends GlassPaneChild {
         bottomRow.add(btnLogout);
         bottomRow.add(btnClose);
 
-        // Ghép các thành phần vào Container
         container.add(topHeader);
         container.add(Box.createVerticalStrut(10));
         container.add(profileHeader);

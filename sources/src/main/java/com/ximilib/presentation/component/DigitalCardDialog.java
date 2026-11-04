@@ -4,12 +4,6 @@ import com.ximilib.presentation.component.DigitalCardPopupPanel;
 import com.ximilib.presentation.util.UiModalHelper;
 import java.awt.Component;
 
-/**
- * DigitalCardDialog: Adapter hiển thị Thẻ Thư Viện Điện Tử bằng GlassPanePopup (In-App Overlay)
- * mô phỏng theo widget smartphone của LibRack.
- * Triệt tiêu hoàn toàn OS JDialog truyền thống theo đúng quy chuẩn XimiLib.
- * Tác giả: Phan Vũ Xuân Kiên
- */
 public class DigitalCardDialog {
 
     private final Component parent;

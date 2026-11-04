@@ -42,15 +42,6 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import javax.imageio.ImageIO;
 
-/**
- * ReaderHomePanel: Trang chủ vận hành dành cho Độc giả theo phong cách Libby / Goodreads.
- * - Lời chào cá nhân hóa, mã thẻ và trạng thái thẻ.
- * - Chip giờ mở cửa đóng lúc 17:00 theo quy định SRS.
- * - Banner cảnh báo nợ phạt / quá hạn nổi bật (nền đỏ nhạt, chữ đỏ).
- * - Khối sách đang mượn hiển thị bìa 2:3, hạn trả và nút gia hạn trực tuyến.
- * - Khối sách mới nhập với bìa 2:3 có thể nhấn để xem chi tiết.
- * - 100% dữ liệu truy vấn từ MySQL qua DashboardService ngoài EDT.
- */
 public class ReaderHomePanel extends JPanel {
 
     private final DashboardService dashboardService;
@@ -104,16 +95,13 @@ public class ReaderHomePanel extends JPanel {
         scrollContent.setBackground(UITheme.PAGE_BG);
         scrollContent.setBorder(new EmptyBorder(20, 28, 28, 28));
 
-        // 1. Header: Lời chào + Giờ mở cửa
         scrollContent.add(createHeaderBar());
         scrollContent.add(Box.createVerticalStrut(14));
 
-        // 2. Alert Banner (ẩn mặc định, chỉ hiện khi có nợ phạt / quá hạn)
         setupAlertBanner();
         scrollContent.add(alertBanner);
         scrollContent.add(Box.createVerticalStrut(16));
 
-        // 3. Sách bạn đang mượn
         loanHeader = new SectionHeader(
             "Sách bạn đang mượn",
             "Xem tất cả phiếu mượn",
@@ -127,7 +115,6 @@ public class ReaderHomePanel extends JPanel {
         scrollContent.add(loansContentPanel);
         scrollContent.add(Box.createVerticalStrut(24));
 
-        // 4. Sách mới nhập & Nổi bật (Carousel)
         SectionHeader booksHeader = new SectionHeader(
             "Sách mới nhập & Nổi bật",
             "Xem toàn bộ kho sách",
@@ -177,7 +164,6 @@ public class ReaderHomePanel extends JPanel {
 
         bar.add(leftBox, BorderLayout.WEST);
 
-        // Chip giờ mở cửa đóng lúc 17:00
         boolean isOpen = LocalTime.now().isBefore(LocalTime.of(17, 0));
         lblOpeningStatus.setFont(UITheme.FONT_REGULAR.deriveFont(12f));
         if (isOpen) {
@@ -308,7 +294,6 @@ public class ReaderHomePanel extends JPanel {
     private void renderDashboard(ReaderDashboardDto.ReaderDashboardData data) {
         if (data == null) return;
 
-        // 1. Cập nhật thẻ
         ReaderDashboardDto.ReaderSummary summary = data.summary();
         if (summary != null) {
             String cardText = "Thẻ: " + summary.cardNumber();
@@ -321,7 +306,6 @@ public class ReaderHomePanel extends JPanel {
             }
             lblCardTag.setText(cardText);
 
-            // 2. Cảnh báo nợ phạt / quá hạn
             if (summary.hasViolationOrDebt()) {
                 StringBuilder msg = new StringBuilder("Bạn có ");
                 if (summary.overdueLoansCount() > 0) {
@@ -353,12 +337,10 @@ public class ReaderHomePanel extends JPanel {
             loansContentPanel.setVisible(true);
         }
 
-        // 3. Render danh sách sách đang mượn
         if (currentUser == null || !currentUser.isGuest()) {
             renderActiveLoans(data.activeLoans());
         }
 
-        // 4. Render danh sách sách mới nhập & Khởi chạy Carousel trượt mượt mà
         renderNewBooks(data.newBooks());
         startAutoSlide();
 
@@ -404,7 +386,6 @@ public class ReaderHomePanel extends JPanel {
         card.setPreferredSize(new Dimension(0, 96));
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 98));
 
-        // Bìa sách nhỏ (2:3 ~ 50x75px)
         JLabel lblCover = new JLabel();
         lblCover.setPreferredSize(new Dimension(50, 75));
         lblCover.setMinimumSize(new Dimension(50, 75));
@@ -421,7 +402,6 @@ public class ReaderHomePanel extends JPanel {
         loadMiniCoverAsync(lblCover, loan.coverImage(), loan.bookTitle());
         card.add(lblCover, BorderLayout.WEST);
 
-        // Chi tiết ở giữa
         JPanel centerPanel = new JPanel();
         centerPanel.setOpaque(false);
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
@@ -455,7 +435,6 @@ public class ReaderHomePanel extends JPanel {
 
         card.add(centerPanel, BorderLayout.CENTER);
 
-        // Bên phải: Badge hạn + Nút gia hạn + Nút trả sách
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
         rightPanel.setOpaque(false);
 

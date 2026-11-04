@@ -2,10 +2,6 @@ package com.ximilib.application.dto;
 
 import java.time.LocalDate;
 
-/**
- * UserAccountDto: DTO quản trị tài khoản người dùng và phân quyền RBAC (YC-10).
- * Đại diện cho dữ liệu từ bảng `nguoidung` kết hợp `vaitro` và `thethuvien`.
- */
 public class UserAccountDto {
 
     private String userId;
@@ -13,9 +9,9 @@ public class UserAccountDto {
     private String fullName;
     private String email;
     private String phone;
-    private String roleCode;  // "ADMIN", "LIBRARIAN", "READER"
-    private String roleName;  // "Quản trị viên", "Thủ thư", "Độc giả"
-    private boolean active;   // Trangthai == 1
+    private String roleCode;
+    private String roleName;
+    private boolean active;
     private String cardNumber;
     private LocalDate birthDate;
 

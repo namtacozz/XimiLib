@@ -10,9 +10,6 @@ import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 
-/**
- * Renderer văn bản chuẩn với hiệu ứng đổi màu dòng khi được chọn.
- */
 public class DefaultTextRenderer extends DefaultTableCellRenderer {
 
     private final Color fgColor;

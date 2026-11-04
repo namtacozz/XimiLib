@@ -7,11 +7,6 @@ import java.util.Set;
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 
-/**
- * Renderer cột "Số cuốn" dạng Pill con nhộng:
- * - Xanh khi còn sách (available > 0)
- * - Đỏ khi hết sách (available == 0)
- */
 public class StockPillRenderer extends JPanel implements TableCellRenderer {
 
     private final JLabel lblPill;

@@ -2,10 +2,6 @@ package com.ximilib.domain.model;
 
 import java.util.Objects;
 
-/**
- * Zone: Thực thể Phân khu vị trí lưu trữ trong thư viện (bảng khuvuc).
- * Ví dụ: Tầng 1, Khu Tự nhiên, Khu Xã hội.
- */
 public class Zone {
 
     private String zoneId;

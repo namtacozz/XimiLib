@@ -23,13 +23,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 
-/**
- * MainDashboardFrame: Khung giao diện chính của hệ thống thư viện XimiLib.
- * - Điều hướng Sidebar tinh gọn (tối đa 6-7 mục), không thanh cuộn tại 768px.
- * - Gộp các tiểu màn hình theo TabBar (Kho sách, Mượn – Trả, Quản trị, Sách của tôi).
- * - TopBar hiện đại: Avatar cá nhân, Tìm kiếm toàn cục, Nút thao tác theo vai trò, Chuông thông báo động.
- * - Trang chủ phân quyền (StaffHomePanel cho Thủ thư/Admin, ReaderHomePanel cho Độc giả).
- */
 public class MainDashboardFrame extends JFrame {
 
     private static MainDashboardFrame instance;
@@ -179,11 +172,9 @@ public class MainDashboardFrame extends JFrame {
     private void initUI() {
         setLayout(new BorderLayout());
 
-        // 1. Sidebar điều hướng
         sidebarPanel = new SidebarPanel(currentUser.getRole());
         sidebarPanel.setNavigationListener(this::navigateTo);
 
-        // 2. Khu vực bên phải
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.add(createTopBar(), BorderLayout.NORTH);
 
@@ -196,7 +187,6 @@ public class MainDashboardFrame extends JFrame {
         String normRole = currentUser.getRole().toUpperCase();
         boolean isAdmin = normRole.contains("ADMIN") || normRole.contains("QUẢN TRỊ");
 
-        // Card 1: HOME (Trang chủ phân quyền: ReaderHomePanel cho Độc giả & Khách, StaffHomePanel cho Thủ thư/Admin)
         if (isReader || isGuest) {
             readerHomePanel = new ReaderHomePanel(
                 AppContainer.getInstance().getDashboardService(),
@@ -215,7 +205,6 @@ public class MainDashboardFrame extends JFrame {
             centerContainer.add(staffHomePanel, "HOME");
         }
 
-        // Card 2: KHO_SACH (Gộp Đầu sách, Thể loại, Thùng rác)
         bookCatalogView = new BookCatalogView(AppContainer.getInstance().getBookCatalogService(), currentUser);
         if (isReader || isGuest) {
             centerContainer.add(bookCatalogView, "KHO_SACH");
@@ -229,7 +218,6 @@ public class MainDashboardFrame extends JFrame {
             centerContainer.add(bookTabbedView, "KHO_SACH");
         }
 
-        // Card 3: MUON_TRA (Gộp Bàn lưu hành và Xử lý trả / bồi hoàn)
         if (!isReader && !isGuest) {
             CirculationDeskView deskView = new CirculationDeskView(AppContainer.getInstance().getCirculationService());
             ReturnAndCompensationView returnView = new ReturnAndCompensationView(AppContainer.getInstance().getCirculationService());
@@ -239,14 +227,11 @@ public class MainDashboardFrame extends JFrame {
             );
             centerContainer.add(circulationTabbedView, "MUON_TRA");
 
-            // Card 4: Hồ sơ độc giả & Thẻ
             centerContainer.add(new PatronManagementView(AppContainer.getInstance().getAuthenticationService()), "QUAN_LY_DOC_GIA");
 
-            // Card 5: Báo cáo & Thống kê
             centerContainer.add(new ReportsDashboardView(AppContainer.getInstance().getConnectionManager()), "BAO_CAO");
         }
 
-        // Card 6: QUAN_TRI (Gộp Quản lý tài khoản RBAC và Cài đặt quy định SRS)
         if (isAdmin) {
             UserRoleManagementView roleView = new UserRoleManagementView(AppContainer.getInstance().getAuthenticationService());
             SystemSettingsView settingsView = new SystemSettingsView(AppContainer.getInstance().getConnectionManager());
@@ -257,7 +242,6 @@ public class MainDashboardFrame extends JFrame {
             centerContainer.add(adminTabbedView, "QUAN_TRI");
         }
 
-        // Card 7: SACH_CUA_TOI (Dành riêng cho độc giả)
         if (isReader) {
             readerBorrowView = new ReaderBorrowRegistrationView(
                 AppContainer.getInstance().getCirculationService(),
@@ -273,7 +257,6 @@ public class MainDashboardFrame extends JFrame {
             centerContainer.add(readerTabbedView, "SACH_CUA_TOI");
         }
 
-        // Card 8: GOP_Y
         centerContainer.add(new FeedbackManagementView(AppContainer.getInstance().getConnectionManager(), isReader || isGuest), "GOP_Y");
 
         rightPanel.add(centerContainer, BorderLayout.CENTER);
@@ -290,7 +273,6 @@ public class MainDashboardFrame extends JFrame {
             BorderFactory.createEmptyBorder(12, 28, 12, 28)
         ));
 
-        // 1. Bên trái: Avatar + Tên người dùng + Vai trò
         JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         userPanel.setOpaque(false);
         userPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -305,7 +287,7 @@ public class MainDashboardFrame extends JFrame {
                 g2.fillOval(0, 0, getWidth(), getHeight());
 
                 if (currentUser != null && currentUser.isGuest()) {
-                    // Avatar khách: icon người vẽ vector (IconFactory) thay cho chữ "T"
+
                     Icon userIcon = com.ximilib.presentation.util.IconFactory.createUserIcon(UITheme.ON_PASTEL, 20);
                     int ix = (getWidth() - userIcon.getIconWidth()) / 2;
                     int iy = (getHeight() - userIcon.getIconHeight()) / 2;
@@ -377,7 +359,6 @@ public class MainDashboardFrame extends JFrame {
         lblName.addMouseListener(openProfileListener);
         lblRole.addMouseListener(openProfileListener);
 
-        // 2. Ở giữa: Thanh tìm kiếm toàn cục
         JPanel searchBox = new JPanel(new BorderLayout(8, 0));
         searchBox.setOpaque(false);
         searchBox.setPreferredSize(new Dimension(420, 38));
@@ -394,7 +375,6 @@ public class MainDashboardFrame extends JFrame {
         });
         searchBox.add(txtSearchTop, BorderLayout.CENTER);
 
-        // Phím tắt Ctrl+F toàn cục
         getRootPane().registerKeyboardAction(
             e -> {
                 if (txtSearchTop != null) {
@@ -406,7 +386,6 @@ public class MainDashboardFrame extends JFrame {
             JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
-        // 3. Bên phải: Nút hành động chính + Chuông thông báo
         JPanel actionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 2));
         actionsPanel.setOpaque(false);
 
@@ -443,7 +422,7 @@ public class MainDashboardFrame extends JFrame {
         }
 
         if (!isGuest) {
-            // Chuông thông báo
+
             bellPanel = new JPanel() {
                 @Override
                 protected void paintComponent(Graphics g) {

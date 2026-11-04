@@ -12,11 +12,6 @@ import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-/**
- * AuditLogger: Ghi nhật ký kiểm toán hệ thống vào logs/audit.log và CSDL MySQL bảng auditlog (DEV-04, SRS YC-07).
- * Ghi nhận các hành động quan trọng: đăng nhập, mượn/trả, báo mất, nộp phạt, xuất báo cáo.
- * Tuân thủ R-08: Tuyệt đối không ghi mật khẩu, token hay dữ liệu nhạy cảm.
- */
 public class AuditLogger {
 
     private static final String LOG_DIR = "logs";
@@ -42,7 +37,6 @@ public class AuditLogger {
 
         System.out.println(logEntry);
 
-        // 1. Ghi file logs/audit.log
         try (FileWriter fw = new FileWriter(LOG_FILE, true);
              PrintWriter pw = new PrintWriter(fw)) {
             pw.println(logEntry);
@@ -50,7 +44,6 @@ public class AuditLogger {
             System.err.println("Không thể ghi log kiểm toán ra file: " + e.getMessage());
         }
 
-        // 2. Dual-write vào CSDL MySQL bảng auditlog (DEV-04)
         DatabaseConnectionManager cm = customConnectionManager;
         if (cm == null) {
             try {
@@ -67,7 +60,7 @@ public class AuditLogger {
                 ps.setString(3, details != null ? details : "");
                 ps.executeUpdate();
             } catch (Throwable ignored) {
-                // Đảm bảo không làm gãy luồng chính nếu DB tạm thời bận
+
             }
         }
     }

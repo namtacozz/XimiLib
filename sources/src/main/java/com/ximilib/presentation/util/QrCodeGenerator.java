@@ -29,27 +29,27 @@ public final class QrCodeGenerator {
         } else {
             version = 4;
             totalDataCodewords = 64;
-            eccCodewordsPerBlock = 18 * 2; // 2 blocks of 18 ECC
+            eccCodewordsPerBlock = 18 * 2;
         }
 
         int size = 17 + version * 4;
         BitBuffer bb = new BitBuffer();
-        // Mode 8-bit byte: 0100
+
         bb.appendBits(0b0100, 4);
-        // Character count (8 bits for version 1-9 in byte mode)
+
         bb.appendBits(data.length, 8);
         for (byte b : data) {
             bb.appendBits(b & 0xFF, 8);
         }
-        // Terminator 0000
+
         int bitLimit = totalDataCodewords * 8;
         int termLen = Math.min(4, bitLimit - bb.bitLength);
         if (termLen > 0) bb.appendBits(0, termLen);
-        // Pad to byte
+
         if (bb.bitLength % 8 != 0) {
             bb.appendBits(0, 8 - (bb.bitLength % 8));
         }
-        // Pad bytes 0xEC, 0x11
+
         int pad = 0;
         while (bb.bitLength < bitLimit) {
             bb.appendBits((pad % 2 == 0) ? 0xEC : 0x11, 8);
@@ -59,7 +59,7 @@ public final class QrCodeGenerator {
         byte[] dataBytes = bb.getBytes();
         byte[] finalCodewords = addErrorCorrection(dataBytes, version, totalDataCodewords, eccCodewordsPerBlock);
 
-        int[][] matrix = new int[size][size]; // 0 = unassigned, 1 = white, 2 = black
+        int[][] matrix = new int[size][size];
         boolean[][] isFunction = new boolean[size][size];
 
         placeFinder(matrix, isFunction, 0, 0);
@@ -91,7 +91,7 @@ public final class QrCodeGenerator {
         int bitIdx = 0;
         int totalBits = finalCodewords.length * 8;
         for (int right = size - 1; right > 0; right -= 2) {
-            if (right == 6) right--; // skip vertical timing column
+            if (right == 6) right--;
             for (int vert = 0; vert < size; vert++) {
                 for (int j = 0; j < 2; j++) {
                     int x = right - j;
@@ -103,7 +103,7 @@ public final class QrCodeGenerator {
                             bit = (finalCodewords[bitIdx / 8] >>> (7 - (bitIdx % 8))) & 1;
                             bitIdx++;
                         }
-                        // Mask pattern 0: (x + y) % 2 == 0
+
                         boolean mask = ((x + y) % 2 == 0);
                         boolean bitVal = (bit == 1) ^ mask;
                         matrix[y][x] = bitVal ? 2 : 1;
@@ -112,14 +112,9 @@ public final class QrCodeGenerator {
             }
         }
 
-        // 5. Format bits for ECC Level M (00) and Mask 0 (000)
-        // Format string for (M, 0) = 101010000010010 (with BCH and XOR mask 101010000010010 ^ 101010000010010 = 0)
-        // Precomputed format bits for ECC Level M, Mask 0: 0x5412 ^ 0x5412 = 0 ?
-        // Standard BCH format for M, mask 0: 101010000010010 ^ 101000001001001 = 000010001011011 = 0x085B
-        int formatBits = 0x085B; // Precomputed standard QR format bits for ECC=M, Mask=0
+        int formatBits = 0x085B;
         applyFormatBits(matrix, size, formatBits);
 
-        // Convert to final boolean array
         boolean[][] result = new boolean[size][size];
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
@@ -140,7 +135,7 @@ public final class QrCodeGenerator {
                         boolean black = (r == 0 || r == 6 || c == 0 || c == 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4));
                         matrix[mr][mc] = black ? 2 : 1;
                     } else {
-                        matrix[mr][mc] = 1; // separator (white)
+                        matrix[mr][mc] = 1;
                     }
                 }
             }
@@ -171,7 +166,7 @@ public final class QrCodeGenerator {
     }
 
     private static void applyFormatBits(int[][] matrix, int size, int bits) {
-        // Top-left
+
         for (int i = 0; i <= 5; i++) {
             matrix[8][i] = ((bits >>> i) & 1) == 1 ? 2 : 1;
         }
@@ -182,7 +177,6 @@ public final class QrCodeGenerator {
             matrix[14 - i][8] = ((bits >>> i) & 1) == 1 ? 2 : 1;
         }
 
-        // Bottom-left & Top-right
         for (int i = 0; i < 7; i++) {
             matrix[size - 1 - i][8] = ((bits >>> i) & 1) == 1 ? 2 : 1;
         }
@@ -200,7 +194,6 @@ public final class QrCodeGenerator {
             return result;
         }
 
-        // Version 4 M has 2 blocks of 32 data bytes and 18 ECC bytes each
         int block1DataLen = 32;
         int block2DataLen = 32;
         int eccPerBlock = 18;
@@ -211,7 +204,6 @@ public final class QrCodeGenerator {
         byte[] b1Ecc = reedSolomonCompute(b1Data, eccPerBlock);
         byte[] b2Ecc = reedSolomonCompute(b2Data, eccPerBlock);
 
-        // Interleave data codewords, then interleave ECC codewords
         byte[] result = new byte[64 + 36];
         int idx = 0;
         for (int i = 0; i < 32; i++) {
@@ -225,7 +217,6 @@ public final class QrCodeGenerator {
         return result;
     }
 
-    // Reed-Solomon encoding over GF(256) with primitive poly 0x11D (285)
     private static byte[] reedSolomonCompute(byte[] data, int eccLen) {
         int[] generator = reedSolomonGenerator(eccLen);
         int[] msg = new int[data.length + eccLen];

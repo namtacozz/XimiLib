@@ -14,10 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * UserRepositoryImpl: Truy vấn và lưu trữ dữ liệu người dùng qua JDBC PreparedStatement.
- * Tuân thủ R-01, R-03, R-05, R-07.
- */
 public class UserRepositoryImpl implements UserRepository, UserQueryPort {
 
     private final DatabaseConnectionManager connectionManager;

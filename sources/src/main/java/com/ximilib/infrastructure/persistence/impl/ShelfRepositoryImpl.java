@@ -17,10 +17,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * ShelfRepositoryImpl: Triển khai JDBC cho bảng kesach và StorageQueryPort (CQRS Read-Model).
- * 100% PreparedStatement theo quy tắc R-07.
- */
 public class ShelfRepositoryImpl implements ShelfRepository, StorageQueryPort {
 
     private final DatabaseConnectionManager connectionManager;

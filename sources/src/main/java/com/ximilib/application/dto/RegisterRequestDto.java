@@ -2,9 +2,6 @@ package com.ximilib.application.dto;
 
 import java.time.LocalDate;
 
-/**
- * RegisterRequestDto: Dữ liệu đăng ký tài khoản bạn đọc mới (UC-2).
- */
 public class RegisterRequestDto {
     private String username;
     private String password;

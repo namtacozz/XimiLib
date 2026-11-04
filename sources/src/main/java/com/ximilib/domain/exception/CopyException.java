@@ -1,8 +1,5 @@
 package com.ximilib.domain.exception;
 
-/**
- * CopyException: Ngoại lệ nghiệp vụ liên quan đến cuốn sách / vị trí lưu trữ kệ sách.
- */
 public class CopyException extends BusinessRuleException {
 
     public CopyException(String message) {

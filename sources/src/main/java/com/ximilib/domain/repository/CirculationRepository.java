@@ -6,11 +6,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * CirculationRepository: Hợp đồng lưu trữ và truy vấn nghiệp vụ Lưu hành, Mượn/Trả, Bồi hoàn.
- * Tuân thủ Clean Architecture (Domain interface, không import SQL/JDBC/Swing - R-01).
- * Hỗ trợ TransactionContext để Application Service làm chủ ranh giới giao dịch atomic.
- */
 public interface CirculationRepository {
 
     record UserCardInfo(String userId, String fullName, String cardNumber, boolean cardActive, boolean cardExpired) {}

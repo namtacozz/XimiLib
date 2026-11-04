@@ -2,10 +2,6 @@ package com.ximilib.domain.event;
 
 import java.time.Instant;
 
-/**
- * BookStockChangedEvent: Sự kiện miền phát sinh khi số lượng tồn kho cuốn sách thay đổi.
- * Phục vụ cơ chế Observer cập nhật giao diện thời gian thực và đồng bộ đa máy.
- */
 public class BookStockChangedEvent {
 
     private final String bookId;

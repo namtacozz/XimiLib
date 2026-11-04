@@ -12,12 +12,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-/**
- * SystemSettingsView: Màn hình Cài đặt Quy định Thư viện (SRS & Bảng cauhinh).
- * Dành riêng cho Quản trị viên (Admin) điều chỉnh các tham số nghiệp vụ động:
- * Hạn mức mượn, số ngày mượn, mức phạt trễ hạn, phí kỹ thuật, tỷ lệ đền bù.
- * Tuân thủ R-01, R-06, R-08, R-11.
- */
 public class SystemSettingsView extends JPanel {
 
     private final SystemSettingsPort settingsPort;
@@ -38,7 +32,7 @@ public class SystemSettingsView extends JPanel {
         tableModel = new DefaultTableModel(new String[]{"Mã Tham Số", "Giá Trị Quy Định", "Mô Tả Nghiệp Vụ (SRS)"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 1; // Chỉ cho phép sửa cột Giá Trị
+                return column == 1;
             }
         };
 
@@ -89,7 +83,6 @@ public class SystemSettingsView extends JPanel {
         headerPanel.add(actions, BorderLayout.EAST);
         add(headerPanel, BorderLayout.NORTH);
 
-        // Bảng tham số
         settingsTable = new JTable(tableModel);
         settingsTable.setRowHeight(38);
         settingsTable.setFont(UITheme.FONT_REGULAR);

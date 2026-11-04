@@ -26,17 +26,11 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-/**
- * CirculationDeskView: Bàn Lưu Hành Mượn Sách Tại Quầy Thủ Thư (UC-6).
- * Quét thẻ độc giả, quét mã vạch cuốn sách, chọn hình thức mượn (Tại chỗ / Về nhà).
- * Tuân thủ R-01, R-06, BR-02, BR-04, BR-07.
- */
 public class CirculationDeskView extends JPanel {
 
     private final CirculationService circulationService;
     private final BookCatalogService bookCatalogService;
 
-    // Components - Left Panel
     private JTextField txtReaderCard;
     private JPanel pnlReaderCard;
     private JLabel lblReaderName;
@@ -53,11 +47,9 @@ public class CirculationDeskView extends JPanel {
     private JLabel lblCartCounter;
     private Timer readerSuggestTimer;
 
-    // Loan Summary Box
     private JLabel lblDueDateSummary;
     private JLabel lblReaderSummary;
 
-    // Components - Right Panel
     private JLabel lblCartCountBadge;
     private JButton btnRemoveSelected;
     private JButton btnClearAll;
@@ -87,7 +79,7 @@ public class CirculationDeskView extends JPanel {
     }
 
     private void initUI() {
-        // 1. Header Section
+
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
@@ -110,7 +102,6 @@ public class CirculationDeskView extends JPanel {
 
         add(headerPanel, BorderLayout.NORTH);
 
-        // 2. Main Content Split: Left Form Card & Right Table Card
         JPanel mainSplit = new JPanel(new BorderLayout(18, 0));
         mainSplit.setOpaque(false);
 
@@ -120,9 +111,6 @@ public class CirculationDeskView extends JPanel {
         add(mainSplit, BorderLayout.CENTER);
     }
 
-    // =========================================================================
-    // LEFT CARD: FORM LẬP PHIẾU MƯỢN (3 BƯỚC WORKFLOW CHUẨN)
-    // =========================================================================
     private JPanel createLeftFormCard() {
         JPanel card = createBaseCard();
         card.setPreferredSize(new Dimension(420, 0));
@@ -262,9 +250,6 @@ public class CirculationDeskView extends JPanel {
 
         card.add(Box.createVerticalStrut(14));
 
-        // ---------------------------------------------------------------------
-        // Khung Tóm Tắt Phiếu Mượn (Điền đầy khoảng trống hài hòa)
-        // ---------------------------------------------------------------------
         JPanel summaryInfoBox = new JPanel(new GridLayout(3, 1, 0, 4));
         summaryInfoBox.setOpaque(false);
         summaryInfoBox.setBorder(BorderFactory.createCompoundBorder(
@@ -293,9 +278,6 @@ public class CirculationDeskView extends JPanel {
 
         card.add(Box.createVerticalGlue());
 
-        // ---------------------------------------------------------------------
-        // Khối Hành Động Dưới Cùng (Căn giữa hoàn toàn trong khung bên trái)
-        // ---------------------------------------------------------------------
         JPanel summaryBox = new JPanel();
         summaryBox.setOpaque(false);
         summaryBox.setLayout(new BoxLayout(summaryBox, BoxLayout.Y_AXIS));
@@ -370,7 +352,6 @@ public class CirculationDeskView extends JPanel {
         card.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 58));
 
-        // Icon Avatar bên trái (Vẽ vector Java2D chống lỗi ô vuông)
         JPanel avatarIcon = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -386,7 +367,7 @@ public class CirculationDeskView extends JPanel {
                     FontMetrics fm = g2.getFontMetrics();
                     g2.drawString(initial, (getWidth() - fm.stringWidth(initial)) / 2, (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
                 } else {
-                    // Vector người dùng vẽ nét bo tròn khử răng cưa
+
                     g2.setColor(Color.WHITE);
                     g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                     int cx = getWidth() / 2;
@@ -511,14 +492,10 @@ public class CirculationDeskView extends JPanel {
         worker.execute();
     }
 
-    // =========================================================================
-    // RIGHT CARD: DANH SÁCH CUỐN SÁCH CHUẨN BỊ MƯỢN
-    // =========================================================================
     private JPanel createRightTableCard() {
         JPanel card = createBaseCard();
         card.setLayout(new BorderLayout(0, 14));
 
-        // Header của Bảng (Căn chỉnh cân đối, không bao giờ bị đè chữ)
         JPanel topHeader = new JPanel(new BorderLayout(8, 0));
         topHeader.setOpaque(false);
 
@@ -565,15 +542,12 @@ public class CirculationDeskView extends JPanel {
         topHeader.add(actions, BorderLayout.EAST);
         card.add(topHeader, BorderLayout.NORTH);
 
-        // Vùng trung tâm: CardLayout hiển thị Bảng hoặc Trạng thái trống (Empty State)
         rightCardLayout = new CardLayout();
         rightCenterPanel = new JPanel(rightCardLayout);
         rightCenterPanel.setOpaque(false);
 
-        // Card 1: Empty State khi chưa quét sách nào
         JPanel emptyPanel = createEmptyStatePanel();
 
-        // Card 2: Bảng sách JTable
         String[] cols = {"STT", "Mã vạch cuốn", "Tên đầu sách", "Vị trí kệ sách", "Tình trạng"};
         cartTableModel = new DefaultTableModel(cols, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -592,14 +566,13 @@ public class CirculationDeskView extends JPanel {
         cartTable.getTableHeader().setForeground(UITheme.ON_TINT);
         cartTable.getTableHeader().setPreferredSize(new Dimension(0, 36));
 
-        // Căn chỉnh độ rộng cột
-        cartTable.getColumnModel().getColumn(0).setPreferredWidth(45);  // STT
+        cartTable.getColumnModel().getColumn(0).setPreferredWidth(45);
         cartTable.getColumnModel().getColumn(0).setMaxWidth(60);
-        cartTable.getColumnModel().getColumn(1).setPreferredWidth(120); // Mã vạch
+        cartTable.getColumnModel().getColumn(1).setPreferredWidth(120);
         cartTable.getColumnModel().getColumn(1).setMaxWidth(150);
-        cartTable.getColumnModel().getColumn(2).setPreferredWidth(260); // Tên sách
-        cartTable.getColumnModel().getColumn(3).setPreferredWidth(110); // Vị trí
-        cartTable.getColumnModel().getColumn(4).setPreferredWidth(110); // Tình trạng
+        cartTable.getColumnModel().getColumn(2).setPreferredWidth(260);
+        cartTable.getColumnModel().getColumn(3).setPreferredWidth(110);
+        cartTable.getColumnModel().getColumn(4).setPreferredWidth(110);
 
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -607,7 +580,6 @@ public class CirculationDeskView extends JPanel {
         cartTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
         cartTable.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
 
-        // Renderer cho cột Tình trạng dạng Badge
         cartTable.getColumnModel().getColumn(4).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
@@ -625,7 +597,6 @@ public class CirculationDeskView extends JPanel {
             btnRemoveSelected.setEnabled(hasSelection);
         });
 
-        // Xóa bằng phím Delete
         cartTable.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -645,7 +616,6 @@ public class CirculationDeskView extends JPanel {
 
         card.add(rightCenterPanel, BorderLayout.CENTER);
 
-        // Footer thông tin quy định BR-02
         JPanel bottomFooter = new JPanel(new BorderLayout());
         bottomFooter.setOpaque(false);
         bottomFooter.setBorder(BorderFactory.createCompoundBorder(
@@ -695,10 +665,8 @@ public class CirculationDeskView extends JPanel {
                 int cx = getWidth() / 2;
                 int cy = getHeight() / 2;
 
-                // Gáy sách ở giữa
                 g2.drawLine(cx, cy - 8, cx, cy + 10);
 
-                // Trang sách bên trái
                 java.awt.geom.Path2D leftPage = new java.awt.geom.Path2D.Double();
                 leftPage.moveTo(cx, cy - 8);
                 leftPage.quadTo(cx - 8, cy - 12, cx - 18, cy - 9);
@@ -706,7 +674,6 @@ public class CirculationDeskView extends JPanel {
                 leftPage.quadTo(cx - 8, cy + 6, cx, cy + 10);
                 g2.draw(leftPage);
 
-                // Trang sách bên phải
                 java.awt.geom.Path2D rightPage = new java.awt.geom.Path2D.Double();
                 rightPage.moveTo(cx, cy - 8);
                 rightPage.quadTo(cx + 8, cy - 12, cx + 18, cy - 9);
@@ -714,7 +681,6 @@ public class CirculationDeskView extends JPanel {
                 rightPage.quadTo(cx + 8, cy + 6, cx, cy + 10);
                 g2.draw(rightPage);
 
-                // Nét dòng chữ trên trang sách
                 g2.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 g2.drawLine(cx + 4, cy - 3, cx + 14, cy - 4);
                 g2.drawLine(cx + 4, cy + 1, cx + 14, cy);
@@ -806,9 +772,6 @@ public class CirculationDeskView extends JPanel {
         return p;
     }
 
-    // =========================================================================
-    // NATIVE VECTOR ICONS (KHÔNG DÙNG EMOJI, KHÔNG LỖI Ô VUÔNG TRÊN WINDOWS)
-    // =========================================================================
     private Icon createCalendarIcon(int size, Color color) {
         return new Icon() {
             @Override
@@ -931,10 +894,8 @@ public class CirculationDeskView extends JPanel {
                 g2.setColor(color);
                 g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 
-                // Bán kính chuẩn 16x16: cung tròn xoay 290 độ
                 g2.drawArc(x + 3, y + 3, 10, 10, 40, 290);
 
-                // Đầu mũi tên góc vuông Lucide chuẩn tại (13, 5) hướng theo chiều xoay
                 java.awt.geom.Path2D arrow = new java.awt.geom.Path2D.Double();
                 arrow.moveTo(x + 13, y + 2);
                 arrow.lineTo(x + 13, y + 5);
@@ -968,9 +929,6 @@ public class CirculationDeskView extends JPanel {
         };
     }
 
-    // =========================================================================
-    // BUSINESS ACTIONS
-    // =========================================================================
     private void checkReaderCard() {
         String idOrCard = txtReaderCard.getText().trim();
         if (idOrCard.isEmpty()) {
@@ -1099,7 +1057,6 @@ public class CirculationDeskView extends JPanel {
         cartBarcodes.remove(row);
         cartTableModel.removeRow(row);
 
-        // Đánh lại số thứ tự STT
         for (int i = 0; i < cartTableModel.getRowCount(); i++) {
             cartTableModel.setValueAt(i + 1, i, 0);
         }

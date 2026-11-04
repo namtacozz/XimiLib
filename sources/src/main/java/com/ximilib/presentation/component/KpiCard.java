@@ -6,15 +6,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
 
-/**
- * KpiCard: Thẻ chỉ số thống kê vận hành chuẩn LibRack / Stripe.
- * - Chiều cao ~88-92px, bo góc 12px viền mảnh.
- * - Icon tròn tint 36px vẽ vector Java2D.
- * - Số liệu lớn 24px đậm, nhãn 12px textMuted, dòng phụ khả dụng nếu có.
- * - Thẻ Quá hạn màu đỏ khi > 0, màu trung tính khi = 0.
- * - Bỏ huy hiệu xu hướng (+12%, +8%).
- * - Hiệu ứng hover tintLight, con trỏ tay, click điều hướng.
- */
 public class KpiCard extends JPanel {
 
     public enum CardType {
@@ -48,7 +39,6 @@ public class KpiCard extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
         setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // 1. Icon tròn 36px bên trái
         iconCircle = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -68,25 +58,25 @@ public class KpiCard extends JPanel {
 
                 switch (type) {
                     case TOTAL_BOOKS -> {
-                        // Trang sách
+
                         g2.drawRoundRect(cx - 7, cy - 9, 14, 18, 2, 2);
                         g2.drawLine(cx - 4, cy - 4, cx + 4, cy - 4);
                         g2.drawLine(cx - 4, cy, cx + 4, cy);
                         g2.drawLine(cx - 4, cy + 4, cx + 1, cy + 4);
                     }
                     case ACTIVE_LOANS -> {
-                        // Sách đang mượn / dấu kiểm
+
                         g2.drawRoundRect(cx - 8, cy - 7, 16, 14, 3, 3);
                         g2.drawLine(cx - 4, cy, cx - 1, cy + 3);
                         g2.drawLine(cx - 1, cy + 3, cx + 4, cy - 3);
                     }
                     case MEMBERS -> {
-                        // Biểu tượng người dùng
+
                         g2.drawOval(cx - 4, cy - 8, 8, 8);
                         g2.drawArc(cx - 7, cy, 14, 12, 0, 180);
                     }
                     case OVERDUE -> {
-                        // Đồng hồ / chuông cảnh báo
+
                         g2.drawOval(cx - 8, cy - 8, 16, 16);
                         g2.drawLine(cx, cy - 5, cx, cy);
                         g2.drawLine(cx, cy, cx + 4, cy);
@@ -103,7 +93,6 @@ public class KpiCard extends JPanel {
         leftWrapper.setOpaque(false);
         leftWrapper.add(iconCircle);
 
-        // 2. Cột số liệu và nhãn bên phải
         JPanel contentPanel = new JPanel();
         contentPanel.setOpaque(false);
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
@@ -133,7 +122,6 @@ public class KpiCard extends JPanel {
         add(leftWrapper, BorderLayout.WEST);
         add(contentPanel, BorderLayout.CENTER);
 
-        // Hiệu ứng hover & click
         MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -212,11 +200,9 @@ public class KpiCard extends JPanel {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Nền trắng, khi hover đổi nhẹ sang tintLight
         g2.setColor(isHover ? UITheme.TINT_LIGHT : UITheme.CARD_BG);
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
 
-        // Viền 1px bo góc 12px
         g2.setColor(isHover ? UITheme.PRIMARY : UITheme.BORDER);
         g2.setStroke(new BasicStroke(isHover ? 1.4f : 1.0f));
         g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);

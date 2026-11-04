@@ -2,9 +2,6 @@ package com.ximilib.application.dto;
 
 import java.math.BigDecimal;
 
-/**
- * ReturnResultDto: Kết quả xử lý trả sách tại quầy.
- */
 public class ReturnResultDto {
     private final String ticketId;
     private final String copyBarcode;

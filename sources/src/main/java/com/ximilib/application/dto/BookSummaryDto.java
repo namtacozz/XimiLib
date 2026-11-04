@@ -2,26 +2,22 @@ package com.ximilib.application.dto;
 
 import java.awt.Color;
 
-/**
- * BookSummaryDto: DTO hiển thị từng dòng sách trên bảng "Kho sách" (BookCatalogTable).
- * Chứa đầy đủ thông tin theo ánh xạ cột DATABASE_SCHEMA.md.
- */
 public class BookSummaryDto {
 
-    private String bookId;           // sach.Masach (#0011 hoặc MS001)
-    private String title;            // sach.Tensach
-    private String author;           // tacgia.Tentacgia qua sach_tacgia
-    private Integer categoryId;      // theloai.Matheloai
-    private String categoryName;     // theloai.Tentheloai
-    private String publisherName;    // nhaxuatban.tennxb
-    private int availableCopies;     // cuonsach có Trangthaisach = 'KHA_DUNG'
-    private int totalCopies;         // tổng số cuonsach của đầu sách này
-    private Color coverColor;        // Màu đại diện cho ảnh bìa (đồng bộ phong cách Trang chủ)
-    private String coverImage;       // Đường dẫn ảnh bìa (tương đối trong resources: /assets/covers/...)
-    private boolean isDeleted;       // sach.IsDeleted (Soft-delete)
-    private int activeLoansCount;    // Số cuốn đang mượn (phục vụ kiểm tra BR-09)
-    private String description;      // sach.Motasach (Mô tả nội dung tóm tắt)
-    private String isbn;             // sach.Isbn
+    private String bookId;
+    private String title;
+    private String author;
+    private Integer categoryId;
+    private String categoryName;
+    private String publisherName;
+    private int availableCopies;
+    private int totalCopies;
+    private Color coverColor;
+    private String coverImage;
+    private boolean isDeleted;
+    private int activeLoansCount;
+    private String description;
+    private String isbn;
 
     public BookSummaryDto(String bookId, String title, String author, Integer categoryId,
                           String categoryName, String publisherName, int availableCopies,

@@ -18,21 +18,8 @@ import raven.popup.GlassPanePopup;
 import raven.popup.component.GlassPaneChild;
 import raven.popup.component.SimplePopupBorder;
 
-/**
- * UiModalHelper: Bộ công cụ Helper/Factory chuẩn hóa toàn bộ giao diện
- * trên nền FlatLaf kết hợp 3 thư viện DJ-Raven:
- * 1. raven.modal (ModalDialog, SimpleModalBorder, Toast)
- * 2. raven.popup (GlassPanePopup)
- * 3. raven.datetime (DatePicker, TimePicker)
- *
- * Tuyệt đối thay thế 100% JOptionPane và JDialog truyền thống bằng In-App Modal Overlay.
- */
 public class UiModalHelper {
 
-    /**
-     * Khởi tạo GlassPanePopup và cấu hình mặc định cho ModalDialog trên JFrame chính.
-     * Gọi 1 lần duy nhất khi khởi động cửa sổ (MainDashboard / LoginForm).
-     */
     public static void initMainFrame(JFrame frame) {
         if (frame != null && (!GlassPanePopup.isInit() || GlassPanePopup.getMainFrame() != frame)) {
             GlassPanePopup.install(frame);

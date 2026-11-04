@@ -3,10 +3,6 @@ package com.ximilib.domain.model;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * ImageSlideshow: Quản lý trạng thái logic của Slideshow trình chiếu ảnh.
- * Độc lập hoàn toàn với Swing, tuân thủ Clean Architecture (Domain Model).
- */
 public class ImageSlideshow {
 
     public record Slide(String imageResourcePath, String title, String description) {

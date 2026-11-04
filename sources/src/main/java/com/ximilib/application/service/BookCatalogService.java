@@ -7,10 +7,6 @@ import com.ximilib.domain.exception.BookInUseException;
 import java.util.List;
 import java.util.Map;
 
-/**
- * BookCatalogService: Hợp đồng Application Service quản lý danh mục và kho sách (Use Case F-01).
- * Tuân thủ quy tắc R-01 (Presentation chỉ gọi Service, không gọi DAO/DB).
- */
 public interface BookCatalogService {
 
     PagedResult<BookSummaryDto> searchBooks(BookSearchCriteria criteria, int page, int pageSize);

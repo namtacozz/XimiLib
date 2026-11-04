@@ -9,9 +9,6 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.TableCellRenderer;
 
-/**
- * Checkbox Renderer cột đầu: Nổi bật xanh khi dòng được chọn.
- */
 public class CheckboxCellRenderer extends JCheckBox implements TableCellRenderer {
 
     private final BookTableModel tableModel;

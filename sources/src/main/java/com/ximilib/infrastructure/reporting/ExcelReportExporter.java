@@ -12,10 +12,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-/**
- * ExcelReportExporter: Triển khai xuất báo cáo định dạng Microsoft Excel (.xlsx) sử dụng Apache POI.
- * Định dạng số tiền từ BigDecimal chuẩn (R-04), định dạng ngày tháng tiếng Việt.
- */
 public class ExcelReportExporter implements ReportExporter {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -27,14 +23,12 @@ public class ExcelReportExporter implements ReportExporter {
             String safeTitle = (sheetTitle != null && !sheetTitle.isBlank()) ? sheetTitle : "Báo cáo";
             Sheet sheet = workbook.createSheet(safeTitle);
 
-            // 1. Tạo Cell Styles
             CellStyle headerStyle = createHeaderStyle(workbook);
             CellStyle textStyle = createBorderedStyle(workbook);
             CellStyle numberStyle = createNumberStyle(workbook);
             CellStyle currencyStyle = createCurrencyStyle(workbook);
             CellStyle dateStyle = createDateStyle(workbook);
 
-            // 2. Tạo dòng tiêu đề cột (Header Row)
             Row headerRow = sheet.createRow(0);
             headerRow.setHeightInPoints(28);
             for (int col = 0; col < headers.length; col++) {
@@ -43,7 +37,6 @@ public class ExcelReportExporter implements ReportExporter {
                 cell.setCellStyle(headerStyle);
             }
 
-            // 3. Đổ dữ liệu các dòng
             int rowIdx = 1;
             if (rows != null) {
                 for (Object[] rowData : rows) {
@@ -58,7 +51,7 @@ public class ExcelReportExporter implements ReportExporter {
                             cell.setCellValue("");
                             cell.setCellStyle(textStyle);
                         } else if (val instanceof BigDecimal bd) {
-                            // Định dạng số tiền chính xác từ BigDecimal (R-04)
+
                             cell.setCellValue(bd.doubleValue());
                             cell.setCellStyle(currencyStyle);
                         } else if (val instanceof Number num) {
@@ -81,7 +74,6 @@ public class ExcelReportExporter implements ReportExporter {
                 }
             }
 
-            // 4. Tự động căn chỉnh độ rộng cột
             for (int col = 0; col < headers.length; col++) {
                 sheet.autoSizeColumn(col);
                 int currentWidth = sheet.getColumnWidth(col);

@@ -9,9 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 
-/**
- * Renderer cột "Tên sách": Ảnh bìa nhỏ bo góc (34x40) + Tên sách đậm + Phụ chú.
- */
 public class BookTitleCellRenderer extends JPanel implements TableCellRenderer {
 
     private static final Map<String, Image> COVER_CACHE = new ConcurrentHashMap<>();

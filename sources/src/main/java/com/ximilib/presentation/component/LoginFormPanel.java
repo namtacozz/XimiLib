@@ -19,13 +19,6 @@ import java.util.prefs.Preferences;
 import javax.swing.*;
 import com.ximilib.presentation.util.UiModalHelper;
 
-/**
- * LoginFormPanel: Khối Form Đăng Nhập bên phải màn hình.
- * - Căn giữa dọc, chiều rộng form chuẩn 360px - 380px.
- * - Mọi nhãn, tiêu đề, ô nhập và nút bấm được căn THẲNG LỀ TRÁI chuẩn xác 100%.
- * - Hỗ trợ nút hiện/ẩn mật khẩu FlatLaf, phím Enter/Tab và hiển thị lỗi inline.
- * - Gọi xác thực bất đồng bộ ngoài EDT qua AuthenticationService.
- */
 public class LoginFormPanel extends JPanel {
 
     private static final String PREF_REMEMBERED_USER = "remembered_username";
@@ -57,7 +50,7 @@ public class LoginFormPanel extends JPanel {
         this.authService = (authService != null) ? authService : AppContainer.getInstance().getAuthenticationService();
 
         setOpaque(false);
-        setLayout(new GridBagLayout()); // Căn giữa toàn bộ khối form theo chiều dọc và ngang
+        setLayout(new GridBagLayout());
 
         initForm();
         loadRememberedUser();
@@ -71,7 +64,6 @@ public class LoginFormPanel extends JPanel {
         formContainer.setMaximumSize(new Dimension(400, 560));
         formContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // 1. Brand Header: Logo XimiLib + Badge "Library OS" (Căn trái)
         JPanel logoRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         logoRow.setOpaque(false);
         logoRow.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -103,7 +95,6 @@ public class LoginFormPanel extends JPanel {
         logoRow.add(lblBrand);
         logoRow.add(lblBadge);
 
-        // 2. Tiêu đề và mô tả (Căn thẳng lề trái)
         JLabel lblTitle = new JLabel("Đăng nhập vào Thư viện");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(UITheme.TEXT_MAIN);
@@ -111,11 +102,10 @@ public class LoginFormPanel extends JPanel {
 
         JLabel lblDesc = new JLabel("Chào mừng đến với hệ thống quản lý XimiLib");
         lblDesc.setFont(UITheme.FONT_REGULAR);
-        // Màu xám đạt chuẩn tương phản WCAG >= 4.5:1 trên nền trắng (#475569)
+
         lblDesc.setForeground(UITheme.TEXT_MUTED);
         lblDesc.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // 3. Nhãn & Ô nhập: Tên đăng nhập, Email hoặc Số điện thoại (DEV-02)
         JLabel lblUserTag = new JLabel("Tên đăng nhập, email hoặc số điện thoại");
         lblUserTag.setFont(UITheme.FONT_BOLD);
         lblUserTag.setForeground(UITheme.TEXT_MAIN);
@@ -133,7 +123,6 @@ public class LoginFormPanel extends JPanel {
             IconFactory.createUsersIcon(UITheme.TEXT_MUTED, 16));
         txtIdentifier.putClientProperty(FlatClientProperties.SELECT_ALL_ON_FOCUS_POLICY, "never");
 
-        // 4. Nhãn & Ô nhập: Mật khẩu (Có nút Hiện/Ẩn mắt)
         JLabel lblPassTag = new JLabel("Mật khẩu");
         lblPassTag.setFont(UITheme.FONT_BOLD);
         lblPassTag.setForeground(UITheme.TEXT_MAIN);
@@ -148,7 +137,6 @@ public class LoginFormPanel extends JPanel {
         txtPassword.putClientProperty(FlatClientProperties.STYLE, "showRevealButton: true; arc: 12;");
         txtPassword.putClientProperty(FlatClientProperties.SELECT_ALL_ON_FOCUS_POLICY, "never");
 
-        // Cảnh báo Caps Lock khi người dùng bật Caps Lock lúc gõ mật khẩu
         pnlCapsLock = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         pnlCapsLock.setOpaque(false);
         pnlCapsLock.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
@@ -174,7 +162,6 @@ public class LoginFormPanel extends JPanel {
             public void focusLost(java.awt.event.FocusEvent e) { pnlCapsLock.setVisible(false); }
         });
 
-        // Phím tắt Esc xóa lỗi
         getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CLEAR_ERROR");
         getActionMap().put("CLEAR_ERROR", new AbstractAction() {
             @Override
@@ -183,7 +170,6 @@ public class LoginFormPanel extends JPanel {
             }
         });
 
-        // 5. Hàng tùy chọn: Ghi nhớ đăng nhập (trái) & Quên mật khẩu (phải)
         JPanel optionRow = new JPanel(new BorderLayout());
         optionRow.setOpaque(false);
         optionRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
@@ -213,12 +199,10 @@ public class LoginFormPanel extends JPanel {
         optionRow.add(chkRemember, BorderLayout.WEST);
         optionRow.add(lblForgot, BorderLayout.EAST);
 
-        // 6. Vùng hiển thị lỗi tại chỗ (Inline Error Panel)
         errorPanel = createInlineErrorPanel();
         errorPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         errorPanel.setVisible(false);
 
-        // 7. Nút ĐĂNG NHẬP chính (Rộng bằng ô nhập, bo góc)
         btnLogin = new JButton("ĐĂNG NHẬP") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -249,7 +233,6 @@ public class LoginFormPanel extends JPanel {
         btnLogin.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnLogin.addActionListener(e -> executeLogin());
 
-        // Phím Enter ở ô tên đăng nhập hoặc mật khẩu đều đăng nhập
         KeyAdapter enterListener = new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -261,7 +244,6 @@ public class LoginFormPanel extends JPanel {
         txtIdentifier.addKeyListener(enterListener);
         txtPassword.addKeyListener(enterListener);
 
-        // Tự động ẩn banner lỗi ngay khi người dùng gõ vào bất kỳ ô nào
         javax.swing.event.DocumentListener clearErrorListener = new javax.swing.event.DocumentListener() {
             @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { hideInlineError(); }
             @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { hideInlineError(); }
@@ -270,7 +252,6 @@ public class LoginFormPanel extends JPanel {
         txtIdentifier.getDocument().addDocumentListener(clearErrorListener);
         txtPassword.getDocument().addDocumentListener(clearErrorListener);
 
-        // 8. Hàng Đăng ký tài khoản (UC-2)
         JPanel registerRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 0));
         registerRow.setOpaque(false);
         registerRow.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -298,14 +279,12 @@ public class LoginFormPanel extends JPanel {
         registerRow.add(lblNoAcc);
         registerRow.add(lblRegisterNow);
 
-        // 9. Chân trang bản quyền
         JLabel lblFooter = new JLabel("© 2026 XimiLib • Trường ĐHBK Đà Nẵng", SwingConstants.CENTER);
         lblFooter.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         lblFooter.setForeground(UITheme.TEXT_MUTED);
         lblFooter.setAlignmentX(Component.LEFT_ALIGNMENT);
         lblFooter.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
 
-        // Ghép các thành phần theo thứ tự chuẩn từ trên xuống
         formContainer.add(logoRow);
         formContainer.add(Box.createVerticalStrut(14));
         formContainer.add(lblTitle);
@@ -333,12 +312,10 @@ public class LoginFormPanel extends JPanel {
         formContainer.add(btnLogin);
         formContainer.add(Box.createVerticalStrut(14));
         formContainer.add(registerRow);
-        
-        // Phân cách "hoặc" vẽ thuần Graphics2D (loại bỏ ô vuông glyph)
+
         DividerLabel divider = new DividerLabel("hoặc");
         divider.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Nút bấm nổi bật: Đăng nhập với tư cách Khách
         btnGuest = new JButton("Đăng nhập với tư cách Khách") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -389,7 +366,7 @@ public class LoginFormPanel extends JPanel {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(UITheme.DANGER_BG);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
-                g2.setColor(new Color(252, 165, 165)); // Viền đỏ nhạt
+                g2.setColor(new Color(252, 165, 165));
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
                 g2.dispose();
                 super.paintComponent(g);
@@ -400,7 +377,6 @@ public class LoginFormPanel extends JPanel {
         p.setPreferredSize(new Dimension(360, 40));
         p.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
 
-        // Icon chấm than đỏ vector
         JLabel iconError = new JLabel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -453,7 +429,7 @@ public class LoginFormPanel extends JPanel {
                 txtPassword.requestFocusInWindow();
             });
         } else {
-            // Mặc định nạp tài khoản kien.phan để pair programming thuận tiện
+
             txtIdentifier.setText("kien.phan");
             txtPassword.setText("123456");
             SwingUtilities.invokeLater(() -> {
@@ -490,19 +466,16 @@ public class LoginFormPanel extends JPanel {
             return;
         }
 
-        // Khóa toàn bộ form: không thể click hay gõ vào ô tài khoản, mật khẩu, hay các nút
         setFormInteractive(false);
         btnLogin.setText("Đang đăng nhập...");
 
-        // Chuyển focus khỏi các ô nhập văn bản để không hiện con trỏ nhấp nháy
         requestFocusInWindow();
 
-        // Xử lý xác thực ngoài EDT (R-06)
         SwingWorker<LoginResult, Void> worker = new SwingWorker<>() {
             @Override
             protected LoginResult doInBackground() {
                 try {
-                    // Giả lập trễ mạng nhẹ ngoài EDT để hiệu ứng chuyển mượt
+
                     Thread.sleep(150);
                 } catch (InterruptedException ignored) {}
                 return authService.login(identifier, password);
@@ -576,14 +549,12 @@ public class LoginFormPanel extends JPanel {
             btnLogin.setText("ĐĂNG NHẬP");
             UserSession.setCurrentUser(result.getUser());
 
-            // Lưu username nếu người dùng chọn ghi nhớ (chỉ lưu identifier, KHÔNG lưu mật khẩu)
             if (chkRemember.isSelected()) {
                 prefs.put(PREF_REMEMBERED_USER, identifier);
             } else {
                 prefs.remove(PREF_REMEMBERED_USER);
             }
 
-            // Chuyển sang màn hình Dashboard chính
             MainDashboardFrame dashboard = new MainDashboardFrame(result.getUser());
             dashboard.setVisible(true);
 

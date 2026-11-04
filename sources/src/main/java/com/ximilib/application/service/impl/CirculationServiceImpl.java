@@ -23,10 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * CirculationServiceImpl: Triển khai các quy tắc nghiệp vụ Lưu hành, Mượn trả và Bồi thường.
- * Áp dụng đầy đủ: BR-02, BR-03, BR-04, BR-06, BR-07, BR-08, R-01, R-10, UC-5, UC-6, UC-9.
- */
 public class CirculationServiceImpl implements CirculationService {
 
     private final CirculationRepository circulationRepository;
@@ -74,7 +70,6 @@ public class CirculationServiceImpl implements CirculationService {
 
         CirculationRepository repo = getRepo();
 
-        // 1. Kiểm tra bạn đọc & thẻ thư viện
         UserCardInfo card = repo.findCardByIdentifier(readerIdentifier)
             .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin bạn đọc hoặc thẻ thư viện tương ứng."));
 
@@ -85,17 +80,14 @@ public class CirculationServiceImpl implements CirculationService {
             throw new IllegalStateException("Thẻ thư viện của bạn đã hết hạn sử dụng. Vui lòng liên hệ thủ thư để gia hạn");
         }
 
-        // 1b. Kiểm tra sách quá hạn chưa trả (SRS UC 3.2.5 Ngoại lệ a & BR-07)
         if (repo.hasOverdueLoans(card.userId())) {
             throw new IllegalStateException("Bạn có sách quá hạn chưa hoàn trả. Vui lòng trả sách trước khi mượn tiếp");
         }
 
-        // 2. Kiểm tra nợ phạt (BR-07)
         if (repo.hasUnpaidFines(card.userId())) {
             throw new IllegalStateException("Bạn đọc đang có khoản phạt chưa thanh toán. Vui lòng thanh toán trước khi mượn sách (Quy tắc BR-07).");
         }
 
-        // 3. Kiểm tra hạn mức mượn sách mang về nhà (BR-02: Tối đa 3 cuốn; Mượn tại chỗ không giới hạn - SRS UC 3.2.5 Ngoại lệ b)
         if (loanType == LoanType.VE_NHA) {
             int activeHomeLoans = repo.countActiveHomeLoans(card.userId());
             if (activeHomeLoans + copyBarcodes.size() > LibraryPolicy.MAX_BOOKS_BORROW) {
@@ -103,13 +95,12 @@ public class CirculationServiceImpl implements CirculationService {
             }
         }
 
-        // 4. Tính toán thời hạn trả
         LocalDateTime borrowDate = LocalDateTime.now();
         LocalDateTime dueDate;
         if (loanType == LoanType.VE_NHA) {
             dueDate = borrowDate.plusDays(LibraryPolicy.LOAN_DAYS_HOME).with(LocalTime.of(23, 59, 59));
         } else {
-            dueDate = borrowDate.with(LocalTime.of(17, 0, 0)); // BR-04: Đọc tại chỗ trả trước 17:00
+            dueDate = borrowDate.with(LocalTime.of(17, 0, 0));
         }
 
         String ticketId = repo.generateNextTicketId();
@@ -121,7 +112,6 @@ public class CirculationServiceImpl implements CirculationService {
             repo.createBorrowTicket(ticketId, card.userId(), card.cardNumber(), loanType, borrowDate, dueDate, copyBarcodes, notes);
         }
 
-        // Thông báo đồng bộ giao diện
         DomainEventPublisher.publish(new BookStockChangedEvent("LOAN", "LOAN_CREATED"));
 
         boolean isOnlineOrder = (notes != null && (notes.toLowerCase().contains("online") || notes.toLowerCase().contains("app") || notes.toLowerCase().contains("đặt mượn")));
@@ -265,7 +255,7 @@ public class CirculationServiceImpl implements CirculationService {
         if (fineTicketId == null || fineTicketId.trim().isEmpty()) {
             throw new IllegalArgumentException("Mã phiếu phạt không hợp lệ.");
         }
-        // Đóng bồi hoàn và chính thức chuyển trạng thái phiếu mượn sang DA_MAT (5) (SRS UC-9, R-10)
+
         if (transactionCoordinator != null) {
             transactionCoordinator.executeVoid(tx -> {
                 getRepo().payFineAndCloseLoss(tx, fineTicketId.trim(), paymentMethod);
@@ -304,7 +294,6 @@ public class CirculationServiceImpl implements CirculationService {
             throw new IllegalStateException("Phiếu mượn đã quá hạn, không thể gia hạn trực tuyến. Vui lòng mang sách đến quầy thủ thư.");
         }
 
-        // BR-03: Gia hạn thêm 7 ngày
         LocalDateTime newDueDate = ticket.getDueDate().plusDays(LibraryPolicy.RENEW_DAYS);
         if (transactionCoordinator != null) {
             transactionCoordinator.executeVoid(tx -> {

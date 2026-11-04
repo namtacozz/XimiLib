@@ -6,12 +6,6 @@ import java.awt.geom.Path2D;
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
 
-/**
- * VectorCheckBoxIcon: Icon vector cho JCheckBox giải quyết lỗi hiển thị checkbox và mang lại giao diện hiện đại.
- * - Trạng thái bỏ chọn: Viền primary/border rỗng, nền trắng bo góc.
- * - Trạng thái đã chọn: Nền primary bo góc, dấu tick vector trắng sắc nét.
- * - Hỗ trợ Focus ring khi người dùng Tab vào và Rollover effect khi di chuột.
- */
 public class VectorCheckBoxIcon implements Icon {
 
     private final int size;
@@ -56,7 +50,6 @@ public class VectorCheckBoxIcon implements Icon {
         int boxSize = size;
         int arc = 6;
 
-        // 1. Focus ring (khi ô checkbox được focus)
         if (hasFocus) {
             g2.setColor(UITheme.PRIMARY_TINT);
             g2.setStroke(new BasicStroke(2.0f));
@@ -64,12 +57,11 @@ public class VectorCheckBoxIcon implements Icon {
         }
 
         if (isSelected) {
-            // 2. Trạng thái ĐÃ CHỌN: Nền primary
+
             Color bg = !isEnabled ? UITheme.CARD_BORDER : (isRollover ? UITheme.PRIMARY_HOVER : UITheme.PRIMARY);
             g2.setColor(bg);
             g2.fillRoundRect(boxX, boxY, boxSize, boxSize, arc, arc);
 
-            // Dấu tick vector trắng
             g2.setColor(Color.WHITE);
             g2.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             Path2D.Float tick = new Path2D.Float();
@@ -78,7 +70,7 @@ public class VectorCheckBoxIcon implements Icon {
             tick.lineTo(boxX + boxSize * 0.78f, boxY + boxSize * 0.28f);
             g2.draw(tick);
         } else {
-            // 3. Trạng thái CHƯA CHỌN: Nền trắng, viền rõ ràng
+
             g2.setColor(Color.WHITE);
             g2.fillRoundRect(boxX, boxY, boxSize, boxSize, arc, arc);
 

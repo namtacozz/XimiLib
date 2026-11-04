@@ -14,10 +14,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * ZoneRepositoryImpl: Triển khai JDBC truy vấn bảng khuvuc.
- * 100% PreparedStatement theo quy tắc R-07.
- */
 public class ZoneRepositoryImpl implements ZoneRepository {
 
     private final DatabaseConnectionManager connectionManager;

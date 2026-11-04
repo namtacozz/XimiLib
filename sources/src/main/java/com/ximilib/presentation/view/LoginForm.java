@@ -8,12 +8,6 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import javax.swing.*;
 
-/**
- * LoginForm: Cửa sổ Đăng Nhập XimiLib được nâng cấp toàn diện theo cấu trúc chia đôi 50/50.
- * - Trái: BrandPanel với đồ họa vector xanh ngọc bích và Carousel 3 slide giới thiệu tính năng thư viện.
- * - Phải: LoginFormPanel căn thẳng lề trái, ô mật khẩu có nút hiện/ẩn, lỗi hiển thị inline.
- * - Kích thước chuẩn 960×600 (tối thiểu 840×540), hiển thị mượt mà trên mọi độ phân giải.
- */
 public class LoginForm extends JFrame {
 
     private LoginView loginView;
@@ -33,7 +27,6 @@ public class LoginForm extends JFrame {
         initUI();
         setLocationRelativeTo(null);
 
-        // Dừng timer khi đóng cửa sổ
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {

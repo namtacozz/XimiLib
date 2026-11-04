@@ -2,18 +2,15 @@ package com.ximilib.application.dto;
 
 import java.math.BigDecimal;
 
-/**
- * CompensationResultDto: Bảng kê chi tiết bồi thường khi báo mất sách (UC-9, BR-08).
- */
 public class CompensationResultDto {
     private final String fineTicketId;
     private final String borrowTicketId;
     private final String bookTitle;
     private final BigDecimal coverPrice;
-    private final BigDecimal bookLossAmount; // 200% giá bìa
-    private final BigDecimal techFee;        // 20.000 VNĐ
+    private final BigDecimal bookLossAmount;
+    private final BigDecimal techFee;
     private final int overdueDays;
-    private final BigDecimal overdueFine;   // 2.000 VNĐ / ngày
+    private final BigDecimal overdueFine;
     private final BigDecimal totalAmount;
 
     public CompensationResultDto(String fineTicketId, String borrowTicketId, String bookTitle,

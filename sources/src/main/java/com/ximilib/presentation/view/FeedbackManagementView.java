@@ -13,22 +13,14 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-/**
- * FeedbackManagementView: Màn hình Góp Ý & Phản Hồi Dịch Vụ Thư Viện (F-10).
- * Cho phép Độc giả gửi phản hồi, và Thủ thư / Quản trị viên tiếp nhận xử lý.
- * Dữ liệu lưu trữ trong bảng `gopy`.
- * Tuân thủ R-01, R-06, R-08, R-11.
- */
 public class FeedbackManagementView extends JPanel {
 
     private final FeedbackPort feedbackPort;
     private final boolean isReader;
 
-    // Components cho Reader
     private JTextField txtTitle;
     private JTextArea txtContent;
 
-    // Components cho Staff
     private DefaultTableModel tableModel;
     private JTable feedbackTable;
 

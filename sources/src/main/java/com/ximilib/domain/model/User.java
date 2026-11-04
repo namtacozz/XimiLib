@@ -3,10 +3,6 @@ package com.ximilib.domain.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * User: Đối tượng đại diện cho tài khoản người dùng trong hệ thống XimiLib.
- * Khớp với cấu trúc bảng 'nguoidung' và thẻ 'thethuvien' trong CSDL MySQL.
- */
 public class User {
     private String id;
     private String username;
@@ -14,7 +10,7 @@ public class User {
     private String fullName;
     private String email;
     private String phone;
-    private String role; // "Quản Trị", "Thủ Thư", "Bạn Đọc"
+    private String role;
     private LocalDate birthDate;
     private String address;
     private String cccd;

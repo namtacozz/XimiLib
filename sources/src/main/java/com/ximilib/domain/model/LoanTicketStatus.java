@@ -1,9 +1,5 @@
 package com.ximilib.domain.model;
 
-/**
- * LoanTicketStatus: Trạng thái của phiếu mượn (phieumuon.Trangthai)
- * Khớp 100% với FSM trong BUSINESS_RULES.md và đặc tả SRS UC-5, UC-6, UC-9.
- */
 public enum LoanTicketStatus {
     CHO_DUYET(0, "Chờ nhận sách (24h)"),
     DANG_MUON(1, "Đang mượn"),

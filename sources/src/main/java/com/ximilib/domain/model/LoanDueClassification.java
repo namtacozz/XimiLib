@@ -3,16 +3,12 @@ package com.ximilib.domain.model;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-/**
- * LoanDueClassification: Hàm thuần phân loại hạn trả sách (Domain pure function).
- * Phục vụ khối "Cần xử lý hôm nay" và "Sách đang mượn". Dễ dàng kiểm thử đơn vị.
- */
 public record LoanDueClassification(Type type, int days, String label) {
 
     public enum Type {
-        OVERDUE,   // Quá hạn (Màu đỏ - Danger)
-        DUE_TODAY, // Đến hạn hôm nay (Màu vàng - Warning)
-        DUE_SOON   // Còn hạn (Màu xanh lá - Success)
+        OVERDUE,
+        DUE_TODAY,
+        DUE_SOON
     }
 
     public boolean isOverdue() {

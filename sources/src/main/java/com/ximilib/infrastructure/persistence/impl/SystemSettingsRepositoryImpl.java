@@ -11,10 +11,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * SystemSettingsRepositoryImpl: Triển khai SystemSettingsPort bằng PreparedStatement kết nối MySQL.
- * Tuân thủ R-01, R-07.
- */
 public class SystemSettingsRepositoryImpl implements SystemSettingsPort {
 
     private final DatabaseConnectionManager connectionManager;

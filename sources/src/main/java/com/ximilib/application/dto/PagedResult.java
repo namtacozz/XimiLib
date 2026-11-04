@@ -3,9 +3,6 @@ package com.ximilib.application.dto;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * PagedResult: Đóng gói kết quả phân trang phía Server trả về cho View.
- */
 public class PagedResult<T> {
 
     private final List<T> items;

@@ -6,9 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Model bảng danh sách đầu sách trong kho.
- */
 public class BookTableModel extends AbstractTableModel {
 
     private final String[] columns = {

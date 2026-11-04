@@ -31,12 +31,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
-/**
- * StaffHomePanel: Trang chủ vận hành dành cho Thủ thư và Quản trị viên.
- * - Mô hình dashboard theo chuẩn Stripe / Linear.
- * - 100% dữ liệu nạp từ CSDL MySQL qua DashboardService ngoài EDT.
- * - Hỗ trợ đầy đủ trạng thái Đang tải, Rỗng, Lỗi kèm nút Thử lại độc lập cho từng khối.
- */
 public class StaffHomePanel extends JPanel {
 
     private final DashboardService dashboardService;
@@ -44,25 +38,21 @@ public class StaffHomePanel extends JPanel {
     private final User currentUser;
     private final Consumer<String> navigationHandler;
 
-    // 4 Thẻ KPI
     private KpiCard cardTotalBooks;
     private KpiCard cardActiveLoans;
     private KpiCard cardMembers;
     private KpiCard cardOverdue;
 
-    // Khối Cần xử lý hôm nay
     private SectionHeader todoHeader;
     private final TodoTableModel todoTableModel = new TodoTableModel();
     private JTable tblTodo;
     private JPanel pnlTodoContainer;
     private CardLayout todoCardLayout;
 
-    // Khối Chờ nhận sách
     private SectionHeader pendingHeader;
     private JPanel pnlPendingContainer;
     private CardLayout pendingCardLayout;
 
-    // Khối Sách mới nhập
     private JPanel pnlNewBooksContainer;
     private CardLayout newBooksCardLayout;
     private JScrollPane scrollNewBooks;
@@ -94,19 +84,15 @@ public class StaffHomePanel extends JPanel {
         scrollContent.setOpaque(false);
         scrollContent.setBorder(new EmptyBorder(10, 24, 10, 24));
 
-        // 1. Dòng chào tinh gọn & Chip giờ đóng cửa
         scrollContent.add(createGreetingBar());
         scrollContent.add(Box.createVerticalStrut(10));
 
-        // 2. Hàng 4 thẻ số liệu động (KPI Cards)
         scrollContent.add(createKpiRow());
         scrollContent.add(Box.createVerticalStrut(12));
 
-        // 3. Khối trung tâm: Cần xử lý hôm nay (2/3) + Thao tác nhanh & Chờ nhận sách (1/3)
         scrollContent.add(createMiddleSection());
         scrollContent.add(Box.createVerticalStrut(12));
 
-        // 4. Dải ngang: Sách mới nhập (6 bìa sách 2:3)
         scrollContent.add(createNewBooksSection());
 
         JScrollPane scrollPane = new JScrollPane(scrollContent);
@@ -119,10 +105,6 @@ public class StaffHomePanel extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    // =========================================================================
-    // 1. DÒNG CHÀO & CHIP GIỜ
-    // =========================================================================
-
     private JPanel createGreetingBar() {
         JPanel bar = new JPanel(new BorderLayout());
         bar.setOpaque(false);
@@ -132,14 +114,13 @@ public class StaffHomePanel extends JPanel {
         LocalDate today = LocalDate.now();
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("EEEE, 'ngày' dd/MM/yyyy", new Locale("vi", "VN"));
         String dateStr = today.format(dtf);
-        // Viết hoa chữ cái đầu (Thứ ...)
+
         dateStr = Character.toUpperCase(dateStr.charAt(0)) + dateStr.substring(1);
 
         JLabel lblGreeting = new JLabel("Xin chào, " + fullName + "  ·  " + dateStr);
         lblGreeting.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblGreeting.setForeground(UITheme.TEXT_MAIN);
 
-        // Chip đóng/mở cửa theo quy định SRS (Đóng 17:00)
         LocalTime now = LocalTime.now();
         boolean isOpen = now.isBefore(LocalTime.of(17, 0));
         String chipText = isOpen ? "● Mở cửa · đóng lúc 17:00" : "● Đã đóng cửa";
@@ -160,10 +141,6 @@ public class StaffHomePanel extends JPanel {
         bar.add(lblChip, BorderLayout.EAST);
         return bar;
     }
-
-    // =========================================================================
-    // 2. 4 THẺ SỐ LIỆU ĐỘNG
-    // =========================================================================
 
     private JPanel createKpiRow() {
         JPanel row = new JPanel(new GridLayout(1, 4, 14, 0));
@@ -198,10 +175,6 @@ public class StaffHomePanel extends JPanel {
         return row;
     }
 
-    // =========================================================================
-    // 3. KHỐI TRUNG TÂM (Cần xử lý 62% + Chờ nhận & Thao tác nhanh 38%)
-    // =========================================================================
-
     private JPanel createMiddleSection() {
         JPanel section = new JPanel(new GridBagLayout());
         section.setOpaque(false);
@@ -214,12 +187,10 @@ public class StaffHomePanel extends JPanel {
         gbc.weighty = 1.0;
         gbc.insets = new Insets(0, 0, 0, 14);
 
-        // Nửa trái 62%
         gbc.gridx = 0;
         gbc.weightx = 0.62;
         section.add(createTodoCard(), gbc);
 
-        // Nửa phải 38%
         gbc.gridx = 1;
         gbc.weightx = 0.38;
         gbc.insets = new Insets(0, 0, 0, 0);
@@ -243,10 +214,8 @@ public class StaffHomePanel extends JPanel {
         pnlTodoContainer = new JPanel(todoCardLayout);
         pnlTodoContainer.setOpaque(false);
 
-        // Trạng thái Đang tải
         pnlTodoContainer.add(createStatePlaceholder("Đang tải danh sách cần xử lý…", null), "LOADING");
 
-        // Trạng thái Rỗng
         EmptyStatePanel emptyTodo = new EmptyStatePanel(
             Illustrations.ACTION_SUCCESS,
             70,
@@ -256,10 +225,8 @@ public class StaffHomePanel extends JPanel {
         emptyTodo.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         pnlTodoContainer.add(emptyTodo, "EMPTY");
 
-        // Trạng thái Lỗi
         pnlTodoContainer.add(createStatePlaceholder("Không tải được danh sách.", this::loadTodoLoansAsync), "ERROR");
 
-        // Trạng thái Bảng dữ liệu thật
         tblTodo = new JTable(todoTableModel);
         tblTodo.setRowHeight(34);
         tblTodo.setFont(UITheme.FONT_REGULAR);
@@ -275,7 +242,6 @@ public class StaffHomePanel extends JPanel {
         tblTodo.getTableHeader().setFont(UITheme.FONT_BOLD);
         tblTodo.getTableHeader().setPreferredSize(new Dimension(0, 28));
 
-        // Render các cột với tỷ lệ co giãn linh hoạt
         tblTodo.getColumnModel().getColumn(0).setPreferredWidth(125);
         tblTodo.getColumnModel().getColumn(1).setPreferredWidth(185);
         tblTodo.getColumnModel().getColumn(2).setPreferredWidth(90);
@@ -312,7 +278,6 @@ public class StaffHomePanel extends JPanel {
         rightCol.setLayout(new BoxLayout(rightCol, BoxLayout.Y_AXIS));
         rightCol.setOpaque(false);
 
-        // Khối 1 (Top): Chờ nhận sách (Online) - Đồng hàng và cân đối với "Cần xử lý hôm nay"
         JPanel pnlPending = createWhiteCard();
         pnlPending.setLayout(new BorderLayout(0, 6));
         pnlPending.setBorder(new EmptyBorder(8, 12, 8, 12));
@@ -344,7 +309,6 @@ public class StaffHomePanel extends JPanel {
 
         pnlPending.add(pnlPendingContainer, BorderLayout.CENTER);
 
-        // Khối 2 (Bottom): Thao tác nhanh (4 nút)
         JPanel pnlQuickActions = createWhiteCard();
         pnlQuickActions.setLayout(new BorderLayout(0, 6));
         pnlQuickActions.setBorder(new EmptyBorder(8, 12, 8, 12));
@@ -386,10 +350,6 @@ public class StaffHomePanel extends JPanel {
         return btn;
     }
 
-    // =========================================================================
-    // 4. KHỐI SÁCH MỚI NHẬP (6-10 bìa 2:3 lấp đầy dải ngang)
-    // =========================================================================
-
     private JPanel createNewBooksSection() {
         JPanel section = new JPanel(new BorderLayout(0, 8));
         section.setOpaque(false);
@@ -399,7 +359,6 @@ public class StaffHomePanel extends JPanel {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
-        // Bên trái: Tiêu đề "Sách mới nhập" + Badge "Mới"
         JPanel leftHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         leftHeader.setOpaque(false);
         JLabel lblTitle = new JLabel("Sách mới nhập");
@@ -416,7 +375,6 @@ public class StaffHomePanel extends JPanel {
         leftHeader.add(lblBadge);
         headerPanel.add(leftHeader, BorderLayout.WEST);
 
-        // Bên phải: Nút mũi tên chuyển trang ‹ và › (Carousel) + Xem tất cả >
         JPanel rightHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         rightHeader.setOpaque(false);
 
@@ -498,7 +456,6 @@ public class StaffHomePanel extends JPanel {
                 g2.setStroke(new BasicStroke(1.2f));
                 g2.drawOval(1, 1, w - 3, h - 3);
 
-                // Vẽ ký tự mũi tên ở chính giữa tâm nút
                 g2.setColor(getModel().isRollover() ? UITheme.PRIMARY : UITheme.TEXT_MAIN);
                 g2.setFont(new Font("Segoe UI", Font.BOLD, 15));
                 FontMetrics fm = g2.getFontMetrics();
@@ -565,10 +522,6 @@ public class StaffHomePanel extends JPanel {
         });
         carouselTimer.start();
     }
-
-    // =========================================================================
-    // 5. TRUY VẤN BẤT ĐỒNG BỘ NGOÀI EDT (R-06)
-    // =========================================================================
 
     public void loadAllDataAsync() {
         loadKpisAsync();
@@ -692,7 +645,6 @@ public class StaffHomePanel extends JPanel {
             BorderFactory.createEmptyBorder(6, 10, 6, 10)
         ));
 
-        // 1. Bên trái: Avatar chữ cái tròn
         String initials = "Đ";
         if (item.readerName() != null && !item.readerName().isBlank()) {
             String trimmed = item.readerName().trim();
@@ -720,7 +672,6 @@ public class StaffHomePanel extends JPanel {
         pnlAvatar.setOpaque(false);
         pnlAvatar.add(lblInitial);
 
-        // 2. Ở giữa: 2 dòng chữ CĂN THẲNG CÙNG 1 HÀNG DỌC (cột)
         JPanel textCol = new JPanel();
         textCol.setLayout(new BoxLayout(textCol, BoxLayout.Y_AXIS));
         textCol.setOpaque(false);
@@ -735,7 +686,6 @@ public class StaffHomePanel extends JPanel {
         lblName.setToolTipText(fullInfo + " (Mã phiếu: " + item.ticketId() + ")");
         lblName.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Chuỗi hạn nhận (chỉ giữ ĐÚNG 1 chữ "Hạn:", loại bỏ chữ lặp lại)
         String rawNote = item.pickupDeadlineNote() != null ? item.pickupDeadlineNote().trim() : "";
         while (rawNote.toLowerCase().startsWith("hạn:") || rawNote.toLowerCase().startsWith("hạn")) {
             int colonIdx = rawNote.indexOf(':');
@@ -756,7 +706,6 @@ public class StaffHomePanel extends JPanel {
         textCol.add(lblDeadline);
         textCol.add(Box.createVerticalGlue());
 
-        // 3. Bên phải: Nút "Giao sách" hiển thị 100% đầy đủ không bị đè hay cắt chữ
         JPanel pnlButton = new JPanel(new GridBagLayout());
         pnlButton.setOpaque(false);
 
@@ -830,7 +779,7 @@ public class StaffHomePanel extends JPanel {
     }
 
     private void openBookDetail(StaffDashboardDto.NewBookTileDto tile) {
-        // Mở modal chi tiết sách
+
         new SwingWorker<BookSummaryDto, Void>() {
             @Override
             protected BookSummaryDto doInBackground() {
@@ -864,10 +813,6 @@ public class StaffHomePanel extends JPanel {
             navigationHandler.accept(route);
         }
     }
-
-    // =========================================================================
-    // 6. HELPER COMPONENTS & RENDERERS
-    // =========================================================================
 
     private JPanel createWhiteCard() {
         JPanel card = new JPanel() {
@@ -915,7 +860,6 @@ public class StaffHomePanel extends JPanel {
         return pnl;
     }
 
-    // Table Model cho khối Cần xử lý
     private static class TodoTableModel extends AbstractTableModel {
         private final String[] columns = {"Độc giả", "Sách", "Hạn trả", "Trạng thái", "Thao tác"};
         private List<StaffDashboardDto.TodoLoanItem> items = List.of();
@@ -945,7 +889,6 @@ public class StaffHomePanel extends JPanel {
         }
     }
 
-    // Renderer cho cột Trạng thái pill
     private static class PillStatusCellRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
@@ -983,7 +926,6 @@ public class StaffHomePanel extends JPanel {
         }
     }
 
-    // Renderer cho nút nhỏ "Trả sách" viền hồng
     private static class ReturnActionCellRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,

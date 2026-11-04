@@ -2,9 +2,6 @@ package com.ximilib.application.dto;
 
 import java.time.LocalDate;
 
-/**
- * PatronDto: Thông tin hồ sơ bạn đọc và thẻ thư viện (UC-2, F-04).
- */
 public class PatronDto {
     private final String userId;
     private final String username;

@@ -12,10 +12,6 @@ import java.util.List;
 import javax.swing.*;
 import raven.popup.component.GlassPaneChild;
 
-/**
- * NotificationPopupPanel: Hop thu chuong thong bao nhanh tren Header (GlassPanePopup)
- * Hien thi cac thong bao nhac han, qua han va he thong.
- */
 public class NotificationPopupPanel extends GlassPaneChild {
 
     public record NotificationItem(String title, String message, String time, boolean isWarning) {}
@@ -45,7 +41,6 @@ public class NotificationPopupPanel extends GlassPaneChild {
         container.setBorder(BorderFactory.createEmptyBorder(18, 22, 18, 22));
         container.setPreferredSize(new Dimension(520, 480));
 
-        // Header
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
 
@@ -71,7 +66,6 @@ public class NotificationPopupPanel extends GlassPaneChild {
         topPanel.add(lblTitle, BorderLayout.WEST);
         topPanel.add(rightHeader, BorderLayout.EAST);
 
-        // Danh sách thông báo mẫu
         List<NotificationItem> list = new ArrayList<>();
         list.add(new NotificationItem(
             "Cảnh báo quá hạn trả sách",
@@ -92,7 +86,6 @@ public class NotificationPopupPanel extends GlassPaneChild {
             false
         ));
 
-        // Bảng danh sách cuộn: cài đặt Scrollable để ép bề ngang luôn khớp Viewport, triệt tiêu 100% cuộn ngang
         ScrollableListPanel listPanel = new ScrollableListPanel();
         listPanel.setOpaque(false);
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
@@ -110,7 +103,6 @@ public class NotificationPopupPanel extends GlassPaneChild {
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.getVerticalScrollBar().setUnitIncrement(14);
 
-        // Footer nút Đóng
         JButton btnClose = UITheme.createPillButton("Đóng Hộp Thư", UITheme.TINT_LIGHT, UITheme.TEXT_MAIN);
         btnClose.setFont(UITheme.FONT_SMALL);
         btnClose.setPreferredSize(new Dimension(Integer.MAX_VALUE, 34));

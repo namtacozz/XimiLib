@@ -6,13 +6,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-/**
- * DatabaseConnectionManager: Quản lý kết nối JDBC thuần (java.sql.DriverManager) tập trung (R-01, R-07, R-08).
- * - Sử dụng DriverManager.getConnection(url, user, password), không pool, không shutdown hook, không double-checked locking.
- * - Lựa chọn có chủ đích cho quy mô PBL3 (vài máy trạm, mỗi truy vấn mở và đóng một kết nối độc lập).
- * - Bọc ngoại lệ SQLException khi kết nối thành thông báo thân thiện, không lộ thông tin kỹ thuật nhạy cảm hay chuỗi kết nối.
- * - Giữ nguyên tên lớp và API public Connection getConnection() throws SQLException để Repository không phải sửa.
- */
 public class DatabaseConnectionManager implements AutoCloseable {
 
     private final boolean isCustom;
@@ -20,9 +13,6 @@ public class DatabaseConnectionManager implements AutoCloseable {
     private final String customUser;
     private final String customPassword;
 
-    /**
-     * Khởi tạo mặc định: Sử dụng cấu hình nạp từ biến môi trường hoặc config/db.properties.
-     */
     public DatabaseConnectionManager() {
         this.isCustom = false;
         this.customUrl = null;
@@ -30,9 +20,6 @@ public class DatabaseConnectionManager implements AutoCloseable {
         this.customPassword = null;
     }
 
-    /**
-     * Khởi tạo với thông số kết nối tùy biến (chủ yếu phục vụ kiểm thử tích hợp / mock).
-     */
     public DatabaseConnectionManager(String url, String user, String password) {
         this.isCustom = true;
         this.customUrl = url;
@@ -40,11 +27,6 @@ public class DatabaseConnectionManager implements AutoCloseable {
         this.customPassword = password;
     }
 
-    /**
-     * Lấy kết nối JDBC thuần từ DriverManager.
-     * Nếu gặp lỗi kết nối (timeout, link failure, sai thông tin), ngoại lệ được bọc thành
-     * thông báo tiếng Việt thân thiện, che giấu chi tiết nhạy cảm.
-     */
     public Connection getConnection() throws SQLException {
         String url;
         String user;
@@ -67,7 +49,7 @@ public class DatabaseConnectionManager implements AutoCloseable {
             } catch (SQLException e) {
                 lastEx = e;
                 int err = e.getErrorCode();
-                // Không retry nếu sai mật khẩu hoặc thông số cố định
+
                 if (err == 1045 || err == 1044 || err == 1049 || isCustom) {
                     throw wrapConnectionException(e);
                 }
@@ -86,13 +68,9 @@ public class DatabaseConnectionManager implements AutoCloseable {
 
     @Override
     public void close() {
-        // Pure JDBC không giữ pool kết nối, mỗi kết nối được đóng độc lập bởi caller
+
     }
 
-    /**
-     * Đóng tài nguyên (tương đương {@link #close()}).
-     * Giữ nguyên để tương thích ngược với các Integration Tests.
-     */
     public void shutdown() {
         close();
     }

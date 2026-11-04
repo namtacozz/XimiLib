@@ -17,10 +17,6 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Window;
 
-/**
- * Shadow override of raven.datetime.util.Utils to maintain compatibility
- * with FlatLaf 3.5.4+ (FlatSVGIcon.ColorFilter Function constructor).
- */
 public class Utils {
 
     public static Point adjustPopupLocation(JPopupMenu popupMenu, Component component, Point point) {

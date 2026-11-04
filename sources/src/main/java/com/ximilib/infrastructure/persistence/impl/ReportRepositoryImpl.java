@@ -14,10 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * ReportRepositoryImpl: Triển khai ReportPort bằng JDBC PreparedStatement kết nối MySQL.
- * Giữ nguyên 100% các câu lệnh SQL và logic transaction phân định trạng thái cuốn sách theo quy định R-05, R-07.
- */
 public class ReportRepositoryImpl implements ReportPort {
 
     private final DatabaseConnectionManager connectionManager;
@@ -34,22 +30,22 @@ public class ReportRepositoryImpl implements ReportPort {
         BigDecimal totalFines = BigDecimal.ZERO;
 
         try (Connection conn = connectionManager.getConnection()) {
-            // Total books
+
             try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM sach WHERE IsDeleted = FALSE");
                  ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) totalBooks = rs.getInt(1);
             }
-            // Active loans
+
             try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM phieumuon WHERE Trangthai = 1");
                  ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) activeLoans = rs.getInt(1);
             }
-            // Overdue
+
             try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM phieumuon WHERE Trangthai = 3 OR (Trangthai = 1 AND Hantranhan < NOW())");
                  ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) overdueLoans = rs.getInt(1);
             }
-            // Fines paid
+
             try (PreparedStatement ps = conn.prepareStatement("SELECT COALESCE(SUM(Sotien), 0) FROM thanhtoan WHERE Trangthai = 1");
                  ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) totalFines = rs.getBigDecimal(1);
@@ -65,7 +61,7 @@ public class ReportRepositoryImpl implements ReportPort {
     public List<Object[]> getLoansReport() {
         String sql = """
             SELECT p.Maphieumuon, u.Hoten, p.Hinhthuc, p.Ngaymuon, p.Hantranhan, p.Ngaytra,
-                   CASE p.Trangthai 
+                   CASE p.Trangthai
                        WHEN 0 THEN 'Chờ duyệt'
                        WHEN 1 THEN 'Đang mượn'
                        WHEN 2 THEN 'Đã trả'
@@ -238,7 +234,6 @@ public class ReportRepositoryImpl implements ReportPort {
                     ps.executeUpdate();
                 }
 
-                // Nếu cập nhật sang Đã trả (2) hoặc Đã hủy (6), tự động giải phóng sách về KHA_DUNG
                 if (newStatusCode == 2 || newStatusCode == 6) {
                     String sqlFreeCopies = """
                         UPDATE cuonsach c
@@ -251,7 +246,7 @@ public class ReportRepositoryImpl implements ReportPort {
                         psFree.executeUpdate();
                     }
                 } else if (newStatusCode == 1 || newStatusCode == 3) {
-                    // Đang mượn hoặc Quá hạn -> Sách ở trạng thái DANG_MUON
+
                     String sqlBusyCopies = """
                         UPDATE cuonsach c
                         JOIN chitietphieumuon ct ON c.Macuonsach = ct.Macuonsach
@@ -263,7 +258,7 @@ public class ReportRepositoryImpl implements ReportPort {
                         psBusy.executeUpdate();
                     }
                 } else if (newStatusCode == 4 || newStatusCode == 5) {
-                    // Chờ bồi thường hoặc Đã mất -> HONG_MAT
+
                     String sqlLostCopies = """
                         UPDATE cuonsach c
                         JOIN chitietphieumuon ct ON c.Macuonsach = ct.Macuonsach

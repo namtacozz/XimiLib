@@ -6,13 +6,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-/**
- * DatabaseConfig: Nạp cấu hình kết nối CSDL MySQL và khóa bảo mật tập trung (R-07, R-08).
- * Thứ tự ưu tiên cấu hình:
- * 1. Biến môi trường hệ thống (XIMILIB_DB_*, XIMILIB_AES_KEY, MYSQL_PWD)
- * 2. File cấu hình config/db.properties (hoặc ../config/db.properties)
- * Tuyệt đối không lưu cứng mật khẩu hoặc khóa bảo mật mặc định trong mã nguồn.
- */
 public class DatabaseConfig {
 
     private static final String CONFIG_FILE_NAME = "config/db.properties";
@@ -95,7 +88,7 @@ public class DatabaseConfig {
             try (InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile), StandardCharsets.UTF_8)) {
                 props.load(reader);
             } catch (Exception ignored) {
-                // Tiếp tục đọc từ biến môi trường nếu không đọc được file
+
             }
         }
         return props;

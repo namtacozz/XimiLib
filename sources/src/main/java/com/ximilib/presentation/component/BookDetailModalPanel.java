@@ -18,12 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 
-/**
- * BookDetailModalPanel: Chi tiết đầu sách, Vị trí vật lý & Đánh giá/Bình luận (SRS UC-8, F-11).
- * Hiển thị vị trí kệ sách (Khu vực / Kệ), tình trạng cuốn vật lý,
- * và điểm đánh giá sao (1-5 ⭐) cùng nhận xét của độc giả lưu trong bảng `binhluan`.
- * Tuân thủ R-01, R-06, R-08, R-11.
- */
 public class BookDetailModalPanel extends JPanel {
 
     private final BookSummaryDto book;
@@ -51,18 +45,16 @@ public class BookDetailModalPanel extends JPanel {
     }
 
     private void initUI() {
-        // 1. Thông tin đầu sách (Cover + Chi tiết + Vị trí)
+
         JPanel topInfoPanel = new JPanel(new BorderLayout(16, 0));
         topInfoPanel.setOpaque(false);
 
-        // Bìa sách
         JLabel lblCover = new JLabel();
         lblCover.setPreferredSize(new Dimension(105, 145));
         lblCover.setBorder(BorderFactory.createLineBorder(UITheme.CARD_BORDER, 1));
         lblCover.setHorizontalAlignment(SwingConstants.CENTER);
         loadCoverAsync(lblCover, book.getCoverImage());
 
-        // Chi tiết
         JPanel details = new JPanel();
         details.setOpaque(false);
         details.setLayout(new BoxLayout(details, BoxLayout.Y_AXIS));
@@ -105,7 +97,7 @@ public class BookDetailModalPanel extends JPanel {
         lblRatingAverage.setIcon(com.ximilib.presentation.util.IconFactory.createStarIcon(new Color(245, 158, 11), 14));
         lblRatingAverage.setIconTextGap(6);
         lblRatingAverage.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblRatingAverage.setForeground(new Color(180, 83, 9)); // Amber color
+        lblRatingAverage.setForeground(new Color(180, 83, 9));
 
         details.add(lblTitle);
         details.add(Box.createVerticalStrut(4));
@@ -114,7 +106,6 @@ public class BookDetailModalPanel extends JPanel {
         details.add(Box.createVerticalStrut(4));
         details.add(lblRatingAverage);
 
-        // Mô tả tóm tắt ngắn ở phần đầu
         String shortDesc = getShortBookSynopsis(book);
         JLabel lblDesc = new JLabel("<html><p style='width:240px; color:#475569; font-size:11px; margin-top:4px;'>"
             + shortDesc + "</p></html>");
@@ -126,19 +117,15 @@ public class BookDetailModalPanel extends JPanel {
         topInfoPanel.add(details, BorderLayout.CENTER);
         add(topInfoPanel, BorderLayout.NORTH);
 
-        // 2. Tabbed / Phân vùng: Tóm tắt nội dung, Vị trí Kệ sách & Bình luận
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setFont(UITheme.FONT_BOLD);
 
-        // Tab 1: Khối Mô tả tóm tắt nội dung sách chuyên sâu
         JPanel descTab = createDescriptionPanel();
         tabbedPane.addTab("Tóm tắt nội dung", descTab);
 
-        // Tab 2: Vị trí kệ sách & Cuốn vật lý
         JPanel shelfPanel = createShelfLocationPanel();
         tabbedPane.addTab("Vị trí Kệ sách & Tồn kho", shelfPanel);
 
-        // Tab 3: Bình luận & Đánh giá (UC-8)
         JPanel commentsTab = createCommentsPanel();
         tabbedPane.addTab("Đánh giá & Bình luận", commentsTab);
 
@@ -175,7 +162,6 @@ public class BookDetailModalPanel extends JPanel {
 
         contentPanel.add(Box.createVerticalStrut(12));
 
-        // Khối thông tin bổ sung: Nhà xuất bản, ISBN, thể loại, tình trạng
         JPanel metaBox = new JPanel(new GridLayout(2, 2, 8, 6));
         metaBox.setOpaque(false);
         metaBox.setBorder(BorderFactory.createCompoundBorder(
@@ -325,7 +311,6 @@ public class BookDetailModalPanel extends JPanel {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // Danh sách bình luận cuộn được
         commentsListPanel.setLayout(new BoxLayout(commentsListPanel, BoxLayout.Y_AXIS));
         commentsListPanel.setBackground(Color.WHITE);
 
@@ -334,7 +319,6 @@ public class BookDetailModalPanel extends JPanel {
         scroll.getVerticalScrollBar().setUnitIncrement(14);
         panel.add(scroll, BorderLayout.CENTER);
 
-        // Khối gửi nhận xét mới
         JPanel addCommentBox = new JPanel(new BorderLayout(8, 6));
         addCommentBox.setOpaque(false);
         addCommentBox.setBorder(new EmptyBorder(8, 0, 0, 0));

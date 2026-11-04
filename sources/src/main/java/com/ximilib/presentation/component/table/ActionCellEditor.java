@@ -10,9 +10,6 @@ import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.table.TableCellEditor;
 
-/**
- * CellEditor cho cột Thao tác (kích hoạt click nút Xóa / Sửa).
- */
 public class ActionCellEditor extends AbstractCellEditor implements TableCellEditor {
 
     private final JPanel panel;

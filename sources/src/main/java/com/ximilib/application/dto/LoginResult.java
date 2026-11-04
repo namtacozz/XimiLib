@@ -2,9 +2,6 @@ package com.ximilib.application.dto;
 
 import com.ximilib.domain.model.User;
 
-/**
- * LoginResult: Kết quả phản hồi từ Application Service khi thực hiện đăng nhập.
- */
 public class LoginResult {
 
     private final boolean success;

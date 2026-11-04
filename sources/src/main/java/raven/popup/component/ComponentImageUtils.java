@@ -14,10 +14,6 @@ import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 
-/**
- * Shadow override of raven.popup.component.ComponentImageUtils
- * to eliminate NullPointerException when Component.createVolatileImage returns null.
- */
 public class ComponentImageUtils {
 
     public static VolatileImage createImage(Component component) {

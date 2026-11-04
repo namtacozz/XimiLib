@@ -25,11 +25,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * ReaderBorrowRegistrationView: Giao diện "Đăng ký mượn sách" trực tuyến dành cho Độc giả.
- * Đáp ứng đầy đủ bản Đặc tả SRS 3.2.5 (UC-5: Độc giả đặt mượn sách qua ứng dụng).
- * Tuân thủ quy tắc: R-01, R-02, R-06, BR-02 (Tối đa 3 cuốn 14 ngày), BR-04 (Tại chỗ trả 17:00), BR-07 (Chặn khi nợ phạt).
- */
 public class ReaderBorrowRegistrationView extends JPanel {
 
     private final CirculationService circulationService;
@@ -37,19 +32,16 @@ public class ReaderBorrowRegistrationView extends JPanel {
     private final User currentUser;
     private final Runnable onSuccessNavigate;
 
-    // Header thẻ độc giả
     private JLabel lblCardHolderName;
     private JLabel lblCardNumber;
     private JLabel lblCardStatus;
     private JLabel lblActiveLoansCount;
 
-    // Tìm kiếm & Danh sách chọn sách
     private SearchField txtBookSearch;
     private DefaultListModel<BookSummaryDto> bookListModel;
     private JList<BookSummaryDto> bookList;
     private javax.swing.Timer searchTimer;
 
-    // Khung chi tiết đăng ký mượn
     private JLabel lblCover;
     private JLabel lblBookTitle;
     private JLabel lblBookMeta;
@@ -57,7 +49,6 @@ public class ReaderBorrowRegistrationView extends JPanel {
     private JComboBox<String> cmbAvailableCopies;
     private final List<BookCopyInfo> currentCopies = new ArrayList<>();
 
-    // Tùy chọn mượn
     private JToggleButton btnVeNha;
     private JToggleButton btnTaiCho;
     private JLabel lblDueDatePreview;
@@ -86,10 +77,9 @@ public class ReaderBorrowRegistrationView extends JPanel {
     }
 
     private void initUI() {
-        // 1. Header: Thẻ bạn đọc & Thông tin kiểm tra điều kiện (Nằm gọn ở đỉnh)
+
         add(createCardInfoHeader(), BorderLayout.NORTH);
 
-        // 2. Nội dung 2 cột: Cột trái (Tìm & Chọn sách) - Cột phải (Chi tiết & Xác nhận mượn)
         JPanel contentGrid = new JPanel(new GridLayout(1, 2, 16, 0));
         contentGrid.setOpaque(false);
 
@@ -181,7 +171,6 @@ public class ReaderBorrowRegistrationView extends JPanel {
         panel.setOpaque(false);
         panel.setBorder(new EmptyBorder(16, 16, 16, 16));
 
-        // Top: Tiêu đề + Ô tìm kiếm sách
         JPanel topBox = new JPanel(new BorderLayout(0, 8));
         topBox.setOpaque(false);
 
@@ -207,7 +196,6 @@ public class ReaderBorrowRegistrationView extends JPanel {
         topBox.add(lblTitle, BorderLayout.NORTH);
         topBox.add(txtBookSearch, BorderLayout.SOUTH);
 
-        // Center: Danh sách kết quả sách
         bookListModel = new DefaultListModel<>();
         bookList = new JList<>(bookListModel);
         bookList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -250,18 +238,15 @@ public class ReaderBorrowRegistrationView extends JPanel {
         panel.setOpaque(false);
         panel.setBorder(new EmptyBorder(12, 16, 12, 16));
 
-        // Tiêu đề
         JLabel lblHeader = new JLabel("2. Thông tin đăng ký & Xác nhận");
         lblHeader.setFont(UITheme.FONT_TITLE);
         lblHeader.setForeground(UITheme.TEXT_MAIN);
         panel.add(lblHeader, BorderLayout.NORTH);
 
-        // Body: Thẻ sách đang chọn + Form mượn
         JPanel body = new JPanel();
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setOpaque(false);
 
-        // Thẻ xem trước sách được chọn (Thiết kế tinh gọn, vừa khít khung nhìn)
         JPanel bookPreviewCard = new JPanel(new BorderLayout(12, 0));
         bookPreviewCard.setOpaque(true);
         bookPreviewCard.setBackground(new Color(248, 250, 252));
@@ -313,7 +298,6 @@ public class ReaderBorrowRegistrationView extends JPanel {
         body.add(bookPreviewCard);
         body.add(Box.createVerticalStrut(10));
 
-        // Chọn cuốn sách cụ thể (Mã vạch khả dụng)
         JLabel lblCopySelect = new JLabel("Chọn cuốn sách vật lý (mã vạch khả dụng):");
         lblCopySelect.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 12f));
         lblCopySelect.setForeground(UITheme.TEXT_MAIN);
@@ -330,7 +314,6 @@ public class ReaderBorrowRegistrationView extends JPanel {
         body.add(cmbAvailableCopies);
         body.add(Box.createVerticalStrut(8));
 
-        // Hình thức mượn
         JLabel lblFormTitle = new JLabel("Hình thức mượn sách:");
         lblFormTitle.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 12f));
         lblFormTitle.setForeground(UITheme.TEXT_MAIN);
@@ -366,15 +349,13 @@ public class ReaderBorrowRegistrationView extends JPanel {
         body.add(radioRow);
         body.add(Box.createVerticalStrut(8));
 
-        // Thời hạn trả dự kiến
         lblDueDatePreview = new JLabel("Hạn trả dự kiến: --");
         lblDueDatePreview.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblDueDatePreview.setForeground(new Color(13, 148, 136)); // Teal color
+        lblDueDatePreview.setForeground(new Color(13, 148, 136));
         lblDueDatePreview.setAlignmentX(Component.LEFT_ALIGNMENT);
         body.add(lblDueDatePreview);
         body.add(Box.createVerticalStrut(8));
 
-        // Ghi chú
         JLabel lblNotes = new JLabel("Ghi chú mượn (Tùy chọn):");
         lblNotes.setFont(UITheme.FONT_SMALL);
         lblNotes.setForeground(UITheme.TEXT_MUTED);
@@ -394,7 +375,6 @@ public class ReaderBorrowRegistrationView extends JPanel {
 
         panel.add(body, BorderLayout.CENTER);
 
-        // Nút bấm đăng ký mượn (Luôn nằm cố định ở đáy, không bị che khuất)
         JPanel bottomWrap = new JPanel(new BorderLayout());
         bottomWrap.setOpaque(false);
         bottomWrap.setBorder(new EmptyBorder(8, 0, 0, 0));
@@ -476,7 +456,6 @@ public class ReaderBorrowRegistrationView extends JPanel {
                         lblCardStatus.setText("Chưa Có Thẻ");
                     }
 
-                    // Tải số lượng sách đang mượn về nhà
                     java.util.List<com.ximilib.application.dto.BorrowTicketDto> loans = circulationService.getReaderLoans(currentUser.getId());
                     long homeLoans = 0;
                     if (loans != null) {
@@ -516,7 +495,7 @@ public class ReaderBorrowRegistrationView extends JPanel {
                         bookList.setSelectedIndex(0);
                     }
                 } catch (Exception e) {
-                    // ignore
+
                 }
             }
         };
@@ -574,7 +553,6 @@ public class ReaderBorrowRegistrationView extends JPanel {
             return;
         }
 
-        // Hết sách trên kệ: Chuyển sang đặt trước sách
         if (currentCopies.isEmpty()) {
             btnConfirmBorrow.setEnabled(false);
             btnConfirmBorrow.setText("Đang ghi nhận đặt trước...");

@@ -2,9 +2,6 @@ package com.ximilib.presentation.component.table;
 
 import com.ximilib.application.dto.BookSearchCriteria;
 
-/**
- * FilterItems: Các đối tượng bao đóng cho ComboBox lọc thể loại và tình trạng sách.
- */
 public final class FilterItems {
 
     private FilterItems() {}

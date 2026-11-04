@@ -13,31 +13,21 @@ import java.util.function.Consumer;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-/**
- * BookCoverTile: Thành phần hiển thị bìa sách tỉ lệ 2:3 (~110x165px) chuẩn LibRack/Goodreads.
- * - Ảnh bìa tải từ Hinhanh hoặc resources.
- * - Fallback: Ô màu nền pastel chọn xác định theo mã sách, chữ cái đầu tên sách.
- * - Không có icon trái tim, không có chấm tròn.
- * - Pill "Hết sách" nếu hết bản sao khả dụng.
- * - Tên sách tối đa 2 dòng kèm tooltip đầy đủ.
- */
 public class BookCoverTile extends JPanel {
 
     private static final int COVER_WIDTH = 112;
     private static final int COVER_HEIGHT = 168;
 
-    // Cache thumbnail đã scale (220x330 - 2x retina) để tối ưu tốc độ load ảnh và tiết kiệm bộ nhớ
     private static final java.util.Map<String, BufferedImage> THUMBNAIL_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
-    // Bảng màu pastel chọn xác định theo mã sách (Deterministic Pastels)
     private static final Color[] PASTEL_PALETTE = {
-        new Color(254, 226, 226), // Rose light
-        new Color(254, 243, 199), // Amber light
-        new Color(220, 252, 231), // Emerald light
-        new Color(224, 231, 255), // Indigo light
-        new Color(243, 232, 255), // Purple light
-        new Color(255, 237, 213), // Orange light
-        new Color(207, 250, 254)  // Cyan light
+        new Color(254, 226, 226),
+        new Color(254, 243, 199),
+        new Color(220, 252, 231),
+        new Color(224, 231, 255),
+        new Color(243, 232, 255),
+        new Color(255, 237, 213),
+        new Color(207, 250, 254)
     };
 
     private static final Color[] PASTEL_TEXT_PALETTE = {
@@ -87,7 +77,7 @@ public class BookCoverTile extends JPanel {
     }
 
     private void initUI() {
-        // 1. Khung bìa sách 112x168 tỉ lệ 2:3
+
         coverPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -99,7 +89,6 @@ public class BookCoverTile extends JPanel {
                 int w = getWidth();
                 int h = getHeight();
 
-                // Nền bo góc 8px
                 if (loadedCover != null) {
                     g2.setClip(new java.awt.geom.RoundRectangle2D.Float(0, 0, w, h, 8, 8));
                     g2.drawImage(loadedCover, 0, 0, w, h, null);
@@ -109,11 +98,9 @@ public class BookCoverTile extends JPanel {
                     g2.setColor(PASTEL_PALETTE[paletteIndex]);
                     g2.fillRoundRect(0, 0, w, h, 8, 8);
 
-                    // Gáy sách mô phỏng tinh tế
                     g2.setColor(new Color(0, 0, 0, 20));
                     g2.fillRect(0, 0, 5, h);
 
-                    // Chữ cái đầu của tên sách
                     String initial = (!book.title().isBlank())
                         ? String.valueOf(book.title().charAt(0)).toUpperCase()
                         : "B";
@@ -123,12 +110,10 @@ public class BookCoverTile extends JPanel {
                     g2.drawString(initial, (w - fm.stringWidth(initial)) / 2, (h + fm.getAscent() - fm.getDescent()) / 2);
                 }
 
-                // Viền ngoài (Highlight khi hover)
                 g2.setColor(isHover ? UITheme.PRIMARY : UITheme.BORDER);
                 g2.setStroke(new BasicStroke(isHover ? 1.6f : 1.0f));
                 g2.drawRoundRect(0, 0, w - 1, h - 1, 8, 8);
 
-                // Nếu hết sách: Pill "Hết sách" ở góc dưới (ẩn khi đang hiện lớp phủ hover)
                 if (book.availableCopies() <= 0 && !isHover) {
                     int pillH = 18;
                     int pillW = 62;
@@ -153,13 +138,12 @@ public class BookCoverTile extends JPanel {
         coverPanel.setMinimumSize(new Dimension(COVER_WIDTH, COVER_HEIGHT));
         coverPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Lớp phủ mờ (Dark overlay) khi hover với 2 nút nhanh
         overlayPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(15, 23, 42, 195)); // Deep dark glass overlay 76%
+                g2.setColor(new Color(15, 23, 42, 195));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
                 g2.dispose();
                 super.paintComponent(g);
@@ -209,7 +193,6 @@ public class BookCoverTile extends JPanel {
 
         coverPanel.add(overlayPanel);
 
-        // 2. Tên sách: ĐÚNG 1 HÀNG DUY NHẤT, cắt "…" nếu dài
         String rawTitle = book.title() != null ? book.title().trim() : "";
         String displayTitle = rawTitle;
         if (displayTitle.length() > 17) {
@@ -221,7 +204,6 @@ public class BookCoverTile extends JPanel {
         lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblTitle.setToolTipText(rawTitle);
 
-        // 3. Tác giả: ĐÚNG 1 HÀNG DUY NHẤT
         String authorText = book.author() != null ? book.author().trim() : "Chưa rõ";
         if (authorText.length() > 20) {
             authorText = authorText.substring(0, 18) + "…";
@@ -238,7 +220,6 @@ public class BookCoverTile extends JPanel {
         add(Box.createVerticalStrut(2));
         add(lblAuthor);
 
-        // Xử lý sự kiện Hover và Click đồng bộ không giật lag
         MouseAdapter hoverAdapter = new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -304,7 +285,6 @@ public class BookCoverTile extends JPanel {
             return;
         }
 
-        // 1. Kiểm tra cache thumbnail bộ nhớ (tốc độ 0ms)
         BufferedImage cached = THUMBNAIL_CACHE.get(path);
         if (cached != null) {
             this.loadedCover = cached;
@@ -317,7 +297,7 @@ public class BookCoverTile extends JPanel {
             protected BufferedImage doInBackground() {
                 try {
                     BufferedImage raw = null;
-                    // 1. Thử load tức thì từ classpath với tên file chuẩn
+
                     String fileName = new File(path).getName();
                     URL url = getClass().getResource("/assets/covers/" + fileName);
                     if (url == null) {
@@ -327,7 +307,6 @@ public class BookCoverTile extends JPanel {
                         raw = ImageIO.read(url);
                     }
 
-                    // 2. Thử load từ thư mục dự án
                     if (raw == null) {
                         File f = new File(path);
                         if (f.exists()) {
@@ -350,7 +329,7 @@ public class BookCoverTile extends JPanel {
                     }
 
                     if (raw != null) {
-                        // Tạo thumbnail kích thước 220x330 (2x retina) tối ưu tốc độ vẽ và bộ nhớ
+
                         BufferedImage thumb = new BufferedImage(COVER_WIDTH * 2, COVER_HEIGHT * 2, BufferedImage.TYPE_INT_RGB);
                         Graphics2D g2 = thumb.createGraphics();
                         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);

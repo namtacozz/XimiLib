@@ -10,11 +10,6 @@ import java.awt.Color;
 import java.sql.*;
 import java.util.*;
 
-/**
- * BookRepositoryImpl: Triển khai truy vấn dữ liệu thực tế từ MySQL qua JDBC PreparedStatement.
- * - Tuân thủ R-01, R-03, R-04, R-07.
- * - 100% PreparedStatement có tham số `?`, không cộng chuỗi SQL.
- */
 public class BookRepositoryImpl implements BookRepository, BookQueryPort {
 
     private static final Color[] PALETTE = {
@@ -64,7 +59,6 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
             params.add(categoryId);
         }
 
-        // Subquery counting active copies
         String copiesSubquery = "COALESCE((SELECT COUNT(*) FROM cuonsach cs WHERE cs.Masach = s.Masach AND cs.Trangthaisach = 'KHA_DUNG'), 0)";
         if (avail == BookSearchCriteria.AvailabilityFilter.AVAILABLE_ONLY) {
             whereClause.append(" AND ").append(copiesSubquery).append(" > 0 ");
@@ -72,7 +66,6 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
             whereClause.append(" AND ").append(copiesSubquery).append(" = 0 ");
         }
 
-        // 1. Đếm tổng số bản ghi khớp
         String countSql = "SELECT COUNT(DISTINCT s.Masach) "
                         + "FROM sach s "
                         + "LEFT JOIN theloai t ON s.Matheloai = t.Matheloai "
@@ -99,7 +92,6 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
             throw new RuntimeException("Lỗi truy vấn đếm sách từ MySQL: " + e.getMessage(), e);
         }
 
-        // 2. Truy vấn dữ liệu phân trang
         String dataSql = "SELECT s.Masach, s.Tensach, s.Matheloai, MAX(t.Tentheloai) AS Tentheloai, s.Manxb, MAX(nxb.tennxb) AS tennxb, "
                        + "       GROUP_CONCAT(DISTINCT tg.Tentacgia SEPARATOR ', ') AS Tentacgia, s.Isbn, s.Namxb, s.Giabia, s.Hinhanh, s.Motasach, s.IsDeleted, "
                        + "       " + copiesSubquery + " AS available_copies, "
@@ -378,7 +370,7 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
         try (Connection conn = connectionManager.getConnection()) {
             conn.setAutoCommit(false);
             try {
-                // 1. Tìm hoặc lấy thể loại phù hợp
+
                 int catId = 1;
                 try (PreparedStatement psCat = conn.prepareStatement("SELECT Matheloai FROM theloai WHERE LOWER(Tentheloai) = ? LIMIT 1")) {
                     psCat.setString(1, (categoryName != null ? categoryName.trim().toLowerCase() : ""));
@@ -395,7 +387,6 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                     }
                 }
 
-                // 2. Tìm hoặc thêm tác giả mới
                 String authorId = null;
                 try (PreparedStatement psTg = conn.prepareStatement("SELECT Matacgia FROM tacgia WHERE LOWER(Tentacgia) = ? LIMIT 1")) {
                     psTg.setString(1, cleanAuthor.toLowerCase());
@@ -420,7 +411,6 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                     }
                 }
 
-                // 3. Tìm hoặc thêm NXB
                 String pubId = "NXB01";
                 try (PreparedStatement psPub = conn.prepareStatement("SELECT manxb FROM nhaxuatban WHERE LOWER(tennxb) = ? OR LOWER(tennxb) LIKE ? LIMIT 1")) {
                     psPub.setString(1, cleanPub.toLowerCase());
@@ -445,7 +435,6 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                     }
                 }
 
-                // 4. Tìm hoặc xác định Kệ sách
                 String shelfId = "KE-A1";
                 try (PreparedStatement psKe = conn.prepareStatement("SELECT Makesach FROM kesach WHERE LOWER(Tenkesach) = ? OR LOWER(Tenkesach) LIKE ? OR LOWER(Makesach) = ? LIMIT 1")) {
                     psKe.setString(1, cleanShelf.toLowerCase());
@@ -464,7 +453,6 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                     }
                 }
 
-                // 5. Sinh mã sách tự động: MSxxxx
                 int nextBookNum = 1;
                 try (PreparedStatement psMaxBook = conn.prepareStatement("SELECT MAX(CAST(SUBSTRING(Masach, 3) AS UNSIGNED)) FROM sach WHERE Masach LIKE 'MS%'")) {
                     try (ResultSet rs = psMaxBook.executeQuery()) {
@@ -473,7 +461,6 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                 }
                 String bookId = String.format("MS%04d", nextBookNum);
 
-                // 6. Thêm sách vào bảng sach
                 String insBookSql = "INSERT INTO sach (Masach, Matheloai, Manxb, Tensach, Isbn, Namxb, Giabia, Hinhanh, IsDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, FALSE)";
                 try (PreparedStatement psBook = conn.prepareStatement(insBookSql)) {
                     psBook.setString(1, bookId);
@@ -487,7 +474,6 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                     psBook.executeUpdate();
                 }
 
-                // 7. Thêm liên kết sach_tacgia (dùng đúng cột Vaitrotacgia hoặc default)
                 String insStSql = "INSERT INTO sach_tacgia (Masach, Matacgia, Vaitrotacgia) VALUES (?, ?, 'Tác giả chính')";
                 try (PreparedStatement psSt = conn.prepareStatement(insStSql)) {
                     psSt.setString(1, bookId);
@@ -495,7 +481,6 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                     psSt.executeUpdate();
                 }
 
-                // 8. Tạo cuốn sách vật lý (cuonsach) ở trạng thái KHA_DUNG
                 String insCopySql = "INSERT INTO cuonsach (Macuonsach, Masach, Makesach, Isbn, Ngaynhap, Tinhtrangsach, Trangthaisach) VALUES (?, ?, ?, ?, CURRENT_DATE(), 'Mới', 'KHA_DUNG')";
                 try (PreparedStatement psCopy = conn.prepareStatement(insCopySql)) {
                     for (int i = 1; i <= initialCopies; i++) {

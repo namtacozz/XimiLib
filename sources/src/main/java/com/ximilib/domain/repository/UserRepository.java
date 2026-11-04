@@ -6,10 +6,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * UserRepository: Giao diện lưu trữ và truy vấn người dùng từ CSDL MySQL (bảng nguoidung, thethuvien, vaitro).
- * Tuân thủ Clean Architecture (Domain interface, không import SQL/JDBC/Swing - R-01).
- */
 public interface UserRepository {
 
     Optional<User> findByIdentifier(String identifier);

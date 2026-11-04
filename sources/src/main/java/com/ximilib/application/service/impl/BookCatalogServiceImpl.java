@@ -15,12 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * BookCatalogServiceImpl: Triển khai thực tế nghiệp vụ quản lý kho sách từ MySQL CSDL.
- * - Tuân thủ R-01 (Presentation -> Application -> Domain <- Infrastructure).
- * - Tuân thủ BR-09 (kiểm tra sách đang mượn trước khi xóa mềm).
- * - Dữ liệu lấy 100% từ MySQL qua BookRepository, không lưu cứng dữ liệu sách trong Java.
- */
 public class BookCatalogServiceImpl implements BookCatalogService {
 
     private final BookRepository bookRepository;

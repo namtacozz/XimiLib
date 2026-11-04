@@ -1,14 +1,11 @@
 package com.ximilib.application.dto;
 
-/**
- * BookSearchCriteria: Tiêu chí tìm kiếm và lọc danh mục sách từ UI chuyển giao sang Application Service.
- */
 public class BookSearchCriteria {
 
     public enum AvailabilityFilter {
-        ALL,            // Tất cả
-        AVAILABLE_ONLY, // Còn sách (> 0 khả dụng)
-        OUT_OF_STOCK    // Hết sách (= 0 khả dụng)
+        ALL,
+        AVAILABLE_ONLY,
+        OUT_OF_STOCK
     }
 
     private String keyword;

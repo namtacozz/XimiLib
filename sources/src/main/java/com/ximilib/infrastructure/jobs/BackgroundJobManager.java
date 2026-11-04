@@ -11,13 +11,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- * BackgroundJobManager: Quản lý các tác vụ nền định kỳ của hệ thống (SRS Mục 3.2.7 & Non-functional).
- * Chạy daemon thread quét cơ sở dữ liệu:
- * 1. Đánh dấu phiếu mượn QUÁ HẠN (Trangthai 1 -> 3) khi Hantranhan < NOW().
- * 2. Hủy đặt chỗ giữ sách (datcho) quá hạn 24 giờ chưa đến lấy.
- * Tuân thủ R-05, R-06, R-08.
- */
 public class BackgroundJobManager {
 
     private static BackgroundJobManager instance;
@@ -41,7 +34,7 @@ public class BackgroundJobManager {
     }
 
     public void start() {
-        // Chạy ngay sau 5 giây khởi động, sau đó lặp lại mỗi 1 giờ
+
         scheduler.scheduleAtFixedRate(this::runDailyMaintenance, 5, 3600, TimeUnit.SECONDS);
     }
 
@@ -51,23 +44,21 @@ public class BackgroundJobManager {
 
     private void runDailyMaintenance() {
         try (Connection conn = connectionManager.getConnection()) {
-            // 1. Quét quá hạn phiếu mượn
+
             String updateOverdueSql = "UPDATE phieumuon SET Trangthai = 3 WHERE Trangthai = 1 AND Hantranhan < NOW()";
             int overdueCount;
             try (PreparedStatement ps = conn.prepareStatement(updateOverdueSql)) {
                 overdueCount = ps.executeUpdate();
             }
 
-            // 2. Quét hủy đặt chỗ quá 24h
             String cancelReservationSql = "UPDATE datcho SET Trangthai = 'DA_HUY' WHERE Trangthai = 'CHO_LAY' AND Ngayhethan < NOW()";
             int cancelCount = 0;
             try (PreparedStatement ps = conn.prepareStatement(cancelReservationSql)) {
                 cancelCount = ps.executeUpdate();
             } catch (SQLException ignored) {
-                // Bảng datcho có thể chưa phát sinh dữ liệu
+
             }
 
-            // 3. Kiểm tra và duy trì thư mục sao lưu CSDL dự phòng (DEV-07, YC-13)
             java.io.File backupDir = new java.io.File("backups");
             if (!backupDir.exists()) {
                 backupDir.mkdirs();

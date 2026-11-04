@@ -9,12 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * TabBar: Thanh chuyển tab phẳng hiện đại theo phong cách Stripe / Linear.
- * - Gạch chân màu hồng pastel (UITheme.PRIMARY) dày 2px tại tab được chọn.
- * - Tab không chọn hiển thị màu textMuted, hover textMain.
- * - Tối giản, không abstraction thừa.
- */
 public class TabBar extends JPanel {
 
     private final List<String> tabNames;
@@ -109,7 +103,6 @@ public class TabBar extends JPanel {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-            // Màu chữ
             if (active) {
                 g2.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 13f));
                 g2.setColor(UITheme.PRIMARY);
@@ -126,7 +119,6 @@ public class TabBar extends JPanel {
             int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2 - 2;
             g2.drawString(title, x, y);
 
-            // Gạch chân màu hồng khi active
             if (active) {
                 g2.setColor(UITheme.PRIMARY);
                 g2.fillRect(0, getHeight() - 3, getWidth(), 3);

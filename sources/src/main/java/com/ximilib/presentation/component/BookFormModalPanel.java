@@ -12,10 +12,6 @@ import raven.modal.ModalDialog;
 import raven.modal.component.SimpleModalBorder;
 import raven.modal.option.Option;
 
-/**
- * BookFormModalPanel: Form Thêm/Sửa thông tin sách
- * Tích hợp lưu vào CSDL và DatePicker chuẩn dd/MM/yyyy.
- */
 public class BookFormModalPanel extends JPanel {
 
     private final BookSummaryDto existingBook;
@@ -90,7 +86,7 @@ public class BookFormModalPanel extends JPanel {
         txtTitle = new JTextField(existingBook != null ? existingBook.getTitle() : "");
         txtIsbn = new JTextField(existingBook != null ? ("ISBN-" + existingBook.getBookId()) : "978-604-");
         txtAuthor = new JTextField(existingBook != null ? existingBook.getAuthor() : "");
-        
+
         String[] categories = {"Công nghệ thông tin", "Khoa học tự nhiên", "Kinh tế - Quản trị", "Văn học & Nghệ thuật", "Ngoại ngữ", "Kỹ năng sống", "Tâm lý học"};
         cmbCategory = new JComboBox<>(categories);
         if (existingBook != null && existingBook.getCategoryName() != null) {
@@ -112,7 +108,6 @@ public class BookFormModalPanel extends JPanel {
 
         spnCopies = new JSpinner(new SpinnerNumberModel(3, 1, 100, 1));
 
-        // Ngày nhập kho với DatePicker (dd/MM/yyyy)
         txtImportDate = new JFormattedTextField();
         importDatePicker = UiModalHelper.createDatePicker(txtImportDate, false);
         importDatePicker.setSelectedDate(LocalDate.now());

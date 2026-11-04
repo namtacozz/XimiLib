@@ -6,10 +6,6 @@ import com.ximilib.application.dto.RegisterRequestDto;
 import com.ximilib.application.dto.UserAccountDto;
 import java.util.List;
 
-/**
- * AuthenticationService: Hợp đồng nghiệp vụ quản lý xác thực, đăng nhập và hồ sơ bạn đọc (UC-1, UC-2, YC-10, F-04).
- * Tuân thủ R-01, R-08 và BR-01.
- */
 public interface AuthenticationService {
 
     LoginResult login(String identifier, String password);

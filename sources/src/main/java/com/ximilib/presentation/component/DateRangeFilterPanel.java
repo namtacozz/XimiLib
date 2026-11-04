@@ -7,10 +7,6 @@ import java.time.LocalDate;
 import javax.swing.*;
 import raven.datetime.DatePicker;
 
-/**
- * DateRangeFilterPanel: Bo loc thoi gian tu ngay den ngay
- * su dung DatePicker voi che do BETWEEN_DATE_SELECTED (UC-7).
- */
 public class DateRangeFilterPanel extends JPanel {
 
     private final JFormattedTextField txtRangeEditor;

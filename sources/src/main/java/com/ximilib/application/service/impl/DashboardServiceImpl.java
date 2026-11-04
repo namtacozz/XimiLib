@@ -9,9 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * DashboardServiceImpl: Thực thi nghiệp vụ nạp dữ liệu Trang chủ.
- */
 public class DashboardServiceImpl implements DashboardService {
 
     private final DashboardQueryPort dashboardQueryPort;

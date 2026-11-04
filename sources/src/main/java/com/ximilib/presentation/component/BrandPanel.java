@@ -8,12 +8,6 @@ import java.io.InputStream;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-/**
- * BrandPanel: Panel hiển thị hình ảnh thương hiệu ở màn hình Đăng Nhập.
- * - Hiển thị ảnh đơn tinh tế plushy-woman-work.jpg.
- * - Lớp phủ gradient tương phản cao đạt chuẩn WCAG >= 4.5:1.
- * - Thông điệp tri thức và nhận diện XimiLib.
- */
 public class BrandPanel extends JPanel {
 
     private static final String IMAGE_PATH = "/images/login/plushy-woman-work.jpg";
@@ -26,12 +20,10 @@ public class BrandPanel extends JPanel {
 
         loadBrandImage();
 
-        // Khung thông điệp thương hiệu ở góc dưới
         JPanel bottomContainer = new JPanel();
         bottomContainer.setOpaque(false);
         bottomContainer.setLayout(new BoxLayout(bottomContainer, BoxLayout.Y_AXIS));
 
-        // Pill nhãn thương hiệu
         JLabel lblPill = new JLabel("XimiLib  ·  Library OS") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -50,13 +42,11 @@ public class BrandPanel extends JPanel {
         lblPill.setBorder(BorderFactory.createEmptyBorder(4, 14, 4, 14));
         lblPill.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Tiêu đề chính
         JLabel lblTitle = new JLabel("Không gian đọc thân thiện");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(Color.WHITE);
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Mô tả phụ
         JLabel lblDesc = new JLabel("<html><body style='width: 320px; color: #F1F5F9; font-size: 11px; line-height: 1.4;'>"
             + "Đồng hành cùng bạn đọc và thủ thư trong từng trang sách và câu chuyện mỗi ngày."
             + "</body></html>");
@@ -94,7 +84,7 @@ public class BrandPanel extends JPanel {
     }
 
     public void stopTimer() {
-        // Tĩnh 1 ảnh duy nhất, không dùng timer
+
     }
 
     @Override
@@ -106,11 +96,9 @@ public class BrandPanel extends JPanel {
         int w = getWidth();
         int h = getHeight();
 
-        // 1. Nền dự phòng màu tím hồng chủ đạo
         g2.setColor(UITheme.PRIMARY);
         g2.fillRect(0, 0, w, h);
 
-        // 2. Vẽ hình ảnh bìa theo tỉ lệ cover fill
         if (brandImage != null) {
             double imgAspect = (double) brandImage.getWidth() / brandImage.getHeight();
             double panelAspect = (double) w / h;
@@ -129,7 +117,6 @@ public class BrandPanel extends JPanel {
             g2.drawImage(brandImage, dx, dy, dw, dh, null);
         }
 
-        // 3. Phủ gradient tối bảo đảm độ tương phản chữ trắng đạt chuẩn WCAG >= 4.5:1
         GradientPaint overlay = new GradientPaint(
             0, 0, new Color(15, 23, 42, 70),
             0, h, new Color(131, 24, 67, 235)

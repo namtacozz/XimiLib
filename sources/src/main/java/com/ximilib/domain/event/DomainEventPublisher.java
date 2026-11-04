@@ -5,9 +5,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * DomainEventPublisher: Bộ điều phối Observer Pattern trong tiến trình theo ARCHITECTURE.md §5.
- */
 public class DomainEventPublisher {
 
     private static final Map<Class<?>, List<DomainEventListener<?>>> LISTENERS = new ConcurrentHashMap<>();

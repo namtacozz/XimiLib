@@ -8,12 +8,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import javax.swing.*;
 
-/**
- * PaginationBar: Thanh phân trang độc lập, tái sử dụng chuẩn theo phong cách ảnh 2 và FlatLaf.
- * Bố cục:
- * - Căn giữa: Nút Trước (<), các nút số trang, dấu "…", trang cuối, nút Sau (>)
- * - Góc phải: Dropdown chọn số dòng trên trang ("10 / trang", "20 / trang", "50 / trang")
- */
 public class PaginationBar extends JPanel {
 
     private int currentPage = 1;
@@ -32,11 +26,9 @@ public class PaginationBar extends JPanel {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
-        // 1. Cụm nút phân trang ở giữa
         pagesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 0));
         pagesPanel.setOpaque(false);
 
-        // 2. Dropdown số mục trên trang ở góc phải
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         rightPanel.setOpaque(false);
 
@@ -86,7 +78,6 @@ public class PaginationBar extends JPanel {
         this.pageSize = pageSize;
         this.totalElements = totalElements;
 
-        // Cập nhật combobox mà không kích hoạt lại event
         String expectedItem = pageSize + " / trang";
         if (!expectedItem.equals(cmbPageSize.getSelectedItem())) {
             for (int i = 0; i < cmbPageSize.getItemCount(); i++) {
@@ -103,7 +94,6 @@ public class PaginationBar extends JPanel {
     private void rebuildPageButtons() {
         pagesPanel.removeAll();
 
-        // Nút Trước (<)
         JButton btnPrev = createNavButton(IconFactory.createChevronLeftIcon(
             currentPage > 1 ? UITheme.TEXT_MAIN : UITheme.TEXT_MUTED, 16), currentPage > 1);
         btnPrev.addActionListener(e -> {
@@ -113,7 +103,6 @@ public class PaginationBar extends JPanel {
         });
         pagesPanel.add(btnPrev);
 
-        // Danh sách số trang rút gọn với "..."
         List<Integer> pageNumbers = computeVisiblePages(currentPage, totalPages);
         int lastP = 0;
         for (int p : pageNumbers) {
@@ -137,7 +126,6 @@ public class PaginationBar extends JPanel {
             lastP = p;
         }
 
-        // Nút Sau (>)
         JButton btnNext = createNavButton(IconFactory.createChevronRightIcon(
             currentPage < totalPages ? UITheme.TEXT_MAIN : UITheme.TEXT_MUTED, 16), currentPage < totalPages);
         btnNext.addActionListener(e -> {

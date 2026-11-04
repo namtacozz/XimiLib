@@ -8,9 +8,6 @@ import java.util.Set;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 
-/**
- * Header Renderer: nền tint nhạt, viền dưới, ô checkbox chọn tất cả ở cột 0.
- */
 public class TableHeaderRenderer extends DefaultTableCellRenderer {
 
     private final JCheckBox chkAll = new JCheckBox();

@@ -5,14 +5,6 @@ import java.awt.*;
 import java.awt.geom.Path2D;
 import javax.swing.*;
 
-/**
- * PasswordPolicyChecklist: Thành phần kiểm tra độ mạnh mật khẩu theo thời gian thực (SRS UC-2, BR-10).
- * - Tối thiểu 8 ký tự
- * - Ít nhất 1 chữ hoa
- * - Ít nhất 1 chữ số
- * - Ít nhất 1 ký tự đặc biệt
- * Hiển thị mượt mà: icon tick xanh khi đạt, chấm xám khi chưa đạt. Tự động ẩn khi trống.
- */
 public class PasswordPolicyChecklist extends JPanel {
 
     private final CheckItem itemLength = new CheckItem("Tối thiểu 8 ký tự");
@@ -33,7 +25,7 @@ public class PasswordPolicyChecklist extends JPanel {
         add(itemDigit);
         add(itemSpecial);
 
-        setVisible(false); // Ẩn khi chưa nhập
+        setVisible(false);
     }
 
     public void updatePassword(String password) {
@@ -101,7 +93,7 @@ public class PasswordPolicyChecklist extends JPanel {
                 int h = getHeight();
 
                 if (satisfied) {
-                    // Tròn xanh lá cây + Dấu tick trắng
+
                     g2.setColor(new Color(34, 197, 94));
                     g2.fillOval(0, 0, w, h);
 
@@ -113,7 +105,7 @@ public class PasswordPolicyChecklist extends JPanel {
                     tick.lineTo(w * 0.78f, h * 0.28f);
                     g2.draw(tick);
                 } else {
-                    // Chấm xám rỗng
+
                     g2.setColor(UITheme.BORDER);
                     g2.setStroke(new BasicStroke(1.2f));
                     g2.drawOval(1, 1, w - 3, h - 3);

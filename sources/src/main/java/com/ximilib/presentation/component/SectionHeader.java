@@ -6,10 +6,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
 
-/**
- * SectionHeader: Tiêu đề khối chuẩn phong cách LibRack/Stripe.
- * Gồm tiêu đề 16px đậm, nhãn số lượng tùy chọn và liên kết hành động "Xem tất cả >".
- */
 public class SectionHeader extends JPanel {
 
     private final JPanel left;

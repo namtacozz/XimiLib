@@ -16,11 +16,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * BookCommentRepositoryImpl: Triển khai BookCommentPort bằng PreparedStatement kết nối MySQL.
- * Hỗ trợ tự động tạo bảng `binhluan` nếu chưa có và tích hợp cache bộ nhớ đảm bảo 100% đánh giá hoạt động trơn tru.
- * Tuân thủ R-01, R-07.
- */
 public class BookCommentRepositoryImpl implements BookCommentPort {
 
     private final DatabaseConnectionManager connectionManager;
@@ -89,7 +84,6 @@ public class BookCommentRepositoryImpl implements BookCommentPort {
             System.err.println("Truy vấn bình luận sách từ CSDL: " + e.getMessage());
         }
 
-        // Bổ sung các bình luận mới từ bộ nhớ tạm (nếu có)
         List<BookCommentItem> cached = MEMORY_CACHE.get(bookId);
         if (cached != null) {
             for (BookCommentItem item : cached) {
@@ -124,21 +118,18 @@ public class BookCommentRepositoryImpl implements BookCommentPort {
             authorName = UserSession.getCurrentUser().getFullName();
         }
 
-        // Lưu vào bộ nhớ cache tức thì để hiển thị ngay
         BookCommentItem newItem = new BookCommentItem(authorName, content, stars, LocalDate.now().toString());
         MEMORY_CACHE.computeIfAbsent(bookId, k -> new CopyOnWriteArrayList<>()).add(0, newItem);
 
-        // Lưu bền vững vào CSDL
         try (Connection conn = connectionManager.getConnection()) {
             ensureTableExists(conn);
 
-            // Kiểm tra xem userId có tồn tại trong bảng nguoidung không
             String checkUserSql = "SELECT ID FROM nguoidung WHERE ID = ? LIMIT 1";
             try (PreparedStatement psCheck = conn.prepareStatement(checkUserSql)) {
                 psCheck.setString(1, validUserId);
                 try (ResultSet rs = psCheck.executeQuery()) {
                     if (!rs.next()) {
-                        // Tìm 1 ID hợp lệ trong nguoidung
+
                         try (Statement st = conn.createStatement();
                              ResultSet rsAny = st.executeQuery("SELECT ID FROM nguoidung LIMIT 1")) {
                             if (rsAny.next()) {

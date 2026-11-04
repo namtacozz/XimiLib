@@ -7,10 +7,6 @@ import com.ximilib.domain.model.Zone;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * StorageService: Hợp đồng Application Service quản lý Phân khu và Kệ sách thư viện (Kho & Vị trí).
- * Tuân thủ Clean Architecture (R-01: Presentation chỉ gọi Application Service, không gọi DAO/DB).
- */
 public interface StorageService {
 
     List<Zone> getAllZones();

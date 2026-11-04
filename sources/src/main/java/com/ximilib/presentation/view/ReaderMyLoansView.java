@@ -22,11 +22,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * ReaderMyLoansView: Màn hình "Phiếu mượn của tôi" dành cho Bạn Đọc (UC-5).
- * Cho phép xem sách đang mượn, hạn trả và gia hạn trực tuyến thêm 7 ngày (BR-03).
- * Tuân thủ R-01, R-06, R-08, R-11.
- */
 public class ReaderMyLoansView extends JPanel {
 
     private final CirculationService circulationService;
@@ -237,7 +232,7 @@ public class ReaderMyLoansView extends JPanel {
                         (controller, action) -> {
                             if (action == raven.modal.component.SimpleModalBorder.OK_OPTION) {
                                 controller.close();
-                                // Mở tiếp mã VietQR để độc giả thanh toán trực tuyến
+
                                 VietQrModalPanel.show(
                                     this,
                                     res.getFineTicketId(),
@@ -306,35 +301,35 @@ public class ReaderMyLoansView extends JPanel {
             if (value instanceof BorrowTicketDto t) {
                 int status = t.getStatus();
                 switch (status) {
-                    case 0 -> { // CHO_DUYET
+                    case 0 -> {
                         badge.setText("Chờ nhận sách");
-                        badge.setForeground(new Color(180, 83, 9)); // Amber text
-                        badge.setBackground(new Color(254, 243, 199)); // Amber bg (#FEF3C7)
+                        badge.setForeground(new Color(180, 83, 9));
+                        badge.setBackground(new Color(254, 243, 199));
                     }
-                    case 1 -> { // DANG_MUON
+                    case 1 -> {
                         badge.setText("Đang mượn");
-                        badge.setForeground(new Color(67, 56, 202)); // Indigo text
-                        badge.setBackground(new Color(224, 231, 255)); // Indigo bg
+                        badge.setForeground(new Color(67, 56, 202));
+                        badge.setBackground(new Color(224, 231, 255));
                     }
-                    case 2 -> { // DA_TRA
+                    case 2 -> {
                         badge.setText("Đã trả");
-                        badge.setForeground(new Color(21, 128, 61)); // Green text
-                        badge.setBackground(new Color(220, 252, 231)); // Green bg
+                        badge.setForeground(new Color(21, 128, 61));
+                        badge.setBackground(new Color(220, 252, 231));
                     }
-                    case 3 -> { // QUA_HAN
+                    case 3 -> {
                         badge.setText("Quá hạn");
-                        badge.setForeground(new Color(185, 28, 28)); // Red text
-                        badge.setBackground(new Color(254, 226, 226)); // Red bg
+                        badge.setForeground(new Color(185, 28, 28));
+                        badge.setBackground(new Color(254, 226, 226));
                     }
-                    case 4 -> { // CHO_XU_LY_BOI_THUONG
+                    case 4 -> {
                         badge.setText("Chờ bồi thường");
-                        badge.setForeground(new Color(194, 65, 12)); // Orange text
-                        badge.setBackground(new Color(255, 237, 213)); // Orange bg
+                        badge.setForeground(new Color(194, 65, 12));
+                        badge.setBackground(new Color(255, 237, 213));
                     }
-                    case 5 -> { // DA_MAT
+                    case 5 -> {
                         badge.setText("Đã đền bù");
-                        badge.setForeground(new Color(75, 85, 99)); // Gray text
-                        badge.setBackground(new Color(243, 244, 246)); // Gray bg
+                        badge.setForeground(new Color(75, 85, 99));
+                        badge.setBackground(new Color(243, 244, 246));
                     }
                     default -> {
                         badge.setText(t.getStatusLabel());
@@ -350,7 +345,7 @@ public class ReaderMyLoansView extends JPanel {
     private void handlePayFineForTicket(BorrowTicketDto ticket) {
         String copyBarcode = ticket.getCopyBarcodes();
         String barcode = (copyBarcode != null && !copyBarcode.trim().isEmpty()) ? copyBarcode.split(";")[0].trim() : "";
-        BigDecimal lossAmount = new BigDecimal("390000"); // Tiêu chuẩn bồi thường
+        BigDecimal lossAmount = new BigDecimal("390000");
         String fineTicketId = "F-" + ticket.getTicketId();
 
         try {

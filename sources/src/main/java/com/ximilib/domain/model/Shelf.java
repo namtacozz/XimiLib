@@ -2,9 +2,6 @@ package com.ximilib.domain.model;
 
 import java.util.Objects;
 
-/**
- * Shelf: Thực thể Kệ sách lưu trữ sách vật lý đặt tại từng phân khu (bảng kesach).
- */
 public class Shelf {
 
     private String shelfId;

@@ -19,10 +19,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * DashboardRepositoryImpl: Hiện thực truy vấn CSDL MySQL cho dữ liệu Trang chủ.
- * Tuân thủ R-01, R-07 (100% PreparedStatement, tham số ?).
- */
 public class DashboardRepositoryImpl implements DashboardRepository, DashboardQueryPort {
 
     private final DatabaseConnectionManager connectionManager;
@@ -266,7 +262,7 @@ public class DashboardRepositoryImpl implements DashboardRepository, DashboardQu
         """;
 
         try (Connection conn = connectionManager.getConnection()) {
-            // Tự động đồng bộ các khoản phạt của phiếu mượn đã hoàn tất đền bù (Trangthai = 5)
+
             try (PreparedStatement psSync = conn.prepareStatement(syncResolvedFinesSql)) {
                 psSync.setString(1, userId);
                 psSync.executeUpdate();

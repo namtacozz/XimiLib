@@ -16,10 +16,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * StorageServiceImpl: Triển khai các quy tắc nghiệp vụ quản lý Kho và Vị trí Kệ sách.
- * Tuân thủ R-01, R-02 (xác thực hợp lệ và kiểm tra ràng buộc sách tại Application).
- */
 public class StorageServiceImpl implements StorageService {
 
     private final ZoneRepository zoneRepository;

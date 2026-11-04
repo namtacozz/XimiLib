@@ -15,11 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * CategoryManagementView: Màn hình Quản Lý Thể Loại Sách (UC-3).
- * Cho phép xem, thêm mới, sửa và xóa thể loại.
- * Tuân thủ R-01, R-06, R-08, R-11.
- */
 public class CategoryManagementView extends JPanel {
 
     private final BookCatalogService bookCatalogService;
@@ -71,7 +66,6 @@ public class CategoryManagementView extends JPanel {
 
         add(headerPanel, BorderLayout.NORTH);
 
-        // Card bảng
         JPanel card = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {

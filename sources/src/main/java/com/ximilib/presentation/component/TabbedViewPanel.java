@@ -5,10 +5,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-/**
- * TabbedViewPanel: Khung chứa gộp các màn hình con liên quan sử dụng TabBar phẳng.
- * Cho phép chuyển nhanh giữa các tiểu màn hình (VD: Đầu sách / Thể loại / Đã xóa).
- */
 public class TabbedViewPanel extends JPanel {
 
     private final TabBar tabBar;

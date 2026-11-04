@@ -14,11 +14,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * PatronManagementView: Màn hình Hồ Sơ Độc Giả & Quản Lý Thẻ Thư Viện (UC-2, F-04).
- * Tìm kiếm bạn đọc, kiểm tra thời hạn thẻ, thực hiện khóa/mở thẻ và gia hạn thẻ.
- * Tuân thủ R-01, R-06, R-08, R-11.
- */
 public class PatronManagementView extends JPanel {
 
     private final AuthenticationService authService;

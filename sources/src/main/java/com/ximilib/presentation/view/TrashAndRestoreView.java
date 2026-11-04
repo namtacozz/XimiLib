@@ -20,10 +20,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * TrashAndRestoreView: Màn hình Thùng Rác & Khôi Phục Đầu Sách (R-03 Soft-delete).
- * Hiển thị các đầu sách đã bị xóa mềm và cho phép Thủ thư / Quản trị viên khôi phục lại kho sách.
- */
 public class TrashAndRestoreView extends JPanel {
 
     private final BookCatalogService bookCatalogService;
@@ -47,7 +43,6 @@ public class TrashAndRestoreView extends JPanel {
         initUI();
         loadTrashDataAsync();
 
-        // Tự động tải lại dữ liệu khi người dùng chuyển tab sang "Thùng rác & Khôi phục"
         addAncestorListener(new AncestorListener() {
             @Override
             public void ancestorAdded(AncestorEvent event) {
@@ -61,7 +56,6 @@ public class TrashAndRestoreView extends JPanel {
             public void ancestorMoved(AncestorEvent event) {}
         });
 
-        // Lắng nghe sự kiện domain khi có sách bị xóa hoặc khôi phục
         DomainEventPublisher.subscribe(BookStockChangedEvent.class, event -> {
             SwingUtilities.invokeLater(this::loadTrashDataAsync);
         });

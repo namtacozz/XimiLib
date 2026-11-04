@@ -18,13 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-/**
- * VietQrModalPanel: Modal hiển thị mã VietQR động đối soát SePay (F-05).
- * Tự động tạo mã QR chứa thông tin thanh toán chuẩn Napas247:
- * Ngân hàng thụ hưởng, số tài khoản, số tiền và mã nội dung chuyển khoản XML{Maphieuphat}.
- * Hoạt động 100% offline với mã QR độc lập, không bị giật nhấp nháy, tự động đồng bộ ảnh VietQR nếu có mạng.
- * Tuân thủ R-01, R-06, R-11.
- */
 public class VietQrModalPanel extends JPanel {
 
     private final String fineTicketId;
@@ -53,7 +46,7 @@ public class VietQrModalPanel extends JPanel {
     }
 
     private void initUI() {
-        // 1. Header thông tin tiền nộp
+
         JPanel topInfo = new JPanel();
         topInfo.setOpaque(false);
         topInfo.setLayout(new BoxLayout(topInfo, BoxLayout.Y_AXIS));
@@ -76,7 +69,6 @@ public class VietQrModalPanel extends JPanel {
         topInfo.add(lblSub);
         add(topInfo, BorderLayout.NORTH);
 
-        // 2. Vùng hiển thị mã QR (Trung tâm) - Tạo mã QR thật 100% ngay từ đầu (Offline-ready)
         JPanel qrContainer = new JPanel(new GridBagLayout());
         qrContainer.setBackground(Color.WHITE);
         qrContainer.setPreferredSize(new Dimension(260, 260));
@@ -87,7 +79,6 @@ public class VietQrModalPanel extends JPanel {
             BorderFactory.createEmptyBorder(8, 8, 8, 8)
         ));
 
-        // Sinh mã QR thật độc lập (quét ra thông tin thanh toán chuẩn Napas)
         String payload = "VIETQR:MB|" + ACCOUNT_NO + "|" + (amount != null ? amount.longValue() : 0) + "|XML" + fineTicketId;
         BufferedImage initialQr = generateQrImage(payload, 240);
 
@@ -99,7 +90,6 @@ public class VietQrModalPanel extends JPanel {
 
         add(qrContainer, BorderLayout.CENTER);
 
-        // 3. Thông tin chuyển khoản chi tiết
         JPanel detailsPanel = new JPanel(new GridLayout(4, 1, 4, 4));
         detailsPanel.setOpaque(false);
         detailsPanel.setBorder(BorderFactory.createEmptyBorder(6, 4, 6, 4));
@@ -142,11 +132,9 @@ public class VietQrModalPanel extends JPanel {
         Graphics2D g2 = image.createGraphics();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
-        // Nền trắng tinh khiết
         g2.setColor(Color.WHITE);
         g2.fillRect(0, 0, size, size);
 
-        // Vẽ các module QR đen
         g2.setColor(Color.BLACK);
         for (int r = 0; r < mSize; r++) {
             for (int c = 0; c < mSize; c++) {
@@ -156,14 +144,13 @@ public class VietQrModalPanel extends JPanel {
             }
         }
 
-        // Vẽ logo ngân hàng MB ở tâm
         int logoSize = moduleSize * 5;
         if (logoSize >= 18) {
             int lx = (size - logoSize) / 2;
             int ly = (size - logoSize) / 2;
             g2.setColor(Color.WHITE);
             g2.fillRoundRect(lx - 2, ly - 2, logoSize + 4, logoSize + 4, 6, 6);
-            g2.setColor(new Color(225, 29, 72)); // Màu hồng primary XimiLib
+            g2.setColor(new Color(225, 29, 72));
             g2.fillRoundRect(lx, ly, logoSize, logoSize, 4, 4);
             g2.setColor(Color.WHITE);
             g2.setFont(new Font("Segoe UI", Font.BOLD, Math.max(9, logoSize / 2)));
@@ -206,7 +193,7 @@ public class VietQrModalPanel extends JPanel {
                         return new ImageIcon(scaled);
                     }
                 } catch (Exception ignored) {
-                    // Khi không có kết nối internet hoặc API không phản hồi, mã QR offline đã sẵn sàng
+
                 }
                 return null;
             }

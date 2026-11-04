@@ -9,12 +9,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * SidebarPanel: Thanh điều hướng bên trái phân quyền động theo vai trò (Admin, Thủ thư, Độc giả).
- * - Tối đa 6-7 mục menu trực tiếp, không nhóm tiêu đề thừa, không thanh cuộn tại độ phân giải 768px.
- * - Icon vector chuẩn Graphics2D độc lập font hệ thống.
- * - Footer tinh gọn chỉ chứa nút "Trợ giúp".
- */
 public class SidebarPanel extends JPanel {
 
     public interface NavigationListener {
@@ -41,7 +35,7 @@ public class SidebarPanel extends JPanel {
     }
 
     private void initUI() {
-        // 1. Header: Logo XimiLib + Tên trường
+
         JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 16));
         headerPanel.setOpaque(false);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
@@ -67,7 +61,6 @@ public class SidebarPanel extends JPanel {
         headerPanel.add(logoIcon);
         headerPanel.add(titleBox);
 
-        // 2. Menu Items (Không dùng scrollbar, cách đều nhau)
         JPanel menuContainer = new JPanel();
         menuContainer.setLayout(new BoxLayout(menuContainer, BoxLayout.Y_AXIS));
         menuContainer.setOpaque(false);
@@ -79,7 +72,7 @@ public class SidebarPanel extends JPanel {
         boolean isGuest = normRole.contains("KHÁCH") || normRole.contains("GUEST");
 
         if (!isGuest) {
-            // Menu 1: Trang chủ (chỉ dành cho Admin, Thủ thư, Độc giả chính thức)
+
             JButton btnHome = createMenuItem("Trang chủ", IconFactory.createHomeIcon(Color.WHITE, 16), true);
             menuContainer.add(btnHome);
             activeButton = btnHome;
@@ -87,7 +80,7 @@ public class SidebarPanel extends JPanel {
         }
 
         if (isAdmin) {
-            // ADMIN (6 mục tiếp theo = 7 mục tổng cộng)
+
             menuContainer.add(createMenuItem("Kho sách", IconFactory.createBookIcon(UITheme.TEXT_MUTED, 16), false));
             menuContainer.add(Box.createVerticalStrut(6));
             menuContainer.add(createMenuItem("Mượn – Trả", IconFactory.createCirculationIcon(UITheme.TEXT_MUTED, 16), false));
@@ -100,7 +93,7 @@ public class SidebarPanel extends JPanel {
             menuContainer.add(Box.createVerticalStrut(6));
             menuContainer.add(createMenuItem("Hộp thư góp ý", IconFactory.createHelpIcon(UITheme.TEXT_MUTED, 16), false));
         } else if (isLibrarian) {
-            // THỦ THƯ (5 mục tiếp theo = 6 mục tổng cộng)
+
             menuContainer.add(createMenuItem("Kho sách", IconFactory.createBookIcon(UITheme.TEXT_MUTED, 16), false));
             menuContainer.add(Box.createVerticalStrut(6));
             menuContainer.add(createMenuItem("Mượn – Trả", IconFactory.createCirculationIcon(UITheme.TEXT_MUTED, 16), false));
@@ -122,7 +115,6 @@ public class SidebarPanel extends JPanel {
             menuContainer.add(createMenuItem("Hộp thư góp ý", IconFactory.createHelpIcon(UITheme.TEXT_MUTED, 16), false));
         }
 
-        // 3. Footer Sidebar: Chỉ có nút Trợ giúp
         JPanel footerPanel = new JPanel();
         footerPanel.setOpaque(false);
         footerPanel.setLayout(new BoxLayout(footerPanel, BoxLayout.Y_AXIS));

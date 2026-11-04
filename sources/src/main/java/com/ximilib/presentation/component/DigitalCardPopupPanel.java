@@ -8,11 +8,6 @@ import java.awt.*;
 import javax.swing.*;
 import raven.popup.component.GlassPaneChild;
 
-/**
- * DigitalCardPopupPanel: Thẻ Thư Viện Điện Tử dạng GlassPane Popup (In-App Overlay)
- * Tích hợp mã QR Code và bo góc mô phỏng smartphone theo đúng chuẩn raven.glasspanepopup.
- * Sử dụng AppLogo chuẩn thay cho việc vẽ thủ công bằng mã.
- */
 public class DigitalCardPopupPanel extends GlassPaneChild {
 
     private final String cardId;
@@ -33,7 +28,7 @@ public class DigitalCardPopupPanel extends GlassPaneChild {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // Nền thẻ đổ bóng nhẹ bo góc
+
                 g2.setColor(UITheme.CARD_BG);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 24, 24);
                 g2.setColor(UITheme.BORDER);
@@ -48,13 +43,11 @@ public class DigitalCardPopupPanel extends GlassPaneChild {
         cardContainer.setBorder(BorderFactory.createEmptyBorder(24, 28, 20, 28));
         cardContainer.setPreferredSize(new Dimension(320, 460));
 
-        // 1. Icon Header Thư viện Logo chuẩn XimiLib
         JLabel iconPanel = new JLabel(AppLogo.getIcon(40), SwingConstants.CENTER);
         iconPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         iconPanel.setPreferredSize(new Dimension(300, 44));
         iconPanel.setMaximumSize(new Dimension(300, 44));
 
-        // 2. Tiêu đề
         JLabel lblTitle = new JLabel("Thẻ Thư Viện Điện Tử");
         lblTitle.setFont(UITheme.FONT_TITLE);
         lblTitle.setForeground(UITheme.TEXT_MAIN);
@@ -65,7 +58,6 @@ public class DigitalCardPopupPanel extends GlassPaneChild {
         lblSub.setForeground(UITheme.TEXT_MUTED);
         lblSub.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // 3. Khung vẽ mã QR Code thật 100% (chuẩn ISO/IEC 18004, quét bằng điện thoại ra đúng mã thẻ)
         boolean[][] qrMatrix = QrCodeGenerator.encode(cardId);
         JPanel qrBox = new JPanel() {
             @Override
@@ -76,13 +68,11 @@ public class DigitalCardPopupPanel extends GlassPaneChild {
                 int w = getWidth();
                 int h = getHeight();
 
-                // Nền trắng bo góc sạch sẽ
                 g2.setColor(Color.WHITE);
                 g2.fillRoundRect(0, 0, w, h, 16, 16);
                 g2.setColor(UITheme.BORDER);
                 g2.drawRoundRect(0, 0, w - 1, h - 1, 16, 16);
 
-                // Vẽ các module QR Code thật
                 int mSize = qrMatrix.length;
                 int moduleSize = Math.max(2, (Math.min(w, h) - 24) / mSize);
                 int qrPixelWidth = mSize * moduleSize;
@@ -105,7 +95,6 @@ public class DigitalCardPopupPanel extends GlassPaneChild {
         qrBox.setOpaque(false);
         qrBox.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // 4. Số thẻ & Tên thành viên
         JLabel lblNumber = new JLabel("Mã thẻ: " + cardId);
         lblNumber.setFont(UITheme.FONT_BOLD);
         lblNumber.setForeground(UITheme.TEXT_MAIN);
@@ -116,7 +105,6 @@ public class DigitalCardPopupPanel extends GlassPaneChild {
         lblName.setForeground(UITheme.TEXT_MUTED);
         lblName.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // 5. Nút bấm thao tác
         JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         btnRow.setOpaque(false);
 

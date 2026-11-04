@@ -5,10 +5,6 @@ import com.ximilib.application.dto.StaffDashboardDto;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * DashboardQueryPort: Cổng truy vấn dữ liệu vận hành Trang chủ (CQRS Query Port).
- * Trả về các DTO tổng hợp trực tiếp từ hạ tầng CSDL phục vụ hiển thị Dashboard.
- */
 public interface DashboardQueryPort {
 
     StaffDashboardDto.StaffKpiSummary getStaffKpiSummary();

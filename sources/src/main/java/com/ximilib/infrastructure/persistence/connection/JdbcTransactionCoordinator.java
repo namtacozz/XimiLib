@@ -9,10 +9,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * JdbcTransactionCoordinator: Triển khai JDBC của TransactionCoordinator.
- * Quản lý vòng đời transaction (setAutoCommit(false), commit, rollback, khôi phục autoCommit(true)).
- */
 public class JdbcTransactionCoordinator implements TransactionCoordinator {
 
     private final DatabaseConnectionManager connectionManager;
@@ -36,7 +32,7 @@ public class JdbcTransactionCoordinator implements TransactionCoordinator {
                 try {
                     conn.rollback();
                 } catch (SQLException ex) {
-                    /* ignore rollback failure */
+
                 }
             }
             if (e instanceof RuntimeException re) {
@@ -48,12 +44,12 @@ public class JdbcTransactionCoordinator implements TransactionCoordinator {
                 try {
                     conn.setAutoCommit(true);
                 } catch (SQLException ex) {
-                    /* ignore */
+
                 }
                 try {
                     conn.close();
                 } catch (SQLException ex) {
-                    /* ignore */
+
                 }
             }
         }

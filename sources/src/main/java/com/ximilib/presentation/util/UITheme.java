@@ -9,21 +9,21 @@ import javax.swing.border.AbstractBorder;
 
 public class UITheme {
 
-    public static final Color PRIMARY = Color.decode("#DB2777");          
-    public static final Color PRIMARY_HOVER = Color.decode("#BE185D");    
-    public static final Color PRIMARY_PRESSED = Color.decode("#9D174D"); 
-    public static final Color PASTEL = Color.decode("#F9A8D4");          
-    public static final Color PASTEL_MID = Color.decode("#FBCFE8");      
+    public static final Color PRIMARY = Color.decode("#DB2777");
+    public static final Color PRIMARY_HOVER = Color.decode("#BE185D");
+    public static final Color PRIMARY_PRESSED = Color.decode("#9D174D");
+    public static final Color PASTEL = Color.decode("#F9A8D4");
+    public static final Color PASTEL_MID = Color.decode("#FBCFE8");
     public static final Color BRAND_GRADIENT_MID = Color.decode("#F472B6");
-    public static final Color TINT = Color.decode("#FCE7F3");             
-    public static final Color TINT_LIGHT = Color.decode("#FDF2F8");       
-    public static final Color ON_TINT = Color.decode("#9D174D");          
-    public static final Color ON_PASTEL = Color.decode("#831843");        
-    public static final Color PAGE_BG = Color.decode("#FFF7FA");          
-    public static final Color CARD_BORDER = Color.decode("#F3E4EC");      
-    public static final Color TEXT_PRIMARY = Color.decode("#1F1720");     
-    public static final Color TEXT_MUTED = Color.decode("#6B5A66");       
-    public static final Color ON_PRIMARY = Color.decode("#FFFFFF");       
+    public static final Color TINT = Color.decode("#FCE7F3");
+    public static final Color TINT_LIGHT = Color.decode("#FDF2F8");
+    public static final Color ON_TINT = Color.decode("#9D174D");
+    public static final Color ON_PASTEL = Color.decode("#831843");
+    public static final Color PAGE_BG = Color.decode("#FFF7FA");
+    public static final Color CARD_BORDER = Color.decode("#F3E4EC");
+    public static final Color TEXT_PRIMARY = Color.decode("#1F1720");
+    public static final Color TEXT_MUTED = Color.decode("#6B5A66");
+    public static final Color ON_PRIMARY = Color.decode("#FFFFFF");
 
     public static final String HEX_PRIMARY = "#DB2777";
     public static final String HEX_PRIMARY_HOVER = "#BE185D";
@@ -85,7 +85,6 @@ public class UITheme {
             FlatLaf.setGlobalExtraDefaults(Collections.singletonMap("@accentColor", HEX_PRIMARY));
             FlatLightLaf.setup();
 
-            // Cấu hình bo góc và màu mặc định đồng bộ trên UIManager
             UIManager.put("Button.arc", 999);
             UIManager.put("Component.arc", 12);
             UIManager.put("TextComponent.arc", 12);

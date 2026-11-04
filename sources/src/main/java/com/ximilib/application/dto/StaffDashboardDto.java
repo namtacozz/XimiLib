@@ -4,10 +4,6 @@ import com.ximilib.domain.model.LoanDueClassification;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * StaffDashboardDto: Bộ dữ liệu vận hành Trang chủ dành cho Thủ thư / Quản trị viên.
- * Hoàn toàn được truy vấn từ MySQL, không chứa dữ liệu mẫu.
- */
 public record StaffDashboardDto(
     StaffKpiSummary kpiSummary,
     List<TodoLoanItem> todoLoans,

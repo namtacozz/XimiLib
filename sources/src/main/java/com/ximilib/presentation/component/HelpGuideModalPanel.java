@@ -10,11 +10,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-/**
- * HelpGuideModalPanel: Cẩm nang Hướng dẫn Độc giả & Quy định Thư viện (SRS).
- * Hiển thị chính xác các quy chế thư viện BR-01..BR-08.
- * Tích hợp hình ảnh minh họa vector chuẩn instruction-manual-cuate.svg.
- */
 public class HelpGuideModalPanel extends JPanel {
 
     public HelpGuideModalPanel() {
@@ -27,7 +22,7 @@ public class HelpGuideModalPanel extends JPanel {
     }
 
     private void initUI() {
-        // Banner trên cùng: Hình minh họa + Tiêu đề
+
         JPanel topBanner = new JPanel(new BorderLayout(16, 0));
         topBanner.setOpaque(false);
         topBanner.setBorder(new EmptyBorder(0, 0, 8, 0));
@@ -59,7 +54,6 @@ public class HelpGuideModalPanel extends JPanel {
         topBanner.add(headerText, BorderLayout.CENTER);
         add(topBanner, BorderLayout.NORTH);
 
-        // Nội dung quy định chi tiết
         JEditorPane editorPane = new JEditorPane();
         editorPane.setContentType("text/html");
         editorPane.setEditable(false);

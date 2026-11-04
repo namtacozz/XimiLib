@@ -17,12 +17,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * UserRoleManagementView: Màn hình Quản Lý Tài Khoản & Phân Quyền RBAC (SRS YC-10).
- * Dành riêng cho Quản trị viên (Admin) quản lý danh mục tài khoản nhân viên (Admin, Thủ thư)
- * và độc giả, điều chỉnh quyền truy cập hệ thống và kích hoạt/khóa tài khoản.
- * Tuân thủ R-01, R-08, R-11, SRS YC-10.
- */
 public class UserRoleManagementView extends JPanel {
 
     private final AuthenticationService authService;
@@ -31,7 +25,6 @@ public class UserRoleManagementView extends JPanel {
     private SearchField txtSearch;
     private JComboBox<String> cmbRoleFilter;
 
-    // KPI labels
     private JLabel lblTotalUsers;
     private JLabel lblTotalAdmins;
     private JLabel lblTotalLibrarians;
@@ -184,7 +177,6 @@ public class UserRoleManagementView extends JPanel {
         card.setOpaque(false);
         card.setBorder(new EmptyBorder(16, 18, 18, 18));
 
-        // Toolbar
         JPanel toolbar = new JPanel(new BorderLayout(12, 0));
         toolbar.setOpaque(false);
 
@@ -206,7 +198,6 @@ public class UserRoleManagementView extends JPanel {
 
         card.add(toolbar, BorderLayout.NORTH);
 
-        // Table
         userTable = new JTable(tableModel);
         userTable.setRowHeight(46);
         userTable.setShowHorizontalLines(true);
@@ -267,7 +258,6 @@ public class UserRoleManagementView extends JPanel {
                     List<UserAccountDto> list = get();
                     tableModel.setUsers(list);
 
-                    // Update KPI counters
                     int total = list.size();
                     long admins = 0;
                     long librarians = 0;

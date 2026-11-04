@@ -10,10 +10,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * FeedbackRepositoryImpl: Triển khai FeedbackPort bằng PreparedStatement kết nối MySQL.
- * Tuân thủ R-01, R-07.
- */
 public class FeedbackRepositoryImpl implements FeedbackPort {
 
     private final DatabaseConnectionManager connectionManager;

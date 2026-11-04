@@ -4,11 +4,6 @@ import com.ximilib.presentation.util.UITheme;
 import java.awt.*;
 import javax.swing.JComponent;
 
-/**
- * DividerLabel: Thành phần phân cách vẽ thuần Graphics2D.
- * Gồm 2 đường kẻ ngang màu CARD_BORDER và chữ (mặc định "hoặc") màu TEXT_MUTED ở giữa.
- * Loại bỏ 100% việc dùng các ký tự Unicode em-dash (—) gây lỗi ô vuông (tofu glyph).
- */
 public class DividerLabel extends JComponent {
 
     private final String text;
@@ -41,11 +36,10 @@ public class DividerLabel extends JComponent {
         int textW = fm.stringWidth(text);
         int textH = fm.getAscent();
 
-        int gap = 12; // Khoảng cách giữa đường kẻ và chữ
+        int gap = 12;
         int textX = (w - textW) / 2;
         int textY = centerY + (textH / 2) - 1;
 
-        // 1. Vẽ vạch kẻ bên trái
         g2.setColor(UITheme.CARD_BORDER);
         g2.setStroke(new BasicStroke(1.0f));
         int leftEnd = Math.max(0, textX - gap);
@@ -53,11 +47,9 @@ public class DividerLabel extends JComponent {
             g2.drawLine(10, centerY, leftEnd, centerY);
         }
 
-        // 2. Vẽ chữ "hoặc" ở giữa
         g2.setColor(getForeground());
         g2.drawString(text, textX, textY);
 
-        // 3. Vẽ vạch kẻ bên phải
         g2.setColor(UITheme.CARD_BORDER);
         int rightStart = textX + textW + gap;
         if (w - 10 > rightStart) {

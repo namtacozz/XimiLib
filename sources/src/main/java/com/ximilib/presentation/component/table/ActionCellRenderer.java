@@ -11,9 +11,6 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 
-/**
- * Renderer cột "Thao tác" (Xóa, Sửa).
- */
 public class ActionCellRenderer extends JPanel implements TableCellRenderer {
 
     private final JLabel btnDelete;

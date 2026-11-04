@@ -22,16 +22,6 @@ import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Vector;
 
-/**
- * ReportsDashboardView: Màn hình Báo Cáo & Thống Kê Định Kỳ (SRS UC-7, F-12).
- * Cung cấp 4 loại báo cáo:
- * 1. Thống kê lượt mượn/trả
- * 2. Độc giả quá hạn & nợ phạt
- * 3. Sách hỏng/mất cần thanh lý
- * 4. Top 10 đầu sách mượn nhiều nhất
- * Cho phép kết xuất file Excel (.csv UTF-8 BOM) và In báo cáo kèm Audit Log.
- * Tuân thủ R-01, R-06, R-08, R-11.
- */
 public class ReportsDashboardView extends JPanel {
 
     private final ReportPort reportPort;
@@ -44,7 +34,6 @@ public class ReportsDashboardView extends JPanel {
     private JButton btnUpdateStatus;
     private com.ximilib.presentation.component.TrendChartPanel trendChartPanel;
 
-    // KPI Labels
     private JLabel lblTotalBooksVal;
     private JLabel lblActiveLoansVal;
     private JLabel lblOverdueVal;
@@ -82,7 +71,6 @@ public class ReportsDashboardView extends JPanel {
         topPanel.setOpaque(false);
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
 
-        // 1. Breadcrumb + Title
         JPanel titleBox = new JPanel();
         titleBox.setOpaque(false);
         titleBox.setLayout(new BoxLayout(titleBox, BoxLayout.Y_AXIS));
@@ -105,7 +93,6 @@ public class ReportsDashboardView extends JPanel {
         topPanel.add(titleBox);
         topPanel.add(Box.createVerticalStrut(16));
 
-        // 2. Hàng 4 thẻ KPI
         JPanel kpiPanel = new JPanel(new GridLayout(1, 4, 16, 0));
         kpiPanel.setOpaque(false);
         kpiPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -129,7 +116,6 @@ public class ReportsDashboardView extends JPanel {
         topPanel.add(trendChartPanel);
         topPanel.add(Box.createVerticalStrut(14));
 
-        // 3. Thanh điều khiển Bộ lọc & Hành động
         JPanel filterBar = new JPanel(new BorderLayout(10, 0));
         filterBar.setOpaque(false);
         filterBar.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -168,7 +154,6 @@ public class ReportsDashboardView extends JPanel {
         leftFilter.add(cmbReportType);
         leftFilter.add(btnRefresh);
 
-        // Nút xuất báo cáo Excel & In & Cập nhật trạng thái
         JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         rightActions.setOpaque(false);
 
@@ -210,7 +195,6 @@ public class ReportsDashboardView extends JPanel {
 
         add(topPanel, BorderLayout.NORTH);
 
-        // 4. Bảng hiển thị kết quả
         tableModel = new DefaultTableModel();
         reportTable = new JTable(tableModel);
         reportTable.setRowHeight(36);
@@ -359,19 +343,16 @@ public class ReportsDashboardView extends JPanel {
                  OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
                  PrintWriter pw = new PrintWriter(osw)) {
 
-                // Ghi UTF-8 BOM để Excel tự nhận diện Unicode không bị lỗi font
                 fos.write(0xEF);
                 fos.write(0xBB);
                 fos.write(0xBF);
 
-                // Ghi tiêu đề cột
                 for (int i = 0; i < reportTable.getColumnCount(); i++) {
                     pw.print("\"" + reportTable.getColumnName(i) + "\"");
                     if (i < reportTable.getColumnCount() - 1) pw.print(",");
                 }
                 pw.println();
 
-                // Ghi các hàng dữ liệu
                 for (int r = 0; r < reportTable.getRowCount(); r++) {
                     for (int c = 0; c < reportTable.getColumnCount(); c++) {
                         Object val = reportTable.getValueAt(r, c);
@@ -532,7 +513,6 @@ public class ReportsDashboardView extends JPanel {
             }
         }
 
-        // Màu sắc cho Huy hiệu trạng thái hiện tại
         Color curBg = UITheme.TINT;
         Color curFg = UITheme.PRIMARY;
         if (currentStatus.contains("Đang mượn")) {
@@ -552,7 +532,6 @@ public class ReportsDashboardView extends JPanel {
         final Color finalCurBg = curBg;
         final Color finalCurFg = curFg;
 
-        // 1. Thẻ tóm tắt thông tin phiếu (Summary Info Card)
         JPanel cardInfo = new JPanel(new BorderLayout(8, 6)) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -601,7 +580,6 @@ public class ReportsDashboardView extends JPanel {
         cardInfo.add(lineTop, BorderLayout.NORTH);
         cardInfo.add(lblReader, BorderLayout.SOUTH);
 
-        // 2. ComboBox chọn trạng thái mới với Vector Bullet Dot
         JComboBox<StatusOption> cmbStatus = new JComboBox<>(options);
         cmbStatus.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         cmbStatus.setPreferredSize(new Dimension(390, 38));
@@ -621,7 +599,6 @@ public class ReportsDashboardView extends JPanel {
             }
         });
 
-        // 3. Hộp thông điệp nghiệp vụ động (Dynamic Note Card)
         JPanel pnlNote = new JPanel(new BorderLayout(8, 0)) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -660,7 +637,6 @@ public class ReportsDashboardView extends JPanel {
             }
         });
 
-        // Bố cục tổng thể của modal
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setOpaque(false);

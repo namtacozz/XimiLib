@@ -11,9 +11,6 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 
-/**
- * Renderer hiển thị Mã sách.
- */
 public class BookCodeRenderer extends DefaultTableCellRenderer {
 
     private final BookTableModel tableModel;
