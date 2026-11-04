@@ -30,6 +30,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private static final java.util.concurrent.ConcurrentHashMap<String, Integer> FAILED_ATTEMPTS_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
     private static final java.util.concurrent.ConcurrentHashMap<String, LocalDateTime> LOCKED_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
+    public static void clearAuthCache() {
+        FAILED_ATTEMPTS_CACHE.clear();
+        LOCKED_CACHE.clear();
+    }
+
     private final UserRepository userRepository;
     private final UserQueryPort userQueryPort;
     private final PasswordHasher passwordHasher;
@@ -83,14 +88,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         User user = userOpt.get();
 
-        // 2. Kiểm tra khóa tạm thời từ CSDL
+        // 2. Kiểm tra tài khoản bị vô hiệu hóa / khóa bởi thủ thư (SRS UC 3.2.1 ngoại lệ)
+        if (user.isDeleted()) {
+            return LoginResult.fail("AUTH_004", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ thủ thư");
+        }
+
+        // 3. Kiểm tra khóa tạm thời từ CSDL
         LocalDateTime dbLock = user.getLockedUntil();
         if (dbLock != null) {
             if (dbLock.isAfter(now)) {
                 long remainingMinutes = Math.max(1, Duration.between(now, dbLock).toMinutes() + 1);
                 LOCKED_CACHE.put(normKey, dbLock);
                 return LoginResult.locked(remainingMinutes,
-                    "Tài khoản đang bị tạm khóa " + remainingMinutes + " phút do nhập sai mật khẩu quá 5 lần. Vui lòng thử lại sau.");
+                    "Tài khoản bị tạm khóa " + remainingMinutes + " phút do nhập sai quá 5 lần quy định (Quy tắc BR-01).");
             } else {
                 repo.resetFailedAttempts(user.getId());
                 user.setFailedAttempts(0);
@@ -100,7 +110,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
         }
 
-        // 3. Kiểm tra mật khẩu bằng BCrypt
+        // 4. Kiểm tra mật khẩu bằng BCrypt
         boolean passwordMatches = false;
         try {
             passwordMatches = getHasher().matches(password, user.getPassword());
@@ -120,18 +130,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     repo.updateFailedAttempts(user.getId(), attempts, lockTime);
                 } catch (Exception ignored) {}
                 return LoginResult.locked(LibraryPolicy.LOCKOUT_MINUTES,
-                    "Tài khoản bị tạm khóa 15 phút do nhập sai mật khẩu 5 lần liên tiếp. Vui lòng thử lại sau.");
+                    "Tài khoản bị tạm khóa " + LibraryPolicy.LOCKOUT_MINUTES + " phút do nhập sai quá 5 lần quy định (Quy tắc BR-01).");
             } else {
                 try {
                     repo.updateFailedAttempts(user.getId(), attempts, null);
                 } catch (Exception ignored) {}
-                int remaining = LibraryPolicy.MAX_LOGIN_ATTEMPTS - attempts;
-                return LoginResult.fail("AUTH_001",
-                    "Tên đăng nhập hoặc mật khẩu không chính xác. Bạn đã nhập sai " + attempts + "/5 lần (còn " + remaining + " lần thử).");
+                return LoginResult.fail("AUTH_001", "Tên đăng nhập hoặc mật khẩu không chính xác.");
             }
         }
 
-        // 4. Đăng nhập thành công: Đặt lại toàn bộ số lần sai
+        // 5. Đăng nhập thành công: Đặt lại toàn bộ số lần sai
         FAILED_ATTEMPTS_CACHE.remove(normKey);
         LOCKED_CACHE.remove(normKey);
         try {

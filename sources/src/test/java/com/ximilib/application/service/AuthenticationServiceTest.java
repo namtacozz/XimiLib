@@ -28,6 +28,7 @@ class AuthenticationServiceTest {
 
     @BeforeEach
     void setUp() {
+        AuthenticationServiceImpl.clearAuthCache();
         SecurityUtil.setTestAesKey("UnitTestingAesSecretKeyForSecurityUtil2026");
         passwordHasher = new SecurityUtil();
         userRepository = new StubUserRepository(passwordHasher);
@@ -36,6 +37,7 @@ class AuthenticationServiceTest {
 
     @AfterEach
     void tearDown() {
+        AuthenticationServiceImpl.clearAuthCache();
         SecurityUtil.clearTestAesKey();
     }
 
@@ -60,6 +62,26 @@ class AuthenticationServiceTest {
         assertNotNull(result.getUser());
         assertEquals("admin", result.getUser().getUsername());
         assertEquals("Quản Trị", result.getUser().getRole());
+    }
+
+    @Test
+    @DisplayName("TC-AUTH-02B: Đăng nhập thành công bằng Số điện thoại (UC 3.2.1 SRS)")
+    void testLoginSuccessWithPhoneNumber() {
+        LoginResult result = authService.login("0902", "123456");
+
+        assertTrue(result.isSuccess());
+        assertNotNull(result.getUser());
+        assertEquals("kien.phan", result.getUser().getUsername());
+    }
+
+    @Test
+    @DisplayName("TC-AUTH-02C: Đăng nhập tài khoản bị khóa hiển thị đúng câu thông báo SRS UC 3.2.1 ngoại lệ c")
+    void testLoginFailDisabledAccount() {
+        LoginResult result = authService.login("disabled.user", "123456");
+
+        assertFalse(result.isSuccess());
+        assertEquals("AUTH_004", result.getErrorCode());
+        assertEquals("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ thủ thư", result.getErrorMessage());
     }
 
     @Test
@@ -279,12 +301,17 @@ class AuthenticationServiceTest {
             // Tài khoản lưu hash bị hỏng (corrupted hash) trong DB
             User uCorrupt = new User("ND098", "corrupt.user", "$2a$10$abcdefghijklmno_corrupt_hash_invalid", "Người Dùng Hash Hỏng", "corrupt@dut.udn.vn", "0908", "Bạn Đọc");
 
+            // Tài khoản bị khóa / vô hiệu hóa
+            User uDisabled = new User("ND097", "disabled.user", hash123456, "Người Dùng Bị Khóa", "disabled@dut.udn.vn", "0907", "Bạn Đọc");
+            uDisabled.setDeleted(true);
+
             userMap.put(u1.getId(), u1);
             userMap.put(u2.getId(), u2);
             userMap.put(u3.getId(), u3);
             userMap.put(u4.getId(), u4);
             userMap.put(uPlain.getId(), uPlain);
             userMap.put(uCorrupt.getId(), uCorrupt);
+            userMap.put(uDisabled.getId(), uDisabled);
         }
 
         @Override

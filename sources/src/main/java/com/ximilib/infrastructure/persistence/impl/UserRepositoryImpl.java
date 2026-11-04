@@ -38,7 +38,7 @@ public class UserRepositoryImpl implements UserRepository, UserQueryPort {
             FROM nguoidung u
             LEFT JOIN vaitro v ON u.Mavaitro = v.Mavaitro
             LEFT JOIN thethuvien t ON u.ID = t.ID
-            WHERE u.Trangthai = 1 AND (LOWER(u.Tendangnhap) = ? OR LOWER(u.Email) = ? OR u.Sdt = ?)
+            WHERE (LOWER(u.Tendangnhap) = ? OR LOWER(u.Email) = ? OR u.Sdt = ?)
             LIMIT 1;
         """;
         String normalized = identifier.trim().toLowerCase();
@@ -68,7 +68,7 @@ public class UserRepositoryImpl implements UserRepository, UserQueryPort {
             FROM nguoidung u
             LEFT JOIN vaitro v ON u.Mavaitro = v.Mavaitro
             LEFT JOIN thethuvien t ON u.ID = t.ID
-            WHERE u.ID = ? AND u.Trangthai = 1
+            WHERE u.ID = ?
             LIMIT 1;
         """;
         try (Connection conn = connectionManager.getConnection();
