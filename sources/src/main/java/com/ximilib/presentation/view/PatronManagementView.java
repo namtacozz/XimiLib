@@ -113,9 +113,8 @@ public class PatronManagementView extends JPanel {
 
         patronTable.getColumnModel().getColumn(3).setCellRenderer(new StatusBadgeRenderer());
 
-        ActionCell cell = new ActionCell();
-        patronTable.getColumnModel().getColumn(4).setCellRenderer(cell);
-        patronTable.getColumnModel().getColumn(4).setCellEditor(cell);
+        patronTable.getColumnModel().getColumn(4).setCellRenderer(new PatronActionRenderer());
+        patronTable.getColumnModel().getColumn(4).setCellEditor(new PatronActionEditor());
 
         JScrollPane scroll = new JScrollPane(patronTable);
         scroll.setBorder(null);
@@ -174,13 +173,16 @@ public class PatronManagementView extends JPanel {
     private void showEditPatronModal(PatronDto patron) {
         if (patron == null) return;
         JPanel form = new JPanel(new GridLayout(6, 2, 8, 8));
-        form.setPreferredSize(new Dimension(380, 240));
+        form.setPreferredSize(new Dimension(420, 260));
 
         JTextField txtName = new JTextField(patron.getFullName());
         JTextField txtEmail = new JTextField(patron.getEmail());
         JLabel lblCard = new JLabel(patron.getCardNumber() != null ? patron.getCardNumber() : "Chưa cấp");
         JLabel lblExpiry = new JLabel(patron.getExpiryDate() != null ? patron.getExpiryDate().toString() : "-");
-        JLabel lblStatus = new JLabel("HOAT_DONG".equalsIgnoreCase(patron.getCardStatus()) ? "Hoạt động" : "Bị khóa");
+        boolean isLocked = "KHOA".equalsIgnoreCase(patron.getCardStatus()) || "0".equals(patron.getCardStatus());
+        JLabel lblStatus = new JLabel(isLocked ? "Bị khóa" : "Hoạt động");
+        lblStatus.setFont(UITheme.FONT_BOLD);
+        lblStatus.setForeground(isLocked ? UITheme.DANGER_TEXT : UITheme.SUCCESS_TEXT);
 
         form.add(new JLabel("Họ và tên:"));
         form.add(txtName);
@@ -258,33 +260,80 @@ public class PatronManagementView extends JPanel {
         }
     }
 
-    private class ActionCell extends AbstractCellEditor implements javax.swing.table.TableCellRenderer, javax.swing.table.TableCellEditor {
+    private class PatronActionRenderer implements javax.swing.table.TableCellRenderer {
         private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 4));
         private final JButton btnLock = new JButton();
         private final JButton btnExtend = new JButton();
         private final JButton btnEdit = new JButton();
-        private PatronDto currentPatron;
 
-        ActionCell() {
+        PatronActionRenderer() {
             panel.setOpaque(false);
-            styleIconButton(btnLock, UITheme.DANGER_BG, "Khóa/Mở khóa thẻ");
+            styleIconButton(btnLock, UITheme.SUCCESS_BG, "Khóa/Mở khóa thẻ");
+            styleIconButton(btnExtend, UITheme.SUCCESS_BG, "Gia hạn thẻ (+365 ngày)");
+            styleIconButton(btnEdit, UITheme.TINT, "Chỉnh sửa & Chi tiết hồ sơ");
+            panel.add(btnLock);
+            panel.add(btnExtend);
+            panel.add(btnEdit);
+        }
+
+        private void styleIconButton(JButton btn, Color bg, String tooltip) {
+            btn.setPreferredSize(new Dimension(32, 32));
+            btn.setBackground(bg);
+            btn.setToolTipText(tooltip);
+            btn.setFocusPainted(false);
+            btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            btn.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
+            if (v instanceof PatronDto p) {
+                boolean isLocked = "KHOA".equalsIgnoreCase(p.getCardStatus()) || "0".equals(p.getCardStatus());
+                btnLock.setIcon(isLocked
+                    ? IconFactory.createLockIcon(UITheme.DANGER_TEXT, 16)
+                    : IconFactory.createUnlockIcon(UITheme.SUCCESS_TEXT, 16));
+                btnLock.setBackground(isLocked ? UITheme.DANGER_BG : UITheme.SUCCESS_BG);
+                btnLock.setToolTipText(isLocked ? "Thẻ đang bị khóa - Bấm để mở khóa" : "Thẻ đang mở khóa - Bấm để khóa thẻ");
+                btnExtend.setIcon(IconFactory.createClockIcon(UITheme.SUCCESS_TEXT, 16));
+                btnEdit.setIcon(IconFactory.createEditIcon(UITheme.PRIMARY, 16));
+            }
+            return panel;
+        }
+    }
+
+    private class PatronActionEditor extends AbstractCellEditor implements javax.swing.table.TableCellEditor {
+        private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 4));
+        private final JButton btnLock = new JButton();
+        private final JButton btnExtend = new JButton();
+        private final JButton btnEdit = new JButton();
+        private PatronDto editingPatron;
+
+        PatronActionEditor() {
+            panel.setOpaque(false);
+            styleIconButton(btnLock, UITheme.SUCCESS_BG, "Khóa/Mở khóa thẻ");
             styleIconButton(btnExtend, UITheme.SUCCESS_BG, "Gia hạn thẻ (+365 ngày)");
             styleIconButton(btnEdit, UITheme.TINT, "Chỉnh sửa & Chi tiết hồ sơ");
 
             btnLock.addActionListener(e -> {
-                PatronDto p = currentPatron;
+                PatronDto p = editingPatron;
                 fireEditingStopped();
-                if (p != null) SwingUtilities.invokeLater(() -> toggleLockCard(p));
+                if (p != null) {
+                    SwingUtilities.invokeLater(() -> toggleLockCard(p));
+                }
             });
             btnExtend.addActionListener(e -> {
-                PatronDto p = currentPatron;
+                PatronDto p = editingPatron;
                 fireEditingStopped();
-                if (p != null) SwingUtilities.invokeLater(() -> extendCard(p));
+                if (p != null) {
+                    SwingUtilities.invokeLater(() -> extendCard(p));
+                }
             });
             btnEdit.addActionListener(e -> {
-                PatronDto p = currentPatron;
+                PatronDto p = editingPatron;
                 fireEditingStopped();
-                if (p != null) SwingUtilities.invokeLater(() -> showEditPatronModal(p));
+                if (p != null) {
+                    SwingUtilities.invokeLater(() -> showEditPatronModal(p));
+                }
             });
 
             panel.add(btnLock);
@@ -301,37 +350,28 @@ public class PatronManagementView extends JPanel {
             btn.setBorder(new UITheme.RoundedBorder(UITheme.BORDER, 8));
         }
 
-        @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
+        @Override
+        public Component getTableCellEditorComponent(JTable t, Object v, boolean s, int r, int c) {
             if (v instanceof PatronDto p) {
-                currentPatron = p;
+                editingPatron = p;
                 boolean isLocked = "KHOA".equalsIgnoreCase(p.getCardStatus()) || "0".equals(p.getCardStatus());
                 btnLock.setIcon(isLocked
-                    ? IconFactory.createLockIcon(UITheme.DANGER_TEXT, 14)
-                    : IconFactory.createUnlockIcon(UITheme.SUCCESS_TEXT, 14));
+                    ? IconFactory.createLockIcon(UITheme.DANGER_TEXT, 16)
+                    : IconFactory.createUnlockIcon(UITheme.SUCCESS_TEXT, 16));
                 btnLock.setBackground(isLocked ? UITheme.DANGER_BG : UITheme.SUCCESS_BG);
-                btnLock.setToolTipText(isLocked ? "Thẻ đang khóa - Bấm để mở khóa" : "Thẻ đang mở khóa - Bấm để khóa thẻ");
-                btnExtend.setIcon(IconFactory.createClockIcon(UITheme.SUCCESS_TEXT, 14));
-                btnEdit.setIcon(IconFactory.createEditIcon(UITheme.PRIMARY, 14));
+                btnLock.setToolTipText(isLocked ? "Thẻ đang bị khóa - Bấm để mở khóa" : "Thẻ đang mở khóa - Bấm để khóa thẻ");
+                btnExtend.setIcon(IconFactory.createClockIcon(UITheme.SUCCESS_TEXT, 16));
+                btnEdit.setIcon(IconFactory.createEditIcon(UITheme.PRIMARY, 16));
+            } else {
+                editingPatron = null;
             }
             return panel;
         }
 
-        @Override public Component getTableCellEditorComponent(JTable t, Object v, boolean s, int r, int c) {
-            if (v instanceof PatronDto p) {
-                currentPatron = p;
-                boolean isLocked = "KHOA".equalsIgnoreCase(p.getCardStatus()) || "0".equals(p.getCardStatus());
-                btnLock.setIcon(isLocked
-                    ? IconFactory.createLockIcon(UITheme.DANGER_TEXT, 14)
-                    : IconFactory.createUnlockIcon(UITheme.SUCCESS_TEXT, 14));
-                btnLock.setBackground(isLocked ? UITheme.DANGER_BG : UITheme.SUCCESS_BG);
-                btnLock.setToolTipText(isLocked ? "Thẻ đang khóa - Bấm để mở khóa" : "Thẻ đang mở khóa - Bấm để khóa thẻ");
-                btnExtend.setIcon(IconFactory.createClockIcon(UITheme.SUCCESS_TEXT, 14));
-                btnEdit.setIcon(IconFactory.createEditIcon(UITheme.PRIMARY, 14));
-            }
-            return panel;
+        @Override
+        public Object getCellEditorValue() {
+            return editingPatron;
         }
-
-        @Override public Object getCellEditorValue() { return currentPatron; }
     }
 
     private static class StatusBadgeRenderer extends javax.swing.table.DefaultTableCellRenderer {

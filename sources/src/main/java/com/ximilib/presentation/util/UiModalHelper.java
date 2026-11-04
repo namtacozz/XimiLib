@@ -113,7 +113,7 @@ public class UiModalHelper {
             Option option = ModalDialog.createOption();
             option.setBackgroundClickType(Option.BackgroundClickType.BLOCK);
             if (content.getPreferredSize() != null && content.getPreferredSize().width > 0) {
-                option.getLayoutOption().setSize(content.getPreferredSize().width + 48, content.getPreferredSize().height + 80);
+                option.getLayoutOption().setSize(content.getPreferredSize().width + 56, content.getPreferredSize().height + 150);
             }
             if (id != null && !id.isBlank()) {
                 ModalDialog.showModal(parent, border, option, id);
