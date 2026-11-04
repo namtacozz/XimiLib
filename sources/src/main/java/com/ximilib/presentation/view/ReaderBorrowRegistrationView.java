@@ -76,9 +76,9 @@ public class ReaderBorrowRegistrationView extends JPanel {
         this.currentUser = currentUser;
         this.onSuccessNavigate = onSuccessNavigate;
 
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(0, 10));
         setOpaque(false);
-        setBorder(new EmptyBorder(18, 28, 28, 28));
+        setBorder(new EmptyBorder(10, 20, 14, 20));
 
         initUI();
         loadUserCardData();
@@ -86,34 +86,21 @@ public class ReaderBorrowRegistrationView extends JPanel {
     }
 
     private void initUI() {
-        JPanel mainContainer = new JPanel();
-        mainContainer.setLayout(new BoxLayout(mainContainer, BoxLayout.Y_AXIS));
-        mainContainer.setOpaque(false);
-
-        // 1. Header: Thẻ bạn đọc & Thông tin kiểm tra điều kiện
-        mainContainer.add(createCardInfoHeader());
-        mainContainer.add(Box.createVerticalStrut(16));
+        // 1. Header: Thẻ bạn đọc & Thông tin kiểm tra điều kiện (Nằm gọn ở đỉnh)
+        add(createCardInfoHeader(), BorderLayout.NORTH);
 
         // 2. Nội dung 2 cột: Cột trái (Tìm & Chọn sách) - Cột phải (Chi tiết & Xác nhận mượn)
-        JPanel contentGrid = new JPanel(new GridLayout(1, 2, 20, 0));
+        JPanel contentGrid = new JPanel(new GridLayout(1, 2, 16, 0));
         contentGrid.setOpaque(false);
 
         contentGrid.add(createBookSelectionPanel());
         contentGrid.add(createBorrowConfirmationPanel());
 
-        mainContainer.add(contentGrid);
-
-        JScrollPane scrollPane = new JScrollPane(mainContainer);
-        scrollPane.setBorder(null);
-        scrollPane.setOpaque(false);
-        scrollPane.getViewport().setOpaque(false);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-
-        add(scrollPane, BorderLayout.CENTER);
+        add(contentGrid, BorderLayout.CENTER);
     }
 
     private JPanel createCardInfoHeader() {
-        JPanel panel = new JPanel(new BorderLayout(16, 0)) {
+        JPanel panel = new JPanel(new BorderLayout(14, 0)) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -127,25 +114,26 @@ public class ReaderBorrowRegistrationView extends JPanel {
             }
         };
         panel.setOpaque(false);
-        panel.setBorder(new EmptyBorder(14, 20, 14, 20));
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 75));
+        panel.setBorder(new EmptyBorder(8, 16, 8, 16));
+        panel.setPreferredSize(new Dimension(0, 52));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 52));
 
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         left.setOpaque(false);
 
         JLabel iconBadge = new JLabel("💳");
-        iconBadge.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 28));
+        iconBadge.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 22));
 
         JPanel infoBox = new JPanel();
         infoBox.setLayout(new BoxLayout(infoBox, BoxLayout.Y_AXIS));
         infoBox.setOpaque(false);
 
         lblCardHolderName = new JLabel("Độc giả: " + currentUser.getFullName());
-        lblCardHolderName.setFont(UITheme.FONT_TITLE);
+        lblCardHolderName.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 13f));
         lblCardHolderName.setForeground(UITheme.TEXT_MAIN);
 
         lblCardNumber = new JLabel("Mã thẻ: Đang tải... | Tên đăng nhập: " + currentUser.getUsername());
-        lblCardNumber.setFont(UITheme.FONT_SMALL);
+        lblCardNumber.setFont(UITheme.FONT_REGULAR.deriveFont(11f));
         lblCardNumber.setForeground(UITheme.TEXT_MUTED);
 
         infoBox.add(lblCardHolderName);
@@ -154,7 +142,7 @@ public class ReaderBorrowRegistrationView extends JPanel {
         left.add(iconBadge);
         left.add(infoBox);
 
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 4));
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 2));
         right.setOpaque(false);
 
         lblCardStatus = new JLabel("Trạng thái: Đang kiểm tra");
@@ -162,10 +150,10 @@ public class ReaderBorrowRegistrationView extends JPanel {
         lblCardStatus.setOpaque(true);
         lblCardStatus.setBackground(UITheme.TINT);
         lblCardStatus.setForeground(UITheme.PRIMARY);
-        lblCardStatus.setBorder(new EmptyBorder(4, 10, 4, 10));
+        lblCardStatus.setBorder(new EmptyBorder(3, 8, 3, 8));
 
         lblActiveLoansCount = new JLabel("Đang mượn: 0/3 cuốn về nhà");
-        lblActiveLoansCount.setFont(UITheme.FONT_BOLD);
+        lblActiveLoansCount.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 12f));
         lblActiveLoansCount.setForeground(UITheme.TEXT_MAIN);
 
         right.add(lblCardStatus);
@@ -246,7 +234,7 @@ public class ReaderBorrowRegistrationView extends JPanel {
     }
 
     private JPanel createBorrowConfirmationPanel() {
-        JPanel panel = new JPanel(new BorderLayout(0, 14)) {
+        JPanel panel = new JPanel(new BorderLayout(0, 10)) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -260,7 +248,7 @@ public class ReaderBorrowRegistrationView extends JPanel {
             }
         };
         panel.setOpaque(false);
-        panel.setBorder(new EmptyBorder(16, 18, 18, 18));
+        panel.setBorder(new EmptyBorder(12, 16, 12, 16));
 
         // Tiêu đề
         JLabel lblHeader = new JLabel("2. Thông tin đăng ký & Xác nhận");
@@ -273,24 +261,35 @@ public class ReaderBorrowRegistrationView extends JPanel {
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setOpaque(false);
 
-        // Thẻ xem trước sách được chọn
-        JPanel bookPreviewCard = new JPanel(new BorderLayout(14, 0));
-        bookPreviewCard.setOpaque(false);
+        // Thẻ xem trước sách được chọn (Thiết kế tinh gọn, vừa khít khung nhìn)
+        JPanel bookPreviewCard = new JPanel(new BorderLayout(12, 0));
+        bookPreviewCard.setOpaque(true);
+        bookPreviewCard.setBackground(new Color(248, 250, 252));
+        bookPreviewCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+        bookPreviewCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 110));
         bookPreviewCard.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(UITheme.CARD_BORDER, 1),
-            new EmptyBorder(12, 12, 12, 12)
+            new EmptyBorder(8, 10, 8, 10)
         ));
 
         lblCover = new JLabel("Chưa chọn", SwingConstants.CENTER);
-        lblCover.setPreferredSize(new Dimension(80, 110));
+        lblCover.setPreferredSize(new Dimension(68, 92));
+        lblCover.setMinimumSize(new Dimension(68, 92));
+        lblCover.setMaximumSize(new Dimension(68, 92));
+        lblCover.setOpaque(true);
+        lblCover.setBackground(Color.WHITE);
         lblCover.setBorder(BorderFactory.createLineBorder(UITheme.CARD_BORDER, 1));
+
+        JPanel coverContainer = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        coverContainer.setOpaque(false);
+        coverContainer.add(lblCover);
 
         JPanel bookDetails = new JPanel();
         bookDetails.setLayout(new BoxLayout(bookDetails, BoxLayout.Y_AXIS));
         bookDetails.setOpaque(false);
 
         lblBookTitle = new JLabel("Vui lòng chọn một cuốn sách từ danh sách");
-        lblBookTitle.setFont(UITheme.FONT_TITLE);
+        lblBookTitle.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 12f));
         lblBookTitle.setForeground(UITheme.TEXT_MAIN);
 
         lblBookMeta = new JLabel("Tác giả: -- | Thể loại: --");
@@ -302,47 +301,47 @@ public class ReaderBorrowRegistrationView extends JPanel {
         lblBookLocation.setForeground(UITheme.PRIMARY);
 
         bookDetails.add(lblBookTitle);
-        bookDetails.add(Box.createVerticalStrut(4));
+        bookDetails.add(Box.createVerticalStrut(3));
         bookDetails.add(lblBookMeta);
         bookDetails.add(Box.createVerticalStrut(4));
         bookDetails.add(lblBookLocation);
+        bookDetails.add(Box.createVerticalGlue());
 
-        bookPreviewCard.add(lblCover, BorderLayout.WEST);
+        bookPreviewCard.add(coverContainer, BorderLayout.WEST);
         bookPreviewCard.add(bookDetails, BorderLayout.CENTER);
 
         body.add(bookPreviewCard);
-        body.add(Box.createVerticalStrut(16));
+        body.add(Box.createVerticalStrut(10));
 
         // Chọn cuốn sách cụ thể (Mã vạch khả dụng)
         JLabel lblCopySelect = new JLabel("Chọn cuốn sách vật lý (mã vạch khả dụng):");
-        lblCopySelect.setFont(UITheme.FONT_BOLD);
+        lblCopySelect.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 12f));
         lblCopySelect.setForeground(UITheme.TEXT_MAIN);
         lblCopySelect.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         cmbAvailableCopies = new JComboBox<>();
         cmbAvailableCopies.setFont(UITheme.FONT_REGULAR);
-        cmbAvailableCopies.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        cmbAvailableCopies.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+        cmbAvailableCopies.setPreferredSize(new Dimension(300, 32));
         cmbAvailableCopies.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         body.add(lblCopySelect);
-        body.add(Box.createVerticalStrut(6));
+        body.add(Box.createVerticalStrut(4));
         body.add(cmbAvailableCopies);
-        body.add(Box.createVerticalStrut(14));
+        body.add(Box.createVerticalStrut(8));
 
         // Hình thức mượn
         JLabel lblFormTitle = new JLabel("Hình thức mượn sách:");
-        lblFormTitle.setFont(UITheme.FONT_BOLD);
+        lblFormTitle.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 12f));
         lblFormTitle.setForeground(UITheme.TEXT_MAIN);
         lblFormTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        radVeNha = new JRadioButton("Mượn về nhà (Tối đa 14 ngày)");
-        radTaiCho = new JRadioButton("Đọc tại chỗ (Trả trước 17:00 trong ngày)");
+        radVeNha = new JRadioButton("Mượn về nhà (14 ngày)");
+        radTaiCho = new JRadioButton("Đọc tại chỗ (Trong ngày)");
         radVeNha.setFont(UITheme.FONT_REGULAR);
         radTaiCho.setFont(UITheme.FONT_REGULAR);
         radVeNha.setOpaque(false);
         radTaiCho.setOpaque(false);
-        radVeNha.setAlignmentX(Component.LEFT_ALIGNMENT);
-        radTaiCho.setAlignmentX(Component.LEFT_ALIGNMENT);
         radVeNha.setSelected(true);
 
         ButtonGroup grp = new ButtonGroup();
@@ -352,19 +351,24 @@ public class ReaderBorrowRegistrationView extends JPanel {
         radVeNha.addActionListener(e -> updateDueDatePreview());
         radTaiCho.addActionListener(e -> updateDueDatePreview());
 
+        JPanel radioRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        radioRow.setOpaque(false);
+        radioRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        radioRow.add(radVeNha);
+        radioRow.add(radTaiCho);
+
         body.add(lblFormTitle);
-        body.add(Box.createVerticalStrut(4));
-        body.add(radVeNha);
-        body.add(radTaiCho);
-        body.add(Box.createVerticalStrut(12));
+        body.add(Box.createVerticalStrut(3));
+        body.add(radioRow);
+        body.add(Box.createVerticalStrut(8));
 
         // Thời hạn trả dự kiến
         lblDueDatePreview = new JLabel("Hạn trả dự kiến: --");
-        lblDueDatePreview.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblDueDatePreview.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblDueDatePreview.setForeground(new Color(13, 148, 136)); // Teal color
         lblDueDatePreview.setAlignmentX(Component.LEFT_ALIGNMENT);
         body.add(lblDueDatePreview);
-        body.add(Box.createVerticalStrut(12));
+        body.add(Box.createVerticalStrut(8));
 
         // Ghi chú
         JLabel lblNotes = new JLabel("Ghi chú mượn (Tùy chọn):");
@@ -374,23 +378,30 @@ public class ReaderBorrowRegistrationView extends JPanel {
 
         txtNotes = new JTextField();
         txtNotes.setFont(UITheme.FONT_REGULAR);
-        txtNotes.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        txtNotes.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        txtNotes.setPreferredSize(new Dimension(300, 30));
         txtNotes.setAlignmentX(Component.LEFT_ALIGNMENT);
         txtNotes.putClientProperty("JComponent.roundRect", true);
 
         body.add(lblNotes);
-        body.add(Box.createVerticalStrut(4));
+        body.add(Box.createVerticalStrut(3));
         body.add(txtNotes);
+        body.add(Box.createVerticalGlue());
 
         panel.add(body, BorderLayout.CENTER);
 
-        // Nút bấm đăng ký mượn
+        // Nút bấm đăng ký mượn (Luôn nằm cố định ở đáy, không bị che khuất)
+        JPanel bottomWrap = new JPanel(new BorderLayout());
+        bottomWrap.setOpaque(false);
+        bottomWrap.setBorder(new EmptyBorder(8, 0, 0, 0));
+
         btnConfirmBorrow = UITheme.createPillButton("XÁC NHẬN ĐĂNG KÝ MƯỢN", UITheme.PRIMARY, Color.WHITE);
-        btnConfirmBorrow.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnConfirmBorrow.setPreferredSize(new Dimension(Integer.MAX_VALUE, 44));
+        btnConfirmBorrow.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnConfirmBorrow.setPreferredSize(new Dimension(Integer.MAX_VALUE, 40));
         btnConfirmBorrow.addActionListener(e -> handleConfirmBorrow());
 
-        panel.add(btnConfirmBorrow, BorderLayout.SOUTH);
+        bottomWrap.add(btnConfirmBorrow, BorderLayout.CENTER);
+        panel.add(bottomWrap, BorderLayout.SOUTH);
         updateDueDatePreview();
 
         return panel;
@@ -400,9 +411,9 @@ public class ReaderBorrowRegistrationView extends JPanel {
         if (book == null) return;
         this.selectedBook = book;
 
-        lblBookTitle.setText("<html><b>" + book.getTitle() + "</b></html>");
-        lblBookMeta.setText("Tác giả: " + (book.getAuthor() != null ? book.getAuthor() : "Không rõ") +
-            " | Thể loại: " + (book.getCategoryName() != null ? book.getCategoryName() : "Không rõ"));
+        lblBookTitle.setText("<html><b style='font-size:12px; color:#1e293b;'>" + book.getTitle() + "</b></html>");
+        lblBookMeta.setText("<html><span style='color:#64748b; font-size:11px;'>Tác giả: <b>" + (book.getAuthor() != null ? book.getAuthor() : "Không rõ") +
+            "</b> | Thể loại: <b>" + (book.getCategoryName() != null ? book.getCategoryName() : "Không rõ") + "</b></span></html>");
 
         loadCoverAsync(lblCover, book.getCoverImage());
         loadAvailableCopiesAsync(book.getBookId());
@@ -647,7 +658,7 @@ public class ReaderBorrowRegistrationView extends JPanel {
                     java.net.URL url = getClass().getResource(resPath);
                     if (url != null) {
                         ImageIcon icon = new ImageIcon(url);
-                        Image img = icon.getImage().getScaledInstance(80, 110, Image.SCALE_SMOOTH);
+                        Image img = icon.getImage().getScaledInstance(68, 92, Image.SCALE_SMOOTH);
                         ImageIcon scaled = new ImageIcon(img);
                         COVER_CACHE.put(coverPath, scaled);
                         return scaled;
@@ -658,7 +669,7 @@ public class ReaderBorrowRegistrationView extends JPanel {
                     }
                     if (file.exists()) {
                         ImageIcon icon = new ImageIcon(file.getAbsolutePath());
-                        Image img = icon.getImage().getScaledInstance(80, 110, Image.SCALE_SMOOTH);
+                        Image img = icon.getImage().getScaledInstance(68, 92, Image.SCALE_SMOOTH);
                         ImageIcon scaled = new ImageIcon(img);
                         COVER_CACHE.put(coverPath, scaled);
                         return scaled;

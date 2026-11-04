@@ -32,6 +32,8 @@ public interface CirculationService {
 
     void payFine(String fineTicketId, String paymentMethod);
 
+    String findUnpaidFineByTicketId(String ticketId);
+
     void renewLoan(String borrowTicketId, String reason);
 
     void reserveBook(String userId, String bookId);

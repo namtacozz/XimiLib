@@ -240,6 +240,14 @@ public class DashboardRepositoryImpl implements DashboardRepository, DashboardQu
             WHERE u.ID = ?
         """;
 
+        String syncResolvedFinesSql = """
+            UPDATE phieuphat f
+            JOIN chitietphieumuon ct ON f.Machitiet = ct.Machitiet
+            JOIN phieumuon p ON ct.Maphieumuon = p.Maphieumuon
+            SET f.Trangthai = 1
+            WHERE f.ID = ? AND f.Trangthai = 0 AND p.Trangthai = 5
+        """;
+
         String sqlLoans = """
             SELECT COUNT(DISTINCT ct.Macuonsach) as TotalLoans,
                    SUM(CASE WHEN p.Ngaytra < CURRENT_DATE() OR p.Trangthai = 3 THEN 1 ELSE 0 END) as OverdueLoans
@@ -248,9 +256,21 @@ public class DashboardRepositoryImpl implements DashboardRepository, DashboardQu
             WHERE p.ID = ? AND p.Trangthai IN (1, 3) AND ct.Ngaytra IS NULL
         """;
 
-        String sqlFines = "SELECT COALESCE(SUM(Sotienphat), 0) FROM phieuphat WHERE ID = ? AND Trangthai = 0";
+        String sqlFines = """
+            SELECT COALESCE(SUM(f.Sotienphat), 0)
+            FROM phieuphat f
+            LEFT JOIN chitietphieumuon ct ON f.Machitiet = ct.Machitiet
+            LEFT JOIN phieumuon p ON ct.Maphieumuon = p.Maphieumuon
+            WHERE f.ID = ? AND f.Trangthai = 0
+              AND (p.Maphieumuon IS NULL OR p.Trangthai NOT IN (2, 5))
+        """;
 
         try (Connection conn = connectionManager.getConnection()) {
+            // Tự động đồng bộ các khoản phạt của phiếu mượn đã hoàn tất đền bù (Trangthai = 5)
+            try (PreparedStatement psSync = conn.prepareStatement(syncResolvedFinesSql)) {
+                psSync.setString(1, userId);
+                psSync.executeUpdate();
+            } catch (SQLException ignored) {}
             try (PreparedStatement ps = conn.prepareStatement(sqlUser)) {
                 ps.setString(1, userId);
                 try (ResultSet rs = ps.executeQuery()) {

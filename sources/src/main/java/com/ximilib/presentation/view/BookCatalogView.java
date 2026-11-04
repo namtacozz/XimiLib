@@ -96,12 +96,15 @@ public class BookCatalogView extends JPanel {
         titleBox.setOpaque(false);
         titleBox.setLayout(new BoxLayout(titleBox, BoxLayout.Y_AXIS));
 
-        JLabel lblTitle = new JLabel("Kho sách");
+        boolean isCatalogReader = (currentUser != null && (currentUser.isReader() || currentUser.isGuest()));
+        JLabel lblTitle = new JLabel(isCatalogReader ? "Khám phá sách" : "Kho sách");
         lblTitle.setFont(UITheme.FONT_TITLE_LARGE);
         lblTitle.setForeground(UITheme.TEXT_MAIN);
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblSub = new JLabel("Danh mục các đầu sách trong thư viện, quản lý số lượng tồn và tình trạng khả dụng");
+        JLabel lblSub = new JLabel(isCatalogReader
+            ? "Tra cứu danh mục sách phong phú, tác giả và tình trạng sẵn sàng tại thư viện"
+            : "Danh mục các đầu sách trong thư viện, quản lý số lượng tồn và tình trạng khả dụng");
         lblSub.setFont(UITheme.FONT_SMALL);
         lblSub.setForeground(UITheme.TEXT_MUTED);
         lblSub.setAlignmentX(Component.LEFT_ALIGNMENT);

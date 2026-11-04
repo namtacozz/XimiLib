@@ -225,6 +225,62 @@ public class IconFactory {
     }
 
     /**
+     * Tạo icon Tam Giác Cảnh Báo (Warning) vector Graphics2D.
+     * Giải quyết triệt để lỗi ô vuông (tofu glyph '▯') khi hiển thị emoji ⚠️ trên Windows.
+     */
+    public static Icon createWarningIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            // Vẽ viền tam giác cảnh báo
+            int[] xs = {w / 2, 1, w - 2};
+            int[] ys = {1, h - 2, h - 2};
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.drawPolygon(xs, ys, 3);
+            
+            // Dấu chấm than !
+            int cx = w / 2;
+            g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.drawLine(cx, 5, cx, h - 7);
+            g2.fillOval(cx - 1, h - 5, 2, 2);
+        });
+    }
+
+    /**
+     * Tạo icon Ngôi Sao (Đánh giá) 5 cánh vẽ trực tiếp bằng Graphics2D Path2D.
+     * Giải quyết triệt để lỗi ô vuông (tofu glyph) trên mọi hệ điều hành.
+     */
+    public static Icon createStarIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            double cx = w / 2.0;
+            double cy = h / 2.0;
+            double rOuter = Math.min(w, h) / 2.0 - 0.5;
+            double rInner = rOuter * 0.42;
+
+            Path2D.Double path = new Path2D.Double();
+            double angle = -Math.PI / 2.0;
+            double dAngle = Math.PI / 5.0;
+
+            for (int i = 0; i < 10; i++) {
+                double r = (i % 2 == 0) ? rOuter : rInner;
+                double x = cx + Math.cos(angle) * r;
+                double y = cy + Math.sin(angle) * r;
+                if (i == 0) {
+                    path.moveTo(x, y);
+                } else {
+                    path.lineTo(x, y);
+                }
+                angle += dAngle;
+            }
+            path.closePath();
+            g2.fill(path);
+        });
+    }
+
+    /**
      * Tạo icon mũi tên sang trái (Chevron Left cho Phân trang)
      */
     public static Icon createChevronLeftIcon(Color color, int size) {

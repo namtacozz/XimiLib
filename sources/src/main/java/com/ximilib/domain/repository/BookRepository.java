@@ -23,7 +23,11 @@ public interface BookRepository {
 
     int countTotalBooks();
 
-    default void saveNewBook(String title, String author, String categoryName, String isbn, double price, int initialCopies) {}
+    default void saveNewBook(String title, String author, String categoryName, String publisherName, String shelfLocation, String isbn, double price, int initialCopies) {}
+
+    default void saveNewBook(String title, String author, String categoryName, String isbn, double price, int initialCopies) {
+        saveNewBook(title, author, categoryName, "NXB Bách Khoa", "Kệ IT-01 (Khu A)", isbn, price, initialCopies);
+    }
 
     void restoreBook(String bookId);
 

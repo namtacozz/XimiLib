@@ -78,11 +78,13 @@ public class SidebarPanel extends JPanel {
         boolean isLibrarian = normRole.contains("THỦ THƯ") || normRole.contains("LIBRARIAN");
         boolean isGuest = normRole.contains("KHÁCH") || normRole.contains("GUEST");
 
-        // Menu 1: Trang chủ (mọi vai trò)
-        JButton btnHome = createMenuItem("Trang chủ", IconFactory.createHomeIcon(Color.WHITE, 16), true);
-        menuContainer.add(btnHome);
-        activeButton = btnHome;
-        menuContainer.add(Box.createVerticalStrut(6));
+        if (!isGuest) {
+            // Menu 1: Trang chủ (chỉ dành cho Admin, Thủ thư, Độc giả chính thức)
+            JButton btnHome = createMenuItem("Trang chủ", IconFactory.createHomeIcon(Color.WHITE, 16), true);
+            menuContainer.add(btnHome);
+            activeButton = btnHome;
+            menuContainer.add(Box.createVerticalStrut(6));
+        }
 
         if (isAdmin) {
             // ADMIN (6 mục tiếp theo = 7 mục tổng cộng)
@@ -109,8 +111,10 @@ public class SidebarPanel extends JPanel {
             menuContainer.add(Box.createVerticalStrut(6));
             menuContainer.add(createMenuItem("Hộp thư góp ý", IconFactory.createHelpIcon(UITheme.TEXT_MUTED, 16), false));
         } else if (isGuest) {
-            // KHÁCH (Tra cứu sách & Trợ giúp, Đóng góp ý kiến)
-            menuContainer.add(createMenuItem("Khám phá sách", IconFactory.createBookIcon(UITheme.TEXT_MUTED, 16), false));
+            // KHÁCH (Chỉ thấy Khám phá sách và Hộp thư góp ý)
+            JButton btnExplore = createMenuItem("Khám phá sách", IconFactory.createBookIcon(Color.WHITE, 16), true);
+            menuContainer.add(btnExplore);
+            activeButton = btnExplore;
             menuContainer.add(Box.createVerticalStrut(6));
             menuContainer.add(createMenuItem("Hộp thư góp ý", IconFactory.createHelpIcon(UITheme.TEXT_MUTED, 16), false));
         } else {

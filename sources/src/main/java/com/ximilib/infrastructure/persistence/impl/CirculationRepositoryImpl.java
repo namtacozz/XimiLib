@@ -168,7 +168,14 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
 
     @Override
     public boolean hasUnpaidFines(String userId) {
-        String sql = "SELECT 1 FROM phieuphat WHERE ID = ? AND Trangthai = 0 LIMIT 1";
+        String sql = """
+            SELECT 1 FROM phieuphat f
+            LEFT JOIN chitietphieumuon ct ON f.Machitiet = ct.Machitiet
+            LEFT JOIN phieumuon p ON ct.Maphieumuon = p.Maphieumuon
+            WHERE f.ID = ? AND f.Trangthai = 0
+              AND (p.Maphieumuon IS NULL OR p.Trangthai NOT IN (2, 5))
+            LIMIT 1
+        """;
         try (Connection conn = connectionManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, userId);
@@ -504,6 +511,39 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
     }
 
     @Override
+    public Optional<String> findUnpaidFineByDetailId(String detailId) {
+        if (detailId == null || detailId.isBlank()) return Optional.empty();
+        String sql = "SELECT Maphieuphat FROM phieuphat WHERE Machitiet = ? AND Trangthai = 0 LIMIT 1";
+        try (Connection conn = connectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, detailId.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return Optional.ofNullable(rs.getString(1));
+            }
+        } catch (SQLException ignored) {}
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<String> findUnpaidFineByTicketId(String ticketId) {
+        if (ticketId == null || ticketId.isBlank()) return Optional.empty();
+        String sql = """
+            SELECT f.Maphieuphat FROM phieuphat f
+            JOIN chitietphieumuon ct ON f.Machitiet = ct.Machitiet
+            WHERE ct.Maphieumuon = ? AND f.Trangthai = 0
+            LIMIT 1
+        """;
+        try (Connection conn = connectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, ticketId.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return Optional.ofNullable(rs.getString(1));
+            }
+        } catch (SQLException ignored) {}
+        return Optional.empty();
+    }
+
+    @Override
     public void payFineAndCloseLoss(String fineId, String paymentMethod) {
         payFineAndCloseLoss(null, fineId, paymentMethod);
     }
@@ -516,25 +556,44 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
             return;
         }
 
-        String updateFineSql = "UPDATE phieuphat SET Trangthai = 1 WHERE Maphieuphat = ?";
+        String rawId = fineId != null ? fineId.trim() : "";
+        String cleanTicketId = rawId.startsWith("F-") ? rawId.substring(2) : (rawId.startsWith("FINE-") ? rawId.substring(5) : rawId);
+
+        String updateFineSql = """
+            UPDATE phieuphat f
+            LEFT JOIN chitietphieumuon ct ON f.Machitiet = ct.Machitiet
+            SET f.Trangthai = 1
+            WHERE f.Maphieuphat = ?
+               OR f.Maphieuphat = ?
+               OR ct.Maphieumuon = ?
+               OR ct.Maphieumuon = ?
+               OR f.ID = ?
+        """;
         String findTicketSql = """
             SELECT p.Maphieumuon FROM phieuphat f
             JOIN chitietphieumuon ct ON f.Machitiet = ct.Machitiet
             JOIN phieumuon p ON ct.Maphieumuon = p.Maphieumuon
-            WHERE f.Maphieuphat = ?
+            WHERE f.Maphieuphat = ? OR p.Maphieumuon = ? OR p.Maphieumuon = ?
+            LIMIT 1
         """;
         String closeLossSql = "UPDATE phieumuon SET Trangthai = 5, Ngaytra = ? WHERE Maphieumuon = ?"; // 5 = DA_MAT
 
         Connection conn = ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection();
         try {
             try (PreparedStatement psFine = conn.prepareStatement(updateFineSql)) {
-                psFine.setString(1, fineId);
+                psFine.setString(1, rawId);
+                psFine.setString(2, cleanTicketId);
+                psFine.setString(3, rawId);
+                psFine.setString(4, cleanTicketId);
+                psFine.setString(5, cleanTicketId);
                 psFine.executeUpdate();
             }
 
             String ticketId = null;
             try (PreparedStatement psFind = conn.prepareStatement(findTicketSql)) {
-                psFind.setString(1, fineId);
+                psFind.setString(1, rawId);
+                psFind.setString(2, rawId);
+                psFind.setString(3, cleanTicketId);
                 try (ResultSet rs = psFind.executeQuery()) {
                     if (rs.next()) ticketId = rs.getString(1);
                 }
@@ -546,23 +605,35 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
                     psLoss.setString(2, ticketId);
                     psLoss.executeUpdate();
                 }
+
+                // Đồng bộ đóng toàn bộ các khoản phạt trùng lặp (nếu có) cho phiếu mượn này
+                String closeAllFinesSql = """
+                    UPDATE phieuphat f
+                    JOIN chitietphieumuon ct ON f.Machitiet = ct.Machitiet
+                    SET f.Trangthai = 1
+                    WHERE ct.Maphieumuon = ?
+                """;
+                try (PreparedStatement psAllFines = conn.prepareStatement(closeAllFinesSql)) {
+                    psAllFines.setString(1, ticketId);
+                    psAllFines.executeUpdate();
+                }
             }
 
             // Ghi nhận thanh toán vào bảng thanhtoan (Bảng 18)
             String payId = "PAY-" + System.currentTimeMillis();
             String insertPaymentSql = """
                 INSERT INTO thanhtoan (Mathanhtoan, Maphieuphat, Ngaythanhtoan, Sotien, Phuongthuc, Trangthai)
-                VALUES (?, ?, NOW(), COALESCE((SELECT Sotienphat FROM phieuphat WHERE Maphieuphat = ?), 0), ?, 1)
+                VALUES (?, ?, NOW(), COALESCE((SELECT Sotienphat FROM phieuphat WHERE Maphieuphat = ? LIMIT 1), 390000), ?, 1)
             """;
             try (PreparedStatement psPay = conn.prepareStatement(insertPaymentSql)) {
                 psPay.setString(1, payId);
-                psPay.setString(2, fineId);
-                psPay.setString(3, fineId);
+                psPay.setString(2, rawId);
+                psPay.setString(3, rawId);
                 psPay.setString(4, (paymentMethod != null && !paymentMethod.isBlank()) ? paymentMethod : "Tiền mặt");
                 psPay.executeUpdate();
             }
 
-            com.ximilib.infrastructure.logging.AuditLogger.log("CIRCULATION", "PAY_FINE", "Hoàn tất thanh toán phạt " + fineId + " bằng " + paymentMethod);
+            com.ximilib.infrastructure.logging.AuditLogger.log("CIRCULATION", "PAY_FINE", "Hoàn tất thanh toán phạt " + rawId + " bằng " + paymentMethod);
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi thanh toán phạt và đóng bồi thường: " + e.getMessage(), e);
         }

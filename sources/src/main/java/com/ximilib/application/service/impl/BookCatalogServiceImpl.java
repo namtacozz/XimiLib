@@ -49,9 +49,14 @@ public class BookCatalogServiceImpl implements BookCatalogService {
     }
 
     @Override
-    public void saveNewBook(String title, String author, String categoryName, String isbn, double price, int initialCopies) {
-        bookRepository.saveNewBook(title, author, categoryName, isbn, price, initialCopies);
+    public void saveNewBook(String title, String author, String categoryName, String publisherName, String shelfLocation, String isbn, double price, int initialCopies) {
+        bookRepository.saveNewBook(title, author, categoryName, publisherName, shelfLocation, isbn, price, initialCopies);
         DomainEventPublisher.publish(new BookStockChangedEvent("NEW_BOOK", "CREATED"));
+    }
+
+    @Override
+    public void saveNewBook(String title, String author, String categoryName, String isbn, double price, int initialCopies) {
+        saveNewBook(title, author, categoryName, "NXB Bách Khoa", "Kệ IT-01 (Khu A)", isbn, price, initialCopies);
     }
 
     @Override

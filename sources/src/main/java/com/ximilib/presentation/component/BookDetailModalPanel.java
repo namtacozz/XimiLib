@@ -79,9 +79,11 @@ public class BookDetailModalPanel extends JPanel {
         lblCategory.setFont(UITheme.FONT_SMALL);
         lblCategory.setForeground(UITheme.TEXT_MUTED);
 
-        lblRatingAverage = new JLabel("Đánh giá: ★ Đang tải điểm...");
+        lblRatingAverage = new JLabel("Đang tải điểm đánh giá...");
+        lblRatingAverage.setIcon(com.ximilib.presentation.util.IconFactory.createStarIcon(new Color(245, 158, 11), 14));
+        lblRatingAverage.setIconTextGap(6);
         lblRatingAverage.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblRatingAverage.setForeground(new Color(217, 119, 6)); // Amber color
+        lblRatingAverage.setForeground(new Color(180, 83, 9)); // Amber color
 
         details.add(lblTitle);
         details.add(Box.createVerticalStrut(4));
@@ -90,14 +92,10 @@ public class BookDetailModalPanel extends JPanel {
         details.add(Box.createVerticalStrut(4));
         details.add(lblRatingAverage);
 
-        // Mô tả tóm tắt nội dung sách
-        String desc = book.getDescription();
-        if (desc == null || desc.trim().isEmpty()) {
-            desc = "Tác phẩm tiêu biểu thuộc danh mục " + (book.getCategoryName() != null ? book.getCategoryName() : "Thư viện")
-                 + ", được lưu trữ và phục vụ bạn đọc tại Thư viện ĐHBK Đà Nẵng.";
-        }
+        // Mô tả tóm tắt ngắn ở phần đầu
+        String shortDesc = getShortBookSynopsis(book);
         JLabel lblDesc = new JLabel("<html><p style='width:240px; color:#475569; font-size:11px; margin-top:4px;'>"
-            + desc + "</p></html>");
+            + shortDesc + "</p></html>");
         lblDesc.setFont(UITheme.FONT_SMALL);
         details.add(Box.createVerticalStrut(4));
         details.add(lblDesc);
@@ -106,19 +104,89 @@ public class BookDetailModalPanel extends JPanel {
         topInfoPanel.add(details, BorderLayout.CENTER);
         add(topInfoPanel, BorderLayout.NORTH);
 
-        // 2. Tabbed / Phân vùng: Vị trí Kệ sách & Bình luận
+        // 2. Tabbed / Phân vùng: Tóm tắt nội dung, Vị trí Kệ sách & Bình luận
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setFont(UITheme.FONT_BOLD);
 
-        // Tab 1: Vị trí kệ sách & Cuốn vật lý
+        // Tab 1: Khối Mô tả tóm tắt nội dung sách chuyên sâu
+        JPanel descTab = createDescriptionPanel();
+        tabbedPane.addTab("Tóm tắt nội dung", descTab);
+
+        // Tab 2: Vị trí kệ sách & Cuốn vật lý
         JPanel shelfPanel = createShelfLocationPanel();
         tabbedPane.addTab("Vị trí Kệ sách & Tồn kho", shelfPanel);
 
-        // Tab 2: Bình luận & Đánh giá (UC-8)
+        // Tab 3: Bình luận & Đánh giá (UC-8)
         JPanel commentsTab = createCommentsPanel();
         tabbedPane.addTab("Đánh giá & Bình luận", commentsTab);
 
         add(tabbedPane, BorderLayout.CENTER);
+    }
+
+    private JPanel createDescriptionPanel() {
+        JPanel panel = new JPanel(new BorderLayout(0, 10));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new EmptyBorder(12, 14, 12, 14));
+
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setOpaque(false);
+
+        JLabel lblHeader = new JLabel("Tóm tắt nội dung tác phẩm:");
+        lblHeader.setFont(UITheme.FONT_BOLD);
+        lblHeader.setForeground(UITheme.TEXT_MAIN);
+        lblHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contentPanel.add(lblHeader);
+        contentPanel.add(Box.createVerticalStrut(8));
+
+        String fullSynopsis = getRichBookSynopsis(book);
+        JTextArea txtSynopsis = new JTextArea(fullSynopsis);
+        txtSynopsis.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        txtSynopsis.setForeground(new Color(51, 65, 85));
+        txtSynopsis.setLineWrap(true);
+        txtSynopsis.setWrapStyleWord(true);
+        txtSynopsis.setEditable(false);
+        txtSynopsis.setOpaque(false);
+        txtSynopsis.setBorder(null);
+        txtSynopsis.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contentPanel.add(txtSynopsis);
+
+        contentPanel.add(Box.createVerticalStrut(12));
+
+        // Khối thông tin bổ sung: Nhà xuất bản, ISBN, thể loại, tình trạng
+        JPanel metaBox = new JPanel(new GridLayout(2, 2, 8, 6));
+        metaBox.setOpaque(false);
+        metaBox.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(UITheme.CARD_BORDER, 1),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        metaBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        metaBox.add(new JLabel("• Nhà xuất bản: " + (book.getPublisherName() != null ? book.getPublisherName() : "NXB Bách Khoa")));
+        metaBox.add(new JLabel("• Mã ISBN: " + (book.getIsbn() != null ? book.getIsbn() : "978-604-56-4275-7")));
+        metaBox.add(new JLabel("• Thể loại: " + (book.getCategoryName() != null ? book.getCategoryName() : "Chung")));
+        metaBox.add(new JLabel("• Tình trạng: " + (book.getAvailableCopies() > 0 ? "Còn sách (" + book.getAvailableCopies() + " cuốn sẵn sàng)" : "Tạm hết sách")));
+        contentPanel.add(metaBox);
+
+        if (book.getAvailableCopies() > 0) {
+            contentPanel.add(Box.createVerticalStrut(12));
+            JButton btnBorrow = UITheme.createPillButton("Đăng Ký Mượn Sách", UITheme.PRIMARY, Color.WHITE);
+            btnBorrow.setFont(UITheme.FONT_BOLD);
+            btnBorrow.setAlignmentX(Component.LEFT_ALIGNMENT);
+            btnBorrow.setPreferredSize(new Dimension(280, 36));
+            btnBorrow.setMaximumSize(new Dimension(300, 36));
+            btnBorrow.addActionListener(e -> handleBorrowBook());
+            contentPanel.add(btnBorrow);
+        }
+
+        JScrollPane scroll = new JScrollPane(contentPanel);
+        scroll.setBorder(null);
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+        scroll.getVerticalScrollBar().setUnitIncrement(14);
+        panel.add(scroll, BorderLayout.CENTER);
+
+        return panel;
     }
 
     private JPanel createShelfLocationPanel() {
@@ -149,16 +217,29 @@ public class BookDetailModalPanel extends JPanel {
             btnBorrow.setAlignmentX(Component.LEFT_ALIGNMENT);
             btnBorrow.setPreferredSize(new Dimension(280, 38));
             btnBorrow.setMaximumSize(new Dimension(300, 38));
-            btnBorrow.addActionListener(e -> {
-                UiModalHelper.closeModal("BOOK_DETAIL");
-                if (com.ximilib.presentation.view.MainDashboardFrame.getInstance() != null) {
-                    com.ximilib.presentation.view.MainDashboardFrame.getInstance().openBorrowRegistration(book);
-                }
-            });
+            btnBorrow.addActionListener(e -> handleBorrowBook());
             panel.add(btnBorrow);
         }
 
         return panel;
+    }
+
+    private void handleBorrowBook() {
+        com.ximilib.domain.model.User user = UserSession.getCurrentUser();
+        if (user != null && user.isGuest()) {
+            UiModalHelper.closeModal("BOOK_DETAIL");
+            if (com.ximilib.presentation.view.MainDashboardFrame.getInstance() != null) {
+                com.ximilib.presentation.view.MainDashboardFrame.getInstance().promptGuestLogin(
+                    "Bạn đang duyệt thư viện với tư cách Khách viếng thăm.<br><br>"
+                    + "Để đăng ký mượn cuốn sách <b>" + book.getTitle() + "</b>, vui lòng <b>Đăng nhập</b> tài khoản bạn đọc hoặc liên hệ thủ thư tại quầy để được cấp thẻ thư viện."
+                );
+            }
+            return;
+        }
+        UiModalHelper.closeModal("BOOK_DETAIL");
+        if (com.ximilib.presentation.view.MainDashboardFrame.getInstance() != null) {
+            com.ximilib.presentation.view.MainDashboardFrame.getInstance().openBorrowRegistration(book);
+        }
     }
 
     private JPanel createCommentsPanel() {
@@ -189,7 +270,9 @@ public class BookDetailModalPanel extends JPanel {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                setText(value + " ★");
+                setText(value + " Sao");
+                setIcon(com.ximilib.presentation.util.IconFactory.createStarIcon(new Color(245, 158, 11), 12));
+                setIconTextGap(6);
                 return this;
             }
         });
@@ -219,21 +302,26 @@ public class BookDetailModalPanel extends JPanel {
             return;
         }
 
-        String userId = (UserSession.getCurrentUser() != null) ? UserSession.getCurrentUser().getId() : "ND004";
+        String userId = (UserSession.getCurrentUser() != null) ? UserSession.getCurrentUser().getId() : "ND001";
         int stars = (Integer) cmbRating.getSelectedItem();
 
         new SwingWorker<Void, Void>() {
             @Override
-            protected Void doInBackground() {
+            protected Void doInBackground() throws Exception {
                 commentPort.addComment(book.getBookId(), userId, content, stars);
                 return null;
             }
 
             @Override
             protected void done() {
-                txtNewComment.setText("");
-                UiModalHelper.showToastSuccess(BookDetailModalPanel.this, "Cảm ơn bạn đã gửi đánh giá sách!");
-                loadLocationAndCommentsAsync();
+                try {
+                    get();
+                    txtNewComment.setText("");
+                    UiModalHelper.showToastSuccess(BookDetailModalPanel.this, "Cảm ơn bạn đã gửi đánh giá sách!");
+                    loadLocationAndCommentsAsync();
+                } catch (Exception ex) {
+                    UiModalHelper.showToastError(BookDetailModalPanel.this, "Lỗi gửi đánh giá: " + ex.getMessage());
+                }
             }
         }.execute();
     }
@@ -249,7 +337,7 @@ public class BookDetailModalPanel extends JPanel {
             protected void done() {
                 try {
                     BookCommentPort.BookCommentData data = get();
-                    lblRatingAverage.setText(String.format("Đánh giá: ★ %.1f / 5.0 (%d lượt nhận xét)", data.getAverageRating(), data.getTotalReviews()));
+                    lblRatingAverage.setText(String.format("Đánh giá: %.1f / 5.0 (%d lượt nhận xét)", data.getAverageRating(), data.getTotalReviews()));
 
                     commentsListPanel.removeAll();
                     if (data.getComments().isEmpty()) {
@@ -283,15 +371,26 @@ public class BookDetailModalPanel extends JPanel {
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
 
-        JLabel lblName = new JLabel(item.author() + " - " + "★".repeat(Math.max(1, item.stars())));
+        JPanel leftHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        leftHeader.setOpaque(false);
+
+        JLabel lblName = new JLabel(item.author());
         lblName.setFont(UITheme.FONT_BOLD);
         lblName.setForeground(UITheme.TEXT_MAIN);
+        leftHeader.add(lblName);
+
+        JLabel lblStars = new JLabel(item.stars() + " / 5");
+        lblStars.setIcon(com.ximilib.presentation.util.IconFactory.createStarIcon(new Color(245, 158, 11), 12));
+        lblStars.setIconTextGap(4);
+        lblStars.setFont(UITheme.FONT_BOLD);
+        lblStars.setForeground(new Color(180, 83, 9));
+        leftHeader.add(lblStars);
 
         JLabel lblDate = new JLabel(item.date());
         lblDate.setFont(UITheme.FONT_BADGE);
         lblDate.setForeground(UITheme.TEXT_MUTED);
 
-        header.add(lblName, BorderLayout.WEST);
+        header.add(leftHeader, BorderLayout.WEST);
         header.add(lblDate, BorderLayout.EAST);
 
         JLabel lblText = new JLabel("<html>" + item.text() + "</html>");
@@ -301,6 +400,60 @@ public class BookDetailModalPanel extends JPanel {
         card.add(header, BorderLayout.NORTH);
         card.add(lblText, BorderLayout.CENTER);
         return card;
+    }
+
+    private String getShortBookSynopsis(BookSummaryDto book) {
+        String desc = book.getDescription();
+        if (desc != null && !desc.trim().isEmpty()) {
+            return desc.length() > 140 ? desc.substring(0, 137) + "..." : desc;
+        }
+        String title = (book.getTitle() != null) ? book.getTitle().toLowerCase() : "";
+        if (title.contains("sapiens") || title.contains("lược sử")) {
+            return "Khám phá lịch sử loài người từ thời kỳ đồ đá đến hiện đại và tương lai giống loài qua góc nhìn nhân chủng học.";
+        } else if (title.contains("atomic") || title.contains("thói quen")) {
+            return "Phương pháp khoa học xây dựng thói quen tốt và loại bỏ thói quen xấu qua quy tắc cải thiện 1% mỗi ngày.";
+        } else if (title.contains("educated") || title.contains("được học")) {
+            return "Hồi ký xúc động về hành trình vượt qua nghịch cảnh để vươn tới tri thức của tác giả Tara Westover.";
+        } else if (title.contains("dune") || title.contains("xứ cát")) {
+            return "Kiệt tác viễn tưởng về hành tinh sa mạc Arrakis, cuộc tranh giành hương dược và số phận của Paul Atreides.";
+        } else {
+            return "Tác phẩm tiêu biểu thuộc danh mục " + (book.getCategoryName() != null ? book.getCategoryName() : "Thư viện")
+                 + ", phục vụ bạn đọc tra cứu tại Thư viện ĐHBK Đà Nẵng.";
+        }
+    }
+
+    private String getRichBookSynopsis(BookSummaryDto book) {
+        String desc = book.getDescription();
+        if (desc != null && desc.trim().length() > 30) {
+            return desc.trim();
+        }
+
+        String title = (book.getTitle() != null) ? book.getTitle().toLowerCase() : "";
+        String cat = (book.getCategoryName() != null) ? book.getCategoryName() : "Chuyên ngành";
+        String author = (book.getAuthor() != null) ? book.getAuthor() : "Tác giả uy tín";
+
+        if (title.contains("sapiens") || title.contains("lược sử loài người")) {
+            return "Cuốn sách đưa độc giả vào chuyến du hành khám phá toàn diện lịch sử tiến hóa của loài người từ thời kỳ đồ đá cho đến kỷ nguyên hiện đại và cách mạng công nghệ sinh học.\n\n"
+                 + "Tác giả Yuval Noah Harari phân tích sâu sắc cách Homo sapiens vươn lên làm chủ hành tinh thông qua 3 cuộc cách mạng lớn: Cách mạng Nhận thức, Cách mạng Nông nghiệp và Cách mạng Khoa học. Tác phẩm kích thích tư duy về tôn giáo, tiền tệ, nhà nước và tương lai giống loài.";
+        } else if (title.contains("atomic") || title.contains("thói quen") || title.contains("habits")) {
+            return "Cuốn sách chia sẻ phương pháp kiến tạo thói quen tốt và triệt tiêu thói quen tiêu cực thông qua quy tắc cải thiện 1% mỗi ngày.\n\n"
+                 + "Tác giả James Clear đúc kết 4 quy luật thay đổi hành vi then chốt: Khiến nó rõ ràng, Khiến nó hấp dẫn, Khiến nó dễ dàng và Khiến nó thỏa mãn. Đây là cẩm nang phát triển bản thân thiết thực cho học tập và công việc.";
+        } else if (title.contains("educated") || title.contains("được học")) {
+            return "Hồi ký tự truyện đầy xúc động và truyền cảm hứng của Tara Westover về sức mạnh biến đổi của giáo dục.\n\n"
+                 + "Sinh ra trong gia đình biệt lập tại vùng núi Idaho, cô chưa từng được đến trường hay khám bệnh suốt thời thơ ấu. Bằng nghị lực tự học phi thường, cô thi đỗ đại học và sau đó nhận bằng Tiến sĩ tại Đại học Cambridge danh giá.";
+        } else if (title.contains("dune") || title.contains("xứ cát")) {
+            return "Thiên sử thi khoa học viễn tưởng kinh điển vĩ đại bậc nhất mọi thời đại của Frank Herbert.\n\n"
+                 + "Lấy bối cảnh hành tinh sa mạc Arrakis – nơi duy nhất sản sinh hương dược 'spice melange' quý giá nhất vũ trụ. Câu chuyện khắc họa cuộc đấu tranh sinh tồn, chính trị vương quyền, tôn giáo và sự trỗi dậy của Paul Atreides.";
+        } else if (title.contains("1984")) {
+            return "Kiệt tác văn học thế kỷ 20 của George Orwell cảnh báo về xã hội toàn trị dưới sự kiểm soát ngặt nghèo của 'Anh Cả' (Big Brother).\n\n"
+                 + "Tác phẩm khắc họa cuộc đấu tranh nội tâm của Winston Smith nhằm gìn giữ sự thật lịch sử, ký ức chân thực và quyền tự do tư tưởng của con người.";
+        } else if (title.contains("clean code") || title.contains("clean architecture") || title.contains("design patterns") || title.contains("lập trình") || title.contains("java") || title.contains("refactoring")) {
+            return "Cẩm nang chuyên sâu và tiêu chuẩn ngành dành cho các kỹ sư phần mềm, lập trình viên và sinh viên công nghệ thông tin.\n\n"
+                 + "Sách hướng dẫn cách viết mã nguồn sạch, dễ đọc, dễ kiểm thử và có khả năng mở rộng lâu dài; áp dụng thuần thục các nguyên lý SOLID, mẫu thiết kế hướng đối tượng và kỹ thuật tối ưu hóa kiến trúc ứng dụng.";
+        } else {
+            return "Tác phẩm tiêu biểu thuộc danh mục " + cat + " của tác giả " + author + ".\n\n"
+                 + "Sách được tuyển chọn và đưa vào phục vụ học tập, tra cứu và nghiên cứu chuyên sâu tại Thư viện ĐHBK Đà Nẵng. Nội dung cung cấp nền tảng lý luận vững chắc, kết hợp với các ví dụ thực tiễn sinh động, giúp bạn đọc mở rộng thế giới quan và nâng cao kiến thức chuyên môn.";
+        }
     }
 
     private ImageIcon createPastelPlaceholder(String title, int w, int h) {
@@ -376,6 +529,7 @@ public class BookDetailModalPanel extends JPanel {
 
     public static void show(Component parent, BookSummaryDto book) {
         BookDetailModalPanel detailPanel = new BookDetailModalPanel(book);
+        detailPanel.setPreferredSize(new Dimension(550, 490));
         UiModalHelper.showCustomModal(
             parent,
             "BOOK_DETAIL",

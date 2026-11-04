@@ -191,19 +191,25 @@ public class CirculationServiceImpl implements CirculationService {
             detail.coverPrice(), detail.dueDate(), now, true, false
         );
 
-        String fineId = repo.generateNextFineId();
-        if (transactionCoordinator != null) {
-            transactionCoordinator.executeVoid(tx -> {
+        String existingFineId = repo.findUnpaidFineByDetailId(detail.detailId()).orElse(null);
+        String fineId = (existingFineId != null) ? existingFineId : repo.generateNextFineId();
+        if (existingFineId == null) {
+            if (transactionCoordinator != null) {
+                transactionCoordinator.executeVoid(tx -> {
+                    repo.updateTicketStatus(detail.ticketId(), LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode());
+                    repo.markCopyLost(detail.copyId());
+                    repo.createFine(tx, fineId, detail.userId(), detail.detailId(), "Bồi thường mất sách: " + detail.bookTitle(),
+                        breakdown.getTotalAmount(), "200% giá bìa + 20.000đ phí + phạt quá hạn");
+                });
+            } else {
                 repo.updateTicketStatus(detail.ticketId(), LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode());
                 repo.markCopyLost(detail.copyId());
-                repo.createFine(tx, fineId, detail.userId(), detail.detailId(), "Bồi thường mất sách: " + detail.bookTitle(),
+                repo.createFine(fineId, detail.userId(), detail.detailId(), "Bồi thường mất sách: " + detail.bookTitle(),
                     breakdown.getTotalAmount(), "200% giá bìa + 20.000đ phí + phạt quá hạn");
-            });
+            }
         } else {
             repo.updateTicketStatus(detail.ticketId(), LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode());
             repo.markCopyLost(detail.copyId());
-            repo.createFine(fineId, detail.userId(), detail.detailId(), "Bồi thường mất sách: " + detail.bookTitle(),
-                breakdown.getTotalAmount(), "200% giá bìa + 20.000đ phí + phạt quá hạn");
         }
 
         DomainEventPublisher.publish(new BookStockChangedEvent("LOSS", "BOOK_LOST"));
@@ -229,8 +235,10 @@ public class CirculationServiceImpl implements CirculationService {
             detail.coverPrice(), detail.dueDate(), LocalDateTime.now(), isLost, isDamaged
         );
 
+        String fineTicketId = repo.findUnpaidFineByDetailId(detail.detailId()).orElse(null);
+
         return new CompensationResultDto(
-            null,
+            fineTicketId,
             detail.ticketId(),
             detail.bookTitle(),
             breakdown.getCoverPrice(),
@@ -240,6 +248,12 @@ public class CirculationServiceImpl implements CirculationService {
             breakdown.getOverdueFine(),
             breakdown.getTotalAmount()
         );
+    }
+
+    @Override
+    public String findUnpaidFineByTicketId(String ticketId) {
+        if (ticketId == null || ticketId.isBlank()) return null;
+        return getRepo().findUnpaidFineByTicketId(ticketId.trim()).orElse(null);
     }
 
     @Override

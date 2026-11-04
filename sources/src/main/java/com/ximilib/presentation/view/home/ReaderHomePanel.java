@@ -18,12 +18,18 @@ import com.ximilib.presentation.component.SectionHeader;
 import com.ximilib.presentation.component.EmptyStatePanel;
 import com.ximilib.presentation.util.Illustrations;
 import com.ximilib.presentation.util.UiModalHelper;
+import com.ximilib.domain.event.BookStockChangedEvent;
+import com.ximilib.domain.event.DomainEventListener;
+import com.ximilib.domain.event.DomainEventPublisher;
+import com.ximilib.presentation.component.VietQrModalPanel;
+import raven.modal.component.SimpleModalBorder;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -61,6 +67,7 @@ public class ReaderHomePanel extends JPanel {
 
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
+    private DomainEventListener<BookStockChangedEvent> stockListener;
 
     public ReaderHomePanel(DashboardService dashboardService,
                            CirculationService circulationService,
@@ -75,7 +82,13 @@ public class ReaderHomePanel extends JPanel {
         setLayout(new BorderLayout());
 
         initUI();
+        registerEventObserver();
         loadDashboardDataAsync();
+    }
+
+    private void registerEventObserver() {
+        stockListener = event -> SwingUtilities.invokeLater(this::loadDashboardDataAsync);
+        DomainEventPublisher.subscribe(BookStockChangedEvent.class, stockListener);
     }
 
     private void initUI() {
@@ -176,6 +189,8 @@ public class ReaderHomePanel extends JPanel {
 
         lblAlertMessage.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 13f));
         lblAlertMessage.setForeground(UITheme.DANGER_TEXT);
+        lblAlertMessage.setIcon(com.ximilib.presentation.util.IconFactory.createWarningIcon(UITheme.DANGER_TEXT, 16));
+        lblAlertMessage.setIconTextGap(8);
         alertBanner.add(lblAlertMessage, BorderLayout.CENTER);
 
         btnAlertAction.setFont(UITheme.FONT_REGULAR.deriveFont(12f));
@@ -183,8 +198,62 @@ public class ReaderHomePanel extends JPanel {
         btnAlertAction.setBackground(UITheme.DANGER_TEXT);
         btnAlertAction.setFocusPainted(false);
         btnAlertAction.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnAlertAction.addActionListener(e -> navigationCallback.accept("MY_FINES"));
+        btnAlertAction.addActionListener(e -> showFineDetailsModal());
         alertBanner.add(btnAlertAction, BorderLayout.EAST);
+    }
+
+    private void showFineDetailsModal() {
+        User currentUser = UserSession.getCurrentUser();
+        String userId = (currentUser != null) ? currentUser.getId() : "";
+        ReaderDashboardDto.ReaderDashboardData data = dashboardService.getReaderDashboardData(userId);
+        if (data == null || data.summary() == null || data.summary().unpaidFineAmount() == null
+            || data.summary().unpaidFineAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            UiModalHelper.showToastSuccess(this, "Tuyệt vời! Bạn hiện không có khoản nợ phạt nào chưa đóng.");
+            alertBanner.setVisible(false);
+            return;
+        }
+
+        BigDecimal amount = data.summary().unpaidFineAmount();
+        String amountStr = currencyFormatter.format(amount);
+
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.setPreferredSize(new Dimension(380, 150));
+
+        JLabel lblMsg = new JLabel("<html><b>Hệ thống ghi nhận bạn có nghĩa vụ tài chính chưa hoàn tất:</b><br><br>"
+            + "Tổng tiền nợ phạt: <font color='#BE123C' size='+1'><b>" + amountStr + "</b></font><br><br>"
+            + "Bạn có thể quét mã VietQR Napas247 để thanh toán trực tuyến ngay, hoặc nộp trực tiếp tại quầy Thủ thư để tiếp tục mượn sách.</html>");
+        p.add(lblMsg);
+
+        UiModalHelper.showCustomModal(
+            this,
+            "FINE_DETAIL_MODAL",
+            "Chi Tiết Nợ Phạt Thư Viện",
+            p,
+            SimpleModalBorder.OK_CANCEL_OPTION,
+            (controller, action) -> {
+                if (action == SimpleModalBorder.OK_OPTION) {
+                    controller.close();
+                    VietQrModalPanel.show(
+                        this,
+                        "FINE-" + userId,
+                        amount,
+                        () -> {
+                            try {
+                                circulationService.payFine("FINE-" + userId, "VIETQR");
+                                UiModalHelper.showToastSuccess(this, "Đã thanh toán tiền phạt thành công qua VietQR!");
+                                loadDashboardDataAsync();
+                            } catch (Exception ex) {
+                                UiModalHelper.showToastWarning(this, "Đã ghi nhận thanh toán: " + ex.getMessage());
+                                loadDashboardDataAsync();
+                            }
+                        }
+                    );
+                } else {
+                    controller.close();
+                }
+            }
+        );
     }
 
     public void loadDashboardDataAsync() {
@@ -229,7 +298,7 @@ public class ReaderHomePanel extends JPanel {
 
             // 2. Cảnh báo nợ phạt / quá hạn
             if (summary.hasViolationOrDebt()) {
-                StringBuilder msg = new StringBuilder("⚠️ Bạn có ");
+                StringBuilder msg = new StringBuilder("Bạn có ");
                 if (summary.overdueLoansCount() > 0) {
                     msg.append(summary.overdueLoansCount()).append(" cuốn sách quá hạn. ");
                 }

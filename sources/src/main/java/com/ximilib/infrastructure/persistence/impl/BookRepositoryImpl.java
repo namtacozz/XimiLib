@@ -110,7 +110,7 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                        + "LEFT JOIN tacgia tg ON st.Matacgia = tg.Matacgia "
                        + whereClause
                        + "GROUP BY s.Masach "
-                       + "ORDER BY s.Masach ASC "
+                       + "ORDER BY CAST(SUBSTRING(s.Masach, 3) AS UNSIGNED) DESC "
                        + "LIMIT ? OFFSET ?";
 
         List<BookSummaryDto> items = new ArrayList<>();
@@ -150,6 +150,7 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                     );
                     dto.setCoverImage(hinhanh);
                     dto.setDescription(rs.getString("Motasach"));
+                    dto.setIsbn(rs.getString("Isbn"));
                     items.add(dto);
                 }
             }
@@ -354,11 +355,18 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
 
     @Override
     public void saveNewBook(String title, String author, String categoryName, String isbn, double price, int initialCopies) {
+        saveNewBook(title, author, categoryName, "NXB Bách Khoa", "Kệ IT-01 (Khu A)", isbn, price, initialCopies);
+    }
+
+    @Override
+    public void saveNewBook(String title, String author, String categoryName, String publisherName, String shelfLocation, String isbn, double price, int initialCopies) {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("Tên sách không được để trống!");
         }
         String cleanTitle = title.trim();
         String cleanAuthor = (author != null && !author.trim().isEmpty()) ? author.trim() : "Nhiều tác giả";
+        String cleanPub = (publisherName != null && !publisherName.trim().isEmpty()) ? publisherName.trim() : "NXB Bách Khoa";
+        String cleanShelf = (shelfLocation != null && !shelfLocation.trim().isEmpty()) ? shelfLocation.trim() : "Kệ IT-01 (Khu A)";
         String cleanIsbn = (isbn != null && !isbn.trim().isEmpty()) ? isbn.trim() : "978-604-00-0000-0";
         if (initialCopies <= 0) initialCopies = 3;
 
@@ -407,15 +415,51 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                     }
                 }
 
-                // 3. Lấy NXB mặc định
+                // 3. Tìm hoặc thêm NXB
                 String pubId = "NXB01";
-                try (PreparedStatement psPub = conn.prepareStatement("SELECT manxb FROM nhaxuatban LIMIT 1")) {
+                try (PreparedStatement psPub = conn.prepareStatement("SELECT manxb FROM nhaxuatban WHERE LOWER(tennxb) = ? OR LOWER(tennxb) LIKE ? LIMIT 1")) {
+                    psPub.setString(1, cleanPub.toLowerCase());
+                    psPub.setString(2, "%" + cleanPub.toLowerCase() + "%");
                     try (ResultSet rs = psPub.executeQuery()) {
-                        if (rs.next()) pubId = rs.getString(1);
+                        if (rs.next()) {
+                            pubId = rs.getString(1);
+                        } else {
+                            int nextNxb = 1;
+                            try (PreparedStatement psMaxNxb = conn.prepareStatement("SELECT MAX(CAST(SUBSTRING(manxb, 4) AS UNSIGNED)) FROM nhaxuatban WHERE manxb LIKE 'NXB%'")) {
+                                try (ResultSet rsMax = psMaxNxb.executeQuery()) {
+                                    if (rsMax.next()) nextNxb = rsMax.getInt(1) + 1;
+                                }
+                            }
+                            pubId = String.format("NXB%02d", nextNxb);
+                            try (PreparedStatement psInsPub = conn.prepareStatement("INSERT INTO nhaxuatban (manxb, tennxb) VALUES (?, ?)")) {
+                                psInsPub.setString(1, pubId);
+                                psInsPub.setString(2, cleanPub);
+                                psInsPub.executeUpdate();
+                            }
+                        }
                     }
                 }
 
-                // 4. Sinh mã sách tự động: MSxxxx
+                // 4. Tìm hoặc xác định Kệ sách
+                String shelfId = "KE-A1";
+                try (PreparedStatement psKe = conn.prepareStatement("SELECT Makesach FROM kesach WHERE LOWER(Tenkesach) = ? OR LOWER(Tenkesach) LIKE ? OR LOWER(Makesach) = ? LIMIT 1")) {
+                    psKe.setString(1, cleanShelf.toLowerCase());
+                    psKe.setString(2, "%" + cleanShelf.toLowerCase() + "%");
+                    psKe.setString(3, cleanShelf.toLowerCase());
+                    try (ResultSet rs = psKe.executeQuery()) {
+                        if (rs.next()) {
+                            shelfId = rs.getString(1);
+                        } else {
+                            try (PreparedStatement psFirstKe = conn.prepareStatement("SELECT Makesach FROM kesach LIMIT 1")) {
+                                try (ResultSet rsFirst = psFirstKe.executeQuery()) {
+                                    if (rsFirst.next()) shelfId = rsFirst.getString(1);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 5. Sinh mã sách tự động: MSxxxx
                 int nextBookNum = 1;
                 try (PreparedStatement psMaxBook = conn.prepareStatement("SELECT MAX(CAST(SUBSTRING(Masach, 3) AS UNSIGNED)) FROM sach WHERE Masach LIKE 'MS%'")) {
                     try (ResultSet rs = psMaxBook.executeQuery()) {
@@ -424,7 +468,7 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                 }
                 String bookId = String.format("MS%04d", nextBookNum);
 
-                // 5. Thêm sách vào bảng sach
+                // 6. Thêm sách vào bảng sach
                 String insBookSql = "INSERT INTO sach (Masach, Matheloai, Manxb, Tensach, Isbn, Namxb, Giabia, Hinhanh, IsDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, FALSE)";
                 try (PreparedStatement psBook = conn.prepareStatement(insBookSql)) {
                     psBook.setString(1, bookId);
@@ -433,27 +477,28 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                     psBook.setString(4, cleanTitle);
                     psBook.setString(5, cleanIsbn);
                     psBook.setInt(6, java.time.LocalDate.now().getYear());
-                    psBook.setBigDecimal(7, java.math.BigDecimal.valueOf(price > 0 ? price : 50000.0));
+                    psBook.setBigDecimal(7, java.math.BigDecimal.valueOf(price > 0 ? price : 150000.0));
                     psBook.setString(8, null);
                     psBook.executeUpdate();
                 }
 
-                // 6. Thêm liên kết sach_tacgia
-                String insStSql = "INSERT INTO sach_tacgia (Masach, Matacgia, Vaitro) VALUES (?, ?, 'Tác giả chính')";
+                // 7. Thêm liên kết sach_tacgia (dùng đúng cột Vaitrotacgia hoặc default)
+                String insStSql = "INSERT INTO sach_tacgia (Masach, Matacgia, Vaitrotacgia) VALUES (?, ?, 'Tác giả chính')";
                 try (PreparedStatement psSt = conn.prepareStatement(insStSql)) {
                     psSt.setString(1, bookId);
                     psSt.setString(2, authorId);
                     psSt.executeUpdate();
                 }
 
-                // 7. Tạo cuốn sách vật lý (cuonsach) ở trạng thái KHA_DUNG
-                String insCopySql = "INSERT INTO cuonsach (Macuonsach, Masach, Isbn, Trangthaisach) VALUES (?, ?, ?, 'KHA_DUNG')";
+                // 8. Tạo cuốn sách vật lý (cuonsach) ở trạng thái KHA_DUNG
+                String insCopySql = "INSERT INTO cuonsach (Macuonsach, Masach, Makesach, Isbn, Ngaynhap, Tinhtrangsach, Trangthaisach) VALUES (?, ?, ?, ?, CURRENT_DATE(), 'Mới', 'KHA_DUNG')";
                 try (PreparedStatement psCopy = conn.prepareStatement(insCopySql)) {
                     for (int i = 1; i <= initialCopies; i++) {
                         String copyBarcode = String.format("%s-C%02d", bookId, i);
                         psCopy.setString(1, copyBarcode);
                         psCopy.setString(2, bookId);
-                        psCopy.setString(3, cleanIsbn);
+                        psCopy.setString(3, shelfId);
+                        psCopy.setString(4, cleanIsbn);
                         psCopy.addBatch();
                     }
                     psCopy.executeBatch();

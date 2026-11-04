@@ -21,6 +21,7 @@ public class BookSummaryDto {
     private boolean isDeleted;       // sach.IsDeleted (Soft-delete)
     private int activeLoansCount;    // Số cuốn đang mượn (phục vụ kiểm tra BR-09)
     private String description;      // sach.Motasach (Mô tả nội dung tóm tắt)
+    private String isbn;             // sach.Isbn
 
     public BookSummaryDto(String bookId, String title, String author, Integer categoryId,
                           String categoryName, String publisherName, int availableCopies,
@@ -96,6 +97,14 @@ public class BookSummaryDto {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
     }
 
     public boolean isAvailable() {

@@ -93,12 +93,13 @@ public class ReturnAndCompensationView extends JPanel {
         JPanel formBox = new JPanel();
         formBox.setOpaque(false);
         formBox.setLayout(new BoxLayout(formBox, BoxLayout.Y_AXIS));
-        formBox.setPreferredSize(new Dimension(540, 500));
+        formBox.setPreferredSize(new Dimension(540, 520));
 
         // 1. Quét mã vạch
         formBox.add(createSectionLabel("1. QUÉT MÃ VẠCH CUỐN SÁCH"));
         JPanel scanBox = new JPanel(new BorderLayout(10, 0));
         scanBox.setOpaque(false);
+        scanBox.setAlignmentX(Component.LEFT_ALIGNMENT);
         scanBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
         txtBarcode = new JTextField();
@@ -119,6 +120,8 @@ public class ReturnAndCompensationView extends JPanel {
         formBox.add(createSectionLabel("2. THÔNG TIN PHIẾU MƯỢN HIỆN TẠI"));
         JPanel infoBox = new JPanel(new GridLayout(4, 1, 0, 4));
         infoBox.setBackground(UITheme.BG_LIGHT);
+        infoBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        infoBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 110));
         infoBox.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(UITheme.BORDER, 1),
             BorderFactory.createEmptyBorder(10, 14, 10, 14)
@@ -138,9 +141,24 @@ public class ReturnAndCompensationView extends JPanel {
 
         // 3. Tình trạng hoàn trả
         formBox.add(createSectionLabel("3. TÌNH TRẠNG SÁCH KHI TIẾP NHẬN"));
+        JPanel radioBox = new JPanel();
+        radioBox.setLayout(new BoxLayout(radioBox, BoxLayout.Y_AXIS));
+        radioBox.setOpaque(false);
+        radioBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         radNormal = new JRadioButton("Bình thường (Đạt tiêu chuẩn)", true);
         radDamaged = new JRadioButton("Hỏng nhẹ / Rách bìa (+ 20.000đ phí xử lý)");
         radLost = new JRadioButton("Báo mất sách (Bồi thường 200% giá bìa + 20.000đ)");
+
+        radNormal.setFont(UITheme.FONT_REGULAR);
+        radDamaged.setFont(UITheme.FONT_REGULAR);
+        radLost.setFont(UITheme.FONT_REGULAR);
+        radNormal.setOpaque(false);
+        radDamaged.setOpaque(false);
+        radLost.setOpaque(false);
+        radNormal.setAlignmentX(Component.LEFT_ALIGNMENT);
+        radDamaged.setAlignmentX(Component.LEFT_ALIGNMENT);
+        radLost.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         ButtonGroup bg = new ButtonGroup();
         bg.add(radNormal);
@@ -151,13 +169,26 @@ public class ReturnAndCompensationView extends JPanel {
         radDamaged.addActionListener(e -> recalculateFine());
         radLost.addActionListener(e -> recalculateFine());
 
-        formBox.add(radNormal);
-        formBox.add(radDamaged);
-        formBox.add(radLost);
+        radioBox.add(radNormal);
+        radioBox.add(Box.createVerticalStrut(4));
+        radioBox.add(radDamaged);
+        radioBox.add(Box.createVerticalStrut(4));
+        radioBox.add(radLost);
+
+        formBox.add(radioBox);
         formBox.add(Box.createVerticalStrut(14));
 
         // 4. Bảng tính tiền
         formBox.add(createSectionLabel("4. TỔNG HỢP NGHĨA VỤ TÀI CHÍNH"));
+        JPanel financeBox = new JPanel(new GridLayout(2, 1, 0, 4));
+        financeBox.setBackground(UITheme.BG_LIGHT);
+        financeBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        financeBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
+        financeBox.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(UITheme.BORDER, 1),
+            BorderFactory.createEmptyBorder(10, 14, 10, 14)
+        ));
+
         lblFineDetail = new JLabel("Chi tiết: Trễ hạn 0đ + Phí 0đ");
         lblFineDetail.setFont(UITheme.FONT_SMALL);
         lblFineDetail.setForeground(UITheme.TEXT_MUTED);
@@ -166,16 +197,16 @@ public class ReturnAndCompensationView extends JPanel {
         lblTotalAmount.setFont(UITheme.FONT_TITLE);
         lblTotalAmount.setForeground(UITheme.DANGER_TEXT);
 
-        formBox.add(lblFineDetail);
-        formBox.add(Box.createVerticalStrut(4));
-        formBox.add(lblTotalAmount);
+        financeBox.add(lblFineDetail);
+        financeBox.add(lblTotalAmount);
+        formBox.add(financeBox);
         formBox.add(Box.createVerticalStrut(20));
 
         btnExecute = UITheme.createPillButton("XÁC NHẬN HOÀN TẤT", UITheme.PRIMARY, Color.WHITE);
         btnExecute.setFont(UITheme.FONT_BOLD);
         btnExecute.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         btnExecute.setPreferredSize(new Dimension(Integer.MAX_VALUE, 44));
-        btnExecute.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnExecute.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnExecute.addActionListener(e -> executeReturnOrLoss());
         formBox.add(btnExecute);
 

@@ -82,22 +82,32 @@ public class ReportsDashboardView extends JPanel {
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
 
         // 1. Breadcrumb + Title
+        JPanel titleBox = new JPanel();
+        titleBox.setOpaque(false);
+        titleBox.setLayout(new BoxLayout(titleBox, BoxLayout.Y_AXIS));
+        titleBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JLabel lblBreadcrumb = new JLabel("Trang chủ / Thống kê thư viện");
         lblBreadcrumb.setFont(UITheme.FONT_SMALL);
         lblBreadcrumb.setForeground(UITheme.TEXT_MUTED);
+        lblBreadcrumb.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel lblTitle = new JLabel("Báo Cáo & Thống Kê Định Kỳ");
         lblTitle.setFont(UITheme.FONT_TITLE_LARGE);
         lblTitle.setForeground(UITheme.TEXT_MAIN);
+        lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        topPanel.add(lblBreadcrumb);
-        topPanel.add(Box.createVerticalStrut(4));
-        topPanel.add(lblTitle);
+        titleBox.add(lblBreadcrumb);
+        titleBox.add(Box.createVerticalStrut(4));
+        titleBox.add(lblTitle);
+
+        topPanel.add(titleBox);
         topPanel.add(Box.createVerticalStrut(16));
 
         // 2. Hàng 4 thẻ KPI
         JPanel kpiPanel = new JPanel(new GridLayout(1, 4, 16, 0));
         kpiPanel.setOpaque(false);
+        kpiPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         kpiPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
 
         lblTotalBooksVal = new JLabel("...", SwingConstants.CENTER);
@@ -114,12 +124,14 @@ public class ReportsDashboardView extends JPanel {
         topPanel.add(Box.createVerticalStrut(14));
 
         trendChartPanel = new com.ximilib.presentation.component.TrendChartPanel();
+        trendChartPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         topPanel.add(trendChartPanel);
         topPanel.add(Box.createVerticalStrut(14));
 
         // 3. Thanh điều khiển Bộ lọc & Hành động
         JPanel filterBar = new JPanel(new BorderLayout(10, 0));
         filterBar.setOpaque(false);
+        filterBar.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPanel leftFilter = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         leftFilter.setOpaque(false);

@@ -45,6 +45,8 @@ public class MainDashboardFrame extends JFrame {
     private TabbedViewPanel bookTabbedView;
     private TabbedViewPanel circulationTabbedView;
     private TabbedViewPanel adminTabbedView;
+    private ReaderHomePanel readerHomePanel;
+    private StaffHomePanel staffHomePanel;
 
     private int unreadNotifications = 0;
     private JPanel bellPanel;
@@ -54,7 +56,7 @@ public class MainDashboardFrame extends JFrame {
     }
 
     public MainDashboardFrame(User user) {
-        this(user, "Trang chủ");
+        this(user, (user != null && user.isGuest()) ? "Khám phá sách" : "Trang chủ");
     }
 
     public MainDashboardFrame(User user, String initialRoute) {
@@ -104,13 +106,29 @@ public class MainDashboardFrame extends JFrame {
         if (routeName == null) return;
         String r = routeName.trim();
 
+        if (currentUser.isGuest()) {
+            if ("Trang chủ".equalsIgnoreCase(r) || "HOME".equalsIgnoreCase(r)) {
+                navigateTo("Khám phá sách");
+                return;
+            }
+            boolean isAllowed = "Khám phá sách".equalsIgnoreCase(r) || "Kho sách".equalsIgnoreCase(r)
+                || "Hộp thư góp ý".equalsIgnoreCase(r) || "Góp ý & Phản hồi".equalsIgnoreCase(r)
+                || "Trợ giúp".equalsIgnoreCase(r) || "Hướng dẫn".equalsIgnoreCase(r);
+            if (!isAllowed) {
+                promptGuestLogin("Tính năng này yêu cầu đăng nhập tài khoản thành viên.<br><br>Vui lòng đăng nhập hoặc liên hệ thủ thư tại quầy để được cấp thẻ bạn đọc!");
+                return;
+            }
+        }
+
         if ("Trang chủ".equalsIgnoreCase(r) || "HOME".equalsIgnoreCase(r)) {
+            if (readerHomePanel != null) readerHomePanel.loadDashboardDataAsync();
+            if (staffHomePanel != null) staffHomePanel.loadAllDataAsync();
             cardLayout.show(centerContainer, "HOME");
             sidebarPanel.setActiveRoute("Trang chủ");
         } else if ("Kho sách".equalsIgnoreCase(r) || "Khám phá sách".equalsIgnoreCase(r) || "CATALOG".equalsIgnoreCase(r) || "Đầu sách".equalsIgnoreCase(r)) {
             if (bookTabbedView != null) bookTabbedView.selectTab(0);
             cardLayout.show(centerContainer, "KHO_SACH");
-            sidebarPanel.setActiveRoute(currentUser.isReader() ? "Khám phá sách" : "Kho sách");
+            sidebarPanel.setActiveRoute((currentUser.isReader() || currentUser.isGuest()) ? "Khám phá sách" : "Kho sách");
         } else if ("Quản lý thể loại".equalsIgnoreCase(r)) {
             if (bookTabbedView != null) bookTabbedView.selectTab(1);
             cardLayout.show(centerContainer, "KHO_SACH");
@@ -175,31 +193,32 @@ public class MainDashboardFrame extends JFrame {
         centerContainer.setBackground(UITheme.PAGE_BG);
 
         boolean isReader = currentUser.isReader();
+        boolean isGuest = currentUser.isGuest();
         String normRole = currentUser.getRole().toUpperCase();
         boolean isAdmin = normRole.contains("ADMIN") || normRole.contains("QUẢN TRỊ");
 
         // Card 1: HOME
         if (isReader) {
-            ReaderHomePanel readerHome = new ReaderHomePanel(
+            readerHomePanel = new ReaderHomePanel(
                 AppContainer.getInstance().getDashboardService(),
                 AppContainer.getInstance().getCirculationService(),
                 AppContainer.getInstance().getBookCatalogService(),
                 this::navigateTo
             );
-            centerContainer.add(readerHome, "HOME");
-        } else {
-            StaffHomePanel staffHome = new StaffHomePanel(
+            centerContainer.add(readerHomePanel, "HOME");
+        } else if (!isGuest) {
+            staffHomePanel = new StaffHomePanel(
                 AppContainer.getInstance().getDashboardService(),
                 AppContainer.getInstance().getBookCatalogService(),
                 currentUser,
                 this::navigateTo
             );
-            centerContainer.add(staffHome, "HOME");
+            centerContainer.add(staffHomePanel, "HOME");
         }
 
         // Card 2: KHO_SACH (Gộp Đầu sách, Thể loại, Thùng rác)
         bookCatalogView = new BookCatalogView(AppContainer.getInstance().getBookCatalogService(), currentUser);
-        if (isReader) {
+        if (isReader || isGuest) {
             centerContainer.add(bookCatalogView, "KHO_SACH");
         } else {
             CategoryManagementView catView = new CategoryManagementView(AppContainer.getInstance().getBookCatalogService());
@@ -212,7 +231,7 @@ public class MainDashboardFrame extends JFrame {
         }
 
         // Card 3: MUON_TRA (Gộp Bàn lưu hành và Xử lý trả / bồi hoàn)
-        if (!isReader) {
+        if (!isReader && !isGuest) {
             CirculationDeskView deskView = new CirculationDeskView(AppContainer.getInstance().getCirculationService());
             ReturnAndCompensationView returnView = new ReturnAndCompensationView(AppContainer.getInstance().getCirculationService());
             circulationTabbedView = new TabbedViewPanel(
@@ -256,7 +275,7 @@ public class MainDashboardFrame extends JFrame {
         }
 
         // Card 8: GOP_Y
-        centerContainer.add(new FeedbackManagementView(AppContainer.getInstance().getConnectionManager(), isReader), "GOP_Y");
+        centerContainer.add(new FeedbackManagementView(AppContainer.getInstance().getConnectionManager(), isReader || isGuest), "GOP_Y");
 
         rightPanel.add(centerContainer, BorderLayout.CENTER);
         add(sidebarPanel, BorderLayout.WEST);
@@ -296,18 +315,24 @@ public class MainDashboardFrame extends JFrame {
         };
         avatar.setPreferredSize(new Dimension(38, 38));
         avatar.setOpaque(false);
+        avatar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        avatar.setToolTipText("Bấm để xem thông tin tài khoản, đổi mật khẩu và đăng xuất");
 
         JPanel greetingBox = new JPanel();
         greetingBox.setOpaque(false);
         greetingBox.setLayout(new BoxLayout(greetingBox, BoxLayout.Y_AXIS));
+        greetingBox.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        greetingBox.setToolTipText("Bấm để xem thông tin tài khoản, đổi mật khẩu và đăng xuất");
 
         JLabel lblName = new JLabel(currentUser.getFullName());
         lblName.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 13f));
         lblName.setForeground(UITheme.TEXT_MAIN);
+        lblName.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         JLabel lblRole = new JLabel(currentUser.getRole());
         lblRole.setFont(UITheme.FONT_REGULAR.deriveFont(11f));
         lblRole.setForeground(UITheme.TEXT_MUTED);
+        lblRole.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         greetingBox.add(lblName);
         greetingBox.add(lblRole);
@@ -317,16 +342,32 @@ public class MainDashboardFrame extends JFrame {
 
         MouseAdapter openProfileListener = new MouseAdapter() {
             private long lastClick = 0;
-            @Override
-            public void mousePressed(MouseEvent e) {
+            private void trigger() {
                 long now = System.currentTimeMillis();
-                if (now - lastClick > 400) {
+                if (now - lastClick > 300) {
                     lastClick = now;
-                    UserProfileModalPanel.show(MainDashboardFrame.this, currentUser);
+                    if (currentUser.isGuest()) {
+                        promptGuestLogin("Bạn đang truy cập hệ thống với tư cách Khách viếng thăm.<br><br>Vui lòng đăng nhập tài khoản chính thức để quản lý hồ sơ và đổi mật khẩu!");
+                    } else {
+                        UserProfileModalPanel.show(MainDashboardFrame.this, currentUser);
+                    }
                 }
             }
+            @Override
+            public void mousePressed(MouseEvent e) {
+                trigger();
+            }
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                trigger();
+            }
         };
+
         userPanel.addMouseListener(openProfileListener);
+        avatar.addMouseListener(openProfileListener);
+        greetingBox.addMouseListener(openProfileListener);
+        lblName.addMouseListener(openProfileListener);
+        lblRole.addMouseListener(openProfileListener);
 
         // 2. Ở giữa: Thanh tìm kiếm toàn cục
         JPanel searchBox = new JPanel(new BorderLayout(8, 0));
@@ -444,15 +485,22 @@ public class MainDashboardFrame extends JFrame {
         }.execute();
     }
 
+    public void promptGuestLogin(String message) {
+        UiModalHelper.showConfirm(
+            this,
+            "Yêu Cầu Đăng Nhập",
+            message + "<br><br>Bạn có muốn chuyển sang màn hình Đăng Nhập ngay bây giờ không?",
+            () -> {
+                dispose();
+                new com.ximilib.presentation.view.LoginForm().setVisible(true);
+            }
+        );
+    }
+
     public void openBorrowRegistration(com.ximilib.application.dto.BookSummaryDto book) {
         if (currentUser.isGuest()) {
-            UiModalHelper.showConfirm(this, "Yêu Cầu Đăng Nhập",
-                "Bạn đang truy cập với tư cách Khách. Vui lòng đăng nhập để đăng ký mượn sách!",
-                () -> {
-                    dispose();
-                    new com.ximilib.presentation.view.LoginForm().setVisible(true);
-                }
-            );
+            promptGuestLogin("Bạn đang duyệt thư viện với tư cách Khách viếng thăm.<br><br>"
+                + "Để đăng ký mượn sách, vui lòng <b>Đăng nhập</b> tài khoản bạn đọc hoặc liên hệ thủ thư tại quầy để được cấp thẻ thư viện.");
             return;
         }
         if (readerBorrowView != null && book != null) {

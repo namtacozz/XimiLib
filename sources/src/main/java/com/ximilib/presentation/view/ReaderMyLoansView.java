@@ -116,9 +116,8 @@ public class ReaderMyLoansView extends JPanel {
         loanTable.getColumnModel().getColumn(5).setPreferredWidth(230);
         loanTable.getColumnModel().getColumn(5).setMinWidth(210);
 
-        ActionCell cell = new ActionCell();
-        loanTable.getColumnModel().getColumn(5).setCellRenderer(cell);
-        loanTable.getColumnModel().getColumn(5).setCellEditor(cell);
+        loanTable.getColumnModel().getColumn(5).setCellRenderer(new ActionRenderer());
+        loanTable.getColumnModel().getColumn(5).setCellEditor(new ActionEditor());
 
         JScrollPane scroll = new JScrollPane(loanTable);
         scroll.setBorder(null);
@@ -351,50 +350,162 @@ public class ReaderMyLoansView extends JPanel {
         }
     }
 
-    private class ActionCell extends AbstractCellEditor implements javax.swing.table.TableCellRenderer, javax.swing.table.TableCellEditor {
+    private void handlePayFineForTicket(BorrowTicketDto ticket) {
+        String copyBarcode = ticket.getCopyBarcodes();
+        String barcode = (copyBarcode != null && !copyBarcode.trim().isEmpty()) ? copyBarcode.split(";")[0].trim() : "";
+        BigDecimal lossAmount = new BigDecimal("390000"); // Tiêu chuẩn bồi thường
+        String fineTicketId = "F-" + ticket.getTicketId();
+
+        try {
+            if (!barcode.isEmpty()) {
+                var calc = circulationService.calculateCompensation(barcode, true, false);
+                if (calc != null && calc.getTotalAmount() != null) {
+                    lossAmount = calc.getTotalAmount();
+                    if (calc.getFineTicketId() != null) {
+                        fineTicketId = calc.getFineTicketId();
+                    }
+                }
+            }
+            if (fineTicketId.startsWith("F-")) {
+                String foundFine = circulationService.findUnpaidFineByTicketId(ticket.getTicketId());
+                if (foundFine != null && !foundFine.isBlank()) {
+                    fineTicketId = foundFine;
+                }
+            }
+        } catch (Exception ignored) {}
+
+        final String finalFineId = fineTicketId;
+        final BigDecimal finalAmount = lossAmount;
+
+        VietQrModalPanel.show(
+            this,
+            finalFineId,
+            finalAmount,
+            () -> {
+                try {
+                    circulationService.payFine(finalFineId, "VIETQR");
+                    UiModalHelper.showToastSuccess(this, "Thanh toán bồi hoàn VietQR thành công! Phiếu mượn đã hoàn tất.");
+                    loadDataAsync();
+                } catch (Exception ex) {
+                    UiModalHelper.showToastWarning(this, "Đã ghi nhận đối soát bồi hoàn: " + ex.getMessage());
+                    loadDataAsync();
+                }
+            }
+        );
+    }
+
+    private class ActionRenderer implements javax.swing.table.TableCellRenderer {
         private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 8));
         private final JButton btnRenew = UITheme.createPillButton("Gia hạn (+7d)", UITheme.PRIMARY_TINT, UITheme.ON_TINT);
         private final JButton btnReportLoss = UITheme.createPillButton("Báo mất", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
-        private BorrowTicketDto currentTicket;
+        private final JButton btnPay = UITheme.createPillButton("Nộp phạt VietQR", UITheme.PRIMARY, Color.WHITE);
+        private final JLabel lblDone = new JLabel("Hoàn tất", SwingConstants.CENTER);
+        private final JLabel lblWaiting = new JLabel("Chờ nhận tại quầy", SwingConstants.CENTER);
 
-        ActionCell() {
+        ActionRenderer() {
             panel.setOpaque(false);
             btnRenew.setFont(UITheme.FONT_BADGE);
             btnReportLoss.setFont(UITheme.FONT_BADGE);
+            btnPay.setFont(UITheme.FONT_BADGE);
             btnRenew.setPreferredSize(new Dimension(105, 30));
             btnReportLoss.setPreferredSize(new Dimension(75, 30));
-            btnRenew.setMargin(new Insets(2, 4, 2, 4));
-            btnReportLoss.setMargin(new Insets(2, 4, 2, 4));
+            btnPay.setPreferredSize(new Dimension(130, 30));
+            lblDone.setFont(UITheme.FONT_BADGE);
+            lblDone.setForeground(UITheme.TEXT_MUTED);
+            lblWaiting.setFont(UITheme.FONT_BADGE);
+            lblWaiting.setForeground(new Color(180, 83, 9));
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            panel.removeAll();
+            if (value instanceof BorrowTicketDto b) {
+                int status = b.getStatus();
+                if (status == LoanTicketStatus.DANG_MUON.getCode() || status == LoanTicketStatus.QUA_HAN.getCode()) {
+                    btnRenew.setEnabled(status == LoanTicketStatus.DANG_MUON.getCode() && !b.isOverdue());
+                    btnReportLoss.setEnabled(true);
+                    panel.add(btnRenew);
+                    panel.add(btnReportLoss);
+                } else if (status == LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode()) {
+                    panel.add(btnPay);
+                } else if (status == LoanTicketStatus.CHO_DUYET.getCode()) {
+                    panel.add(lblWaiting);
+                } else {
+                    panel.add(lblDone);
+                }
+            }
+            panel.revalidate();
+            return panel;
+        }
+    }
+
+    private class ActionEditor extends AbstractCellEditor implements javax.swing.table.TableCellEditor {
+        private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 8));
+        private final JButton btnRenew = UITheme.createPillButton("Gia hạn (+7d)", UITheme.PRIMARY_TINT, UITheme.ON_TINT);
+        private final JButton btnReportLoss = UITheme.createPillButton("Báo mất", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
+        private final JButton btnPay = UITheme.createPillButton("Nộp phạt VietQR", UITheme.PRIMARY, Color.WHITE);
+        private final JLabel lblDone = new JLabel("Hoàn tất", SwingConstants.CENTER);
+        private final JLabel lblWaiting = new JLabel("Chờ nhận tại quầy", SwingConstants.CENTER);
+        private BorrowTicketDto currentTicket;
+
+        ActionEditor() {
+            panel.setOpaque(false);
+            btnRenew.setFont(UITheme.FONT_BADGE);
+            btnReportLoss.setFont(UITheme.FONT_BADGE);
+            btnPay.setFont(UITheme.FONT_BADGE);
+            btnRenew.setPreferredSize(new Dimension(105, 30));
+            btnReportLoss.setPreferredSize(new Dimension(75, 30));
+            btnPay.setPreferredSize(new Dimension(130, 30));
+            lblDone.setFont(UITheme.FONT_BADGE);
+            lblDone.setForeground(UITheme.TEXT_MUTED);
+            lblWaiting.setFont(UITheme.FONT_BADGE);
+            lblWaiting.setForeground(new Color(180, 83, 9));
 
             btnRenew.addActionListener(e -> {
+                BorrowTicketDto t = currentTicket;
                 fireEditingStopped();
-                if (currentTicket != null) handleRenew(currentTicket);
+                if (t != null) handleRenew(t);
             });
 
             btnReportLoss.addActionListener(e -> {
+                BorrowTicketDto t = currentTicket;
                 fireEditingStopped();
-                if (currentTicket != null) handleReportLoss(currentTicket);
+                if (t != null) handleReportLoss(t);
             });
 
-            panel.add(btnRenew);
-            panel.add(btnReportLoss);
+            btnPay.addActionListener(e -> {
+                BorrowTicketDto t = currentTicket;
+                fireEditingStopped();
+                if (t != null) handlePayFineForTicket(t);
+            });
         }
 
-        @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
-            if (v instanceof BorrowTicketDto b) {
-                currentTicket = b;
-                boolean isBorrowing = (b.getStatus() == LoanTicketStatus.DANG_MUON.getCode());
-                btnRenew.setEnabled(isBorrowing && !b.isOverdue());
-                btnReportLoss.setEnabled(isBorrowing);
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            panel.removeAll();
+            if (value instanceof BorrowTicketDto b) {
+                this.currentTicket = b;
+                int status = b.getStatus();
+                if (status == LoanTicketStatus.DANG_MUON.getCode() || status == LoanTicketStatus.QUA_HAN.getCode()) {
+                    btnRenew.setEnabled(status == LoanTicketStatus.DANG_MUON.getCode() && !b.isOverdue());
+                    btnReportLoss.setEnabled(true);
+                    panel.add(btnRenew);
+                    panel.add(btnReportLoss);
+                } else if (status == LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode()) {
+                    panel.add(btnPay);
+                } else if (status == LoanTicketStatus.CHO_DUYET.getCode()) {
+                    panel.add(lblWaiting);
+                } else {
+                    panel.add(lblDone);
+                }
             }
+            panel.revalidate();
             return panel;
         }
 
-        @Override public Component getTableCellEditorComponent(JTable t, Object v, boolean s, int r, int c) {
-            if (v instanceof BorrowTicketDto b) currentTicket = b;
-            return panel;
+        @Override
+        public Object getCellEditorValue() {
+            return currentTicket;
         }
-
-        @Override public Object getCellEditorValue() { return currentTicket; }
     }
 }

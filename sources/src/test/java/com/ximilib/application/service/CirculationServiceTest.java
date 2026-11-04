@@ -280,6 +280,16 @@ class CirculationServiceTest {
         }
 
         @Override
+        public Optional<String> findUnpaidFineByDetailId(String detailId) {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<String> findUnpaidFineByTicketId(String ticketId) {
+            return Optional.empty();
+        }
+
+        @Override
         public String generateNextFineId() {
             return "PP-" + System.currentTimeMillis() % 100000;
         }

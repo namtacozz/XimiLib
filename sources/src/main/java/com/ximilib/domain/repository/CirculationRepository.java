@@ -80,5 +80,13 @@ public interface CirculationRepository {
 
     String generateNextTicketId();
 
+    default Optional<String> findUnpaidFineByDetailId(String detailId) {
+        return Optional.empty();
+    }
+
+    default Optional<String> findUnpaidFineByTicketId(String ticketId) {
+        return Optional.empty();
+    }
+
     String generateNextFineId();
 }
