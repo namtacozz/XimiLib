@@ -79,7 +79,7 @@ public class LoginFormPanel extends JPanel {
         lblBrand.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblBrand.setForeground(UITheme.TEXT_MAIN);
 
-        JLabel lblBadge = new JLabel("Library OS") {
+        JLabel lblBadge = new JLabel("Quản lý Thư viện") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -111,8 +111,8 @@ public class LoginFormPanel extends JPanel {
         lblDesc.setForeground(UITheme.TEXT_MUTED);
         lblDesc.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // 3. Nhãn & Ô nhập: Tên đăng nhập hoặc Email
-        JLabel lblUserTag = new JLabel("Tên đăng nhập hoặc Email");
+        // 3. Nhãn & Ô nhập: Tên đăng nhập, Email hoặc Số điện thoại (DEV-02)
+        JLabel lblUserTag = new JLabel("Tên đăng nhập, email hoặc số điện thoại");
         lblUserTag.setFont(UITheme.FONT_BOLD);
         lblUserTag.setForeground(UITheme.TEXT_MAIN);
         lblUserTag.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -122,7 +122,7 @@ public class LoginFormPanel extends JPanel {
         txtIdentifier.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         txtIdentifier.setPreferredSize(new Dimension(360, 44));
         txtIdentifier.setAlignmentX(Component.LEFT_ALIGNMENT);
-        txtIdentifier.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Nhập tên đăng nhập hoặc email");
+        txtIdentifier.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Nhập tên đăng nhập, email hoặc số điện thoại");
         txtIdentifier.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
         txtIdentifier.putClientProperty(FlatClientProperties.STYLE, "arc: 12;");
         txtIdentifier.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON,
@@ -151,6 +151,8 @@ public class LoginFormPanel extends JPanel {
         optionRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         chkRemember = new JCheckBox("Ghi nhớ đăng nhập", true);
+        chkRemember.setIcon(new VectorCheckBoxIcon(16));
+        chkRemember.setSelectedIcon(new VectorCheckBoxIcon(16));
         chkRemember.setFont(UITheme.FONT_SMALL);
         chkRemember.setForeground(UITheme.TEXT_MUTED);
         chkRemember.setOpaque(false);
@@ -220,6 +222,15 @@ public class LoginFormPanel extends JPanel {
         txtIdentifier.addKeyListener(enterListener);
         txtPassword.addKeyListener(enterListener);
 
+        // Tự động ẩn banner lỗi ngay khi người dùng gõ vào bất kỳ ô nào
+        javax.swing.event.DocumentListener clearErrorListener = new javax.swing.event.DocumentListener() {
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { hideInlineError(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { hideInlineError(); }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { hideInlineError(); }
+        };
+        txtIdentifier.getDocument().addDocumentListener(clearErrorListener);
+        txtPassword.getDocument().addDocumentListener(clearErrorListener);
+
         // 8. Hàng Đăng ký tài khoản (UC-2)
         JPanel registerRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 0));
         registerRow.setOpaque(false);
@@ -282,15 +293,9 @@ public class LoginFormPanel extends JPanel {
         formContainer.add(Box.createVerticalStrut(14));
         formContainer.add(registerRow);
         
-        // Phân cách "Hoặc"
-        JPanel orRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));
-        orRow.setOpaque(false);
-        orRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        orRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
-        JLabel lblOr = new JLabel("─── hoặc ───");
-        lblOr.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        lblOr.setForeground(UITheme.TEXT_MUTED);
-        orRow.add(lblOr);
+        // Phân cách "hoặc" vẽ thuần Graphics2D (loại bỏ ô vuông glyph)
+        DividerLabel divider = new DividerLabel("hoặc");
+        divider.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // Nút bấm nổi bật: Đăng nhập với tư cách Khách
         btnGuest = new JButton("Đăng nhập với tư cách Khách") {
@@ -326,7 +331,7 @@ public class LoginFormPanel extends JPanel {
         });
 
         formContainer.add(Box.createVerticalStrut(10));
-        formContainer.add(orRow);
+        formContainer.add(divider);
         formContainer.add(Box.createVerticalStrut(10));
         formContainer.add(btnGuest);
         formContainer.add(Box.createVerticalGlue());

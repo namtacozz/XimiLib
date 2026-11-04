@@ -107,6 +107,26 @@ public class IconFactory {
     }
 
     /**
+     * Tạo icon người dùng đơn (User Silhouette) dạng đặc cho Avatar Khách
+     */
+    public static Icon createUserIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            int headR = Math.max(3, (int) (w * 0.22));
+            int headCx = w / 2;
+            int headCy = (int) (h * 0.32);
+            g2.fillOval(headCx - headR, headCy - headR, headR * 2, headR * 2);
+
+            int bodyW = (int) (w * 0.75);
+            int bodyH = (int) (h * 0.42);
+            int bodyX = (w - bodyW) / 2;
+            int bodyY = (int) (h * 0.58);
+            g2.fillRoundRect(bodyX, bodyY, bodyW, bodyH, bodyW / 2, bodyH / 2);
+        });
+    }
+
+    /**
      * Tạo icon Mặt Trên Bàn Chế Tạo 2D (Crafting Grid 3x3) của Bàn Lưu Hành.
      * Tái hiện chính xác 100% mặt trên cùng của khối Crafting Table người dùng gửi:
      * Khung vuông viền gỗ với 4 chốt góc và lưới chế tạo 3x3 (9 ô vuông phẳng).

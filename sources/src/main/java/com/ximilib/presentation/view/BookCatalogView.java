@@ -308,12 +308,16 @@ public class BookCatalogView extends JPanel {
         bookTable.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
-                int col = bookTable.columnAtPoint(e.getPoint());
-                int row = bookTable.rowAtPoint(e.getPoint());
-                if (row >= 0 && (col == 1 || (e.getClickCount() == 2 && col != 0 && col != 7))) {
-                    var book = tableModel.getBookAt(row);
-                    if (book != null) {
-                        com.ximilib.presentation.component.BookDetailModalPanel.show(BookCatalogView.this, book);
+                int viewCol = bookTable.columnAtPoint(e.getPoint());
+                int viewRow = bookTable.rowAtPoint(e.getPoint());
+                if (viewRow >= 0 && viewCol >= 0) {
+                    int modelCol = bookTable.convertColumnIndexToModel(viewCol);
+                    int modelRow = bookTable.convertRowIndexToModel(viewRow);
+                    if (modelCol == 1 || (e.getClickCount() == 2 && modelCol != 0 && modelCol != 7)) {
+                        var book = tableModel.getBookAt(modelRow);
+                        if (book != null) {
+                            com.ximilib.presentation.component.BookDetailModalPanel.show(BookCatalogView.this, book);
+                        }
                     }
                 }
             }
@@ -350,7 +354,9 @@ public class BookCatalogView extends JPanel {
             bookTable.getColumnModel().getColumn(7).setCellRenderer(new ActionCellRenderer(tableModel, selectedBookIds));
             bookTable.getColumnModel().getColumn(7).setCellEditor(new ActionCellEditor(tableModel, this::handleDeleteBook, this::handleEditBook));
         } else {
+            // Khách hoặc Độc giả: Ẩn cột Thao tác (7) và ẩn cột Checkbox (0) (R-08)
             bookTable.getColumnModel().removeColumn(bookTable.getColumnModel().getColumn(7));
+            bookTable.getColumnModel().removeColumn(bookTable.getColumnModel().getColumn(0));
         }
     }
 

@@ -36,6 +36,17 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 
 ## 3. Nhật ký Thay đổi Dự án (Changelog)
 
+### [Sprint 19 — PR 1: Khắc Phục Lỗi Hiển Thị & Hành Vi Sai Giao Diện Đăng Nhập, Đăng Ký, Khách] - 2026-11-04
+#### Fixed & Enhanced (UI/UX)
+- **`DividerLabel` thuần Graphics2D**: Thay thế chuỗi có ký tự gạch Unicode (`─── hoặc ───`) gây lỗi ô vuông (tofu glyph) trên Windows bằng component `DividerLabel` tự vẽ hai vạch kẻ `UITheme.CARD_BORDER` và chữ "hoặc" `UITheme.TEXT_MUTED`.
+- **`VectorCheckBoxIcon` & Focus Ring**: Vẽ rõ 2 trạng thái cho checkbox "Ghi nhớ đăng nhập" (viền bo góc khi chưa chọn, nền primary bo góc kèm dấu tick vector trắng khi đã chọn), hỗ trợ focus ring khi duyệt phím Tab và rollover effect.
+- **Tự động ẩn banner lỗi**: Lắng nghe `DocumentListener` trên cả ô tài khoản và mật khẩu, tự động ẩn banner lỗi đỏ ngay khi người dùng bắt đầu gõ lại hoặc khi bấm đăng nhập.
+- **Khớp DEV-02 & Đổi nhãn thương hiệu**: Cập nhật nhãn và placeholder ô đăng nhập thành `"Tên đăng nhập, email hoặc số điện thoại"`; đổi huy hiệu `"Library OS"` thành `"Quản lý Thư viện"`.
+- **Avatar Khách dạng vector**: Thay chữ `"T"` (sinh từ họ tên mặc định "Khách Viếng Thăm") bằng icon người vẽ vector `IconFactory.createUserIcon()` cho người dùng vai trò Khách.
+- **Ẩn cột Checkbox theo quyền**: Ẩn cột chọn checkbox (cột 0) trên bảng kho sách `BookCatalogView` đối với người dùng vai trò Khách và Độc giả; chỉ hiển thị cho Admin và Thủ thư.
+- **Đăng ký (`RegisterForm`)**: Sửa placeholder CCCD thành `"9 hoặc 12 chữ số"`, bổ sung kiểm tra định dạng đúng 9 hoặc 12 số nguyên, áp dụng icon cửa sổ đồng bộ logo thương hiệu (`AppLogo.applyWindowIcons()`).
+- **Kiểm thử giao diện**: Bổ sung `DividerLabelAndCheckBoxIconTest` (2 tests mới), toàn bộ bộ test đạt **108 test cases xanh 100%**.
+
 ### [Sprint 18 — Đồng Bộ Toàn Diện Tài Liệu, Schema V5, Nguồn Mã & Quy Tắc Nghiệp Vụ SRS] - 2026-11-04
 #### Added & Updated
 - **Thực thi toàn bộ Use Cases SRS (UC 3.2.1 đến UC 3.2.9) và DEV-01..DEV-10**:

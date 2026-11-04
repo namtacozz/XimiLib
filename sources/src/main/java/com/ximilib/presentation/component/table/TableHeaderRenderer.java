@@ -45,7 +45,8 @@ public class TableHeaderRenderer extends DefaultTableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value,
                                                    boolean isSelected, boolean hasFocus,
                                                    int row, int col) {
-        if (col == 0) {
+        int modelCol = (table != null) ? table.convertColumnIndexToModel(col) : col;
+        if (modelCol == 0) {
             JPanel p = new JPanel(new GridBagLayout());
             p.setBackground(UITheme.PRIMARY_TINT);
             p.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UITheme.BORDER));

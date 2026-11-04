@@ -304,12 +304,21 @@ public class MainDashboardFrame extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(UITheme.PASTEL);
                 g2.fillOval(0, 0, getWidth(), getHeight());
-                g2.setColor(UITheme.ON_PASTEL);
-                g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                String name = currentUser.getFullName();
-                String initial = UITheme.getAvatarInitial(name);
-                FontMetrics fm = g2.getFontMetrics();
-                g2.drawString(initial, (getWidth() - fm.stringWidth(initial)) / 2, 25);
+
+                if (currentUser != null && currentUser.isGuest()) {
+                    // Avatar khách: icon người vẽ vector (IconFactory) thay cho chữ "T"
+                    Icon userIcon = com.ximilib.presentation.util.IconFactory.createUserIcon(UITheme.ON_PASTEL, 20);
+                    int ix = (getWidth() - userIcon.getIconWidth()) / 2;
+                    int iy = (getHeight() - userIcon.getIconHeight()) / 2;
+                    userIcon.paintIcon(this, g2, ix, iy);
+                } else {
+                    g2.setColor(UITheme.ON_PASTEL);
+                    g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                    String name = currentUser != null ? currentUser.getFullName() : "";
+                    String initial = UITheme.getAvatarInitial(name);
+                    FontMetrics fm = g2.getFontMetrics();
+                    g2.drawString(initial, (getWidth() - fm.stringWidth(initial)) / 2, 25);
+                }
                 g2.dispose();
             }
         };

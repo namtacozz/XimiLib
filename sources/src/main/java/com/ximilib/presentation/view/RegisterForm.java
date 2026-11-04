@@ -50,6 +50,7 @@ public class RegisterForm extends JFrame {
         setResizable(false);
         getContentPane().setBackground(UITheme.BG_LIGHT);
 
+        com.ximilib.presentation.util.AppLogo.applyWindowIcons(this);
         UiModalHelper.initMainFrame(this);
         initUI();
     }
@@ -96,7 +97,7 @@ public class RegisterForm extends JFrame {
         birthDatePicker = UiModalHelper.createDatePicker(txtBirthDate, false);
         birthDatePicker.setSelectedDate(LocalDate.of(2004, 1, 1));
 
-        txtCccd = createTextField("9 đến 12 chữ số");
+        txtCccd = createTextField("9 hoặc 12 chữ số");
         txtAddress = createTextField("Địa chỉ cư trú hiện tại");
         txtEmail = createTextField("example@domain.com");
         txtPhone = createTextField("Số điện thoại liên hệ");
@@ -227,6 +228,11 @@ public class RegisterForm extends JFrame {
 
         if (fullName.isEmpty() || email.isEmpty() || username.isEmpty() || pass.isEmpty()) {
             lblError.setText("Vui lòng điền đầy đủ các thông tin bắt buộc!");
+            return;
+        }
+
+        if (!cccd.isEmpty() && !cccd.matches("^(\\d{9}|\\d{12})$")) {
+            lblError.setText("Số CCCD/CMND phải gồm đúng 9 hoặc 12 chữ số!");
             return;
         }
 
