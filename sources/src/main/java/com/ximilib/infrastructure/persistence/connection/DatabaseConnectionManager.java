@@ -60,11 +60,28 @@ public class DatabaseConnectionManager implements AutoCloseable {
             password = config.getPassword();
         }
 
-        try {
-            return DriverManager.getConnection(url, user, password);
-        } catch (SQLException e) {
-            throw wrapConnectionException(e);
+        SQLException lastEx = null;
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            try {
+                return DriverManager.getConnection(url, user, password);
+            } catch (SQLException e) {
+                lastEx = e;
+                int err = e.getErrorCode();
+                // Không retry nếu sai mật khẩu hoặc thông số cố định
+                if (err == 1045 || err == 1044 || err == 1049 || isCustom) {
+                    throw wrapConnectionException(e);
+                }
+                if (attempt < 3) {
+                    try {
+                        Thread.sleep(300L * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
         }
+        throw wrapConnectionException(lastEx);
     }
 
     @Override

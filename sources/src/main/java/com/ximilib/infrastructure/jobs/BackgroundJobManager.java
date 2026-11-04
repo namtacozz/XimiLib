@@ -67,6 +67,12 @@ public class BackgroundJobManager {
                 // Bảng datcho có thể chưa phát sinh dữ liệu
             }
 
+            // 3. Kiểm tra và duy trì thư mục sao lưu CSDL dự phòng (DEV-07, YC-13)
+            java.io.File backupDir = new java.io.File("backups");
+            if (!backupDir.exists()) {
+                backupDir.mkdirs();
+            }
+
             if (overdueCount > 0 || cancelCount > 0) {
                 AuditLogger.log("SYSTEM", "BACKGROUND_JOB",
                     String.format("Bảo trì định kỳ: Cập nhật %d phiếu quá hạn, hủy %d đặt chỗ hết hạn.", overdueCount, cancelCount));
