@@ -51,14 +51,20 @@ public class StockPillRenderer extends JPanel implements TableCellRenderer {
                                                    int row, int column) {
         BookSummaryDto b = tableModel.getBookAt(row);
         if (b != null) {
-            if (b.getAvailableCopies() > 0) {
+            int available = b.getAvailableCopies();
+            int total = b.getTotalCopies();
+            if (available > 1) {
                 pillBg = UITheme.SUCCESS_BG;
                 pillFg = UITheme.SUCCESS_TEXT;
-                lblPill.setText(b.getAvailableCopies() + " / " + b.getTotalCopies() + " cuốn");
+                lblPill.setText("Còn sách (" + available + "/" + total + ")");
+            } else if (available == 1) {
+                pillBg = UITheme.WARNING_BG;
+                pillFg = UITheme.WARNING_TEXT;
+                lblPill.setText("Còn 1 cuốn (" + available + "/" + total + ")");
             } else {
                 pillBg = UITheme.DANGER_BG;
                 pillFg = UITheme.DANGER_TEXT;
-                lblPill.setText("Hết sách (0/" + b.getTotalCopies() + ")");
+                lblPill.setText("Tạm hết (0/" + total + ")");
             }
             lblPill.setForeground(pillFg);
         }

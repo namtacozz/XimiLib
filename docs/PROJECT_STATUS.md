@@ -36,6 +36,19 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 
 ## 3. Nhật ký Thay đổi Dự án (Changelog)
 
+### [Sprint 21 — PR 3: Trải Nghiệm Đăng Nhập & Tối Ưu Màn Hình Khách Viếng Thăm] - 2026-11-04
+#### Feat & Enhanced (UI/UX)
+- **Cảnh báo Caps Lock & Phím tắt Esc**: Cảnh báo nhỏ màu vàng (icon tam giác chấm than + "Caps Lock đang bật") tự động hiện/ẩn dưới ô mật khẩu; phím `Esc` xóa nhanh thông báo lỗi; phím `Enter` kích hoạt đăng nhập.
+- **Đếm ngược thời gian thực khi khóa tài khoản (BR-01)**: Khi người dùng nhập sai quá 5 lần, ứng dụng tự động kích hoạt Swing Timer đếm ngược định dạng `mm:ss` (cập nhật mỗi giây), tạm khóa các trường nhập và tự phục hồi khi hết thời gian khóa tạm.
+- **Banner mời đăng nhập / đăng ký cho Khách**: Màn hình `BookCatalogView` tự động hiển thị banner mỏng màu `UITheme.TINT_LIGHT` với thông điệp chào mừng và nút bấm điều hướng "Đăng Ký", "Đăng Nhập" kèm nút đóng `✕`.
+- **Nút phụ "Đăng Ký" trên Header**: Khách viếng thăm có thêm nút "Đăng Ký" dạng pill viền hồng nổi bật cạnh nút "Đăng Nhập" trên TopBar của `MainDashboardFrame`.
+- **Hệ thống Badges tồn kho đa trạng thái (Chống rào cản mù màu)**:
+  * Xanh lá: `Còn sách (X/Y)` khi $X > 1$.
+  * Vàng cảnh báo: `Còn 1 cuốn (1/Y)` khi $X = 1$.
+  * Đỏ nhạt: `Tạm hết (0/Y)` khi $X = 0$.
+- **Nút "Đặt Trước Sách" khi hết bản sao**: Màn hình chi tiết `BookDetailModalPanel` chuyển nút từ "Đăng Ký Mượn Sách" sang "Đặt Trước Sách (Khi có lại)" khi kho hết sách; điều hướng người dùng khách sang form đăng nhập/đăng ký nếu chưa có tài khoản.
+- **Đầy đủ 110 test cases JUnit 5 xanh 100%**.
+
 ### [Sprint 20 — PR 2: Cải Tiến Form Đăng Ký & Xác Thực Trực Tuyến Thời Gian Thực] - 2026-11-04
 #### Feat & Enhanced (UI/UX)
 - **`PasswordPolicyChecklist` thời gian thực**: Component hiển thị 4 tiêu chí bảo mật mật khẩu (tối thiểu 8 ký tự, ít nhất 1 chữ hoa, ít nhất 1 chữ số, ít nhất 1 ký tự đặc biệt) với icon tick xanh khi đạt và chấm xám khi chưa đạt. Tự động ẩn khi trống và hiện mượt mà khi gõ.

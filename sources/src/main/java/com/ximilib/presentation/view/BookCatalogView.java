@@ -78,7 +78,15 @@ public class BookCatalogView extends JPanel {
     }
 
     private void initUI() {
-        add(createHeaderSection(), BorderLayout.NORTH);
+        if (currentUser != null && currentUser.isGuest()) {
+            JPanel topWrap = new JPanel(new BorderLayout(0, 12));
+            topWrap.setOpaque(false);
+            topWrap.add(createGuestInvitationBanner(), BorderLayout.NORTH);
+            topWrap.add(createHeaderSection(), BorderLayout.SOUTH);
+            add(topWrap, BorderLayout.NORTH);
+        } else {
+            add(createHeaderSection(), BorderLayout.NORTH);
+        }
 
         JPanel centerWrap = new JPanel(new BorderLayout());
         centerWrap.setOpaque(false);
@@ -86,6 +94,95 @@ public class BookCatalogView extends JPanel {
         centerWrap.add(createMainCardPanel(), BorderLayout.CENTER);
 
         add(centerWrap, BorderLayout.CENTER);
+    }
+
+    private JPanel createGuestInvitationBanner() {
+        JPanel banner = new JPanel(new BorderLayout(12, 0)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(UITheme.TINT_LIGHT);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.setColor(UITheme.TINT);
+                g2.setStroke(new BasicStroke(1.0f));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        banner.setOpaque(false);
+        banner.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 12));
+        banner.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+
+        // Trái: Icon + Thông điệp
+        JPanel leftBox = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        leftBox.setOpaque(false);
+
+        JLabel lblIcon = new JLabel(com.ximilib.presentation.util.IconFactory.createBookIcon(UITheme.PRIMARY, 16));
+        JLabel lblMsg = new JLabel("Chào mừng bạn! Đăng nhập hoặc đăng ký tài khoản để mượn sách mang về, xem vị trí kệ và nhận thẻ thư viện.");
+        lblMsg.setFont(UITheme.FONT_SMALL);
+        lblMsg.setForeground(UITheme.TEXT_MAIN);
+
+        leftBox.add(lblIcon);
+        leftBox.add(lblMsg);
+
+        // Phải: Nút Đăng Nhập + Nút Đăng Ký + Nút đóng X
+        JPanel rightBox = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        rightBox.setOpaque(false);
+
+        JButton btnRegisterNow = UITheme.createPillButton("Đăng Ký", UITheme.TINT, UITheme.ON_TINT);
+        btnRegisterNow.setFont(UITheme.FONT_BADGE);
+        btnRegisterNow.setPreferredSize(new Dimension(80, 26));
+        btnRegisterNow.addActionListener(e -> {
+            Window win = SwingUtilities.getWindowAncestor(this);
+            if (win != null) win.dispose();
+            new RegisterForm().setVisible(true);
+        });
+
+        JButton btnLoginNow = UITheme.createPillButton("Đăng Nhập", UITheme.PRIMARY, Color.WHITE);
+        btnLoginNow.setFont(UITheme.FONT_BADGE);
+        btnLoginNow.setPreferredSize(new Dimension(86, 26));
+        btnLoginNow.addActionListener(e -> {
+            Window win = SwingUtilities.getWindowAncestor(this);
+            if (win != null) win.dispose();
+            new LoginForm().setVisible(true);
+        });
+
+        JButton btnClose = new JButton("✕") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (getModel().isRollover()) {
+                    g2.setColor(new Color(0, 0, 0, 15));
+                    g2.fillOval(0, 0, getWidth(), getHeight());
+                }
+                g2.setColor(UITheme.TEXT_MUTED);
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                FontMetrics fm = g2.getFontMetrics();
+                g2.drawString("✕", (getWidth() - fm.stringWidth("✕")) / 2, (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
+                g2.dispose();
+            }
+        };
+        btnClose.setPreferredSize(new Dimension(24, 24));
+        btnClose.setContentAreaFilled(false);
+        btnClose.setBorderPainted(false);
+        btnClose.setFocusPainted(false);
+        btnClose.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnClose.addActionListener(e -> {
+            banner.setVisible(false);
+            revalidate();
+            repaint();
+        });
+
+        rightBox.add(btnRegisterNow);
+        rightBox.add(btnLoginNow);
+        rightBox.add(btnClose);
+
+        banner.add(leftBox, BorderLayout.WEST);
+        banner.add(rightBox, BorderLayout.EAST);
+        return banner;
     }
 
     private JPanel createHeaderSection() {

@@ -89,7 +89,8 @@ public class BookTitleCellRenderer extends JPanel implements TableCellRenderer {
                                                    int row, int column) {
         if (value instanceof BookSummaryDto b) {
             lblTitle.setText(b.getTitle());
-            lblSub.setText("Mã: " + b.getBookId() + " • " + b.getPublisherName());
+            lblSub.setText("Mã: " + b.getBookId());
+            setToolTipText("<html><b>" + b.getTitle() + "</b><br>Tác giả: " + b.getAuthor() + "<br>Mã: " + b.getBookId() + " • NXB: " + b.getPublisherName() + "</html>");
             this.currentCoverColor = b.getCoverColor() != null ? b.getCoverColor() : UITheme.PRIMARY;
             this.bookInitials = UITheme.getAvatarInitial(b.getTitle());
             String imgPath = b.getCoverImage();

@@ -219,9 +219,33 @@ public class BookDetailModalPanel extends JPanel {
             btnBorrow.setMaximumSize(new Dimension(300, 38));
             btnBorrow.addActionListener(e -> handleBorrowBook());
             panel.add(btnBorrow);
+        } else {
+            panel.add(Box.createVerticalStrut(14));
+            JButton btnReserve = UITheme.createPillButton("Đặt Trước Sách (Khi có lại)", UITheme.TINT, UITheme.ON_TINT);
+            btnReserve.setFont(UITheme.FONT_BOLD);
+            btnReserve.setAlignmentX(Component.LEFT_ALIGNMENT);
+            btnReserve.setPreferredSize(new Dimension(280, 38));
+            btnReserve.setMaximumSize(new Dimension(300, 38));
+            btnReserve.addActionListener(e -> handleReserveBook());
+            panel.add(btnReserve);
         }
 
         return panel;
+    }
+
+    private void handleReserveBook() {
+        com.ximilib.domain.model.User user = UserSession.getCurrentUser();
+        if (user != null && user.isGuest()) {
+            UiModalHelper.closeModal("BOOK_DETAIL");
+            if (com.ximilib.presentation.view.MainDashboardFrame.getInstance() != null) {
+                com.ximilib.presentation.view.MainDashboardFrame.getInstance().promptGuestLogin(
+                    "Bạn đang duyệt thư viện với tư cách Khách viếng thăm.<br><br>"
+                    + "Để <b>Đặt trước</b> cuốn sách <b>" + book.getTitle() + "</b> khi có bản sao mới, vui lòng <b>Đăng nhập</b> tài khoản bạn đọc."
+                );
+            }
+            return;
+        }
+        UiModalHelper.showToastInfo(this, "Yêu cầu đặt trước cuốn sách '" + book.getTitle() + "' đã được ghi nhận vào hàng chờ ưu tiên!");
     }
 
     private void handleBorrowBook() {

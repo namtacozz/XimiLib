@@ -36,6 +36,7 @@ public class LoginFormPanel extends JPanel {
 
     private JTextField txtIdentifier;
     private JPasswordField txtPassword;
+    private JPanel pnlCapsLock;
     private JCheckBox chkRemember;
     private JButton btnLogin;
     private JPanel errorPanel;
@@ -43,6 +44,9 @@ public class LoginFormPanel extends JPanel {
     private JLabel lblForgot;
     private JLabel lblRegisterNow;
     private JButton btnGuest;
+
+    private javax.swing.Timer lockTimer;
+    private long remainingLockSeconds;
 
     public LoginFormPanel(Window parentWindow) {
         this(parentWindow, AppContainer.getInstance().getAuthenticationService());
@@ -143,6 +147,41 @@ public class LoginFormPanel extends JPanel {
         txtPassword.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Nhập mật khẩu");
         txtPassword.putClientProperty(FlatClientProperties.STYLE, "showRevealButton: true; arc: 12;");
         txtPassword.putClientProperty(FlatClientProperties.SELECT_ALL_ON_FOCUS_POLICY, "never");
+
+        // Cảnh báo Caps Lock khi người dùng bật Caps Lock lúc gõ mật khẩu
+        pnlCapsLock = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        pnlCapsLock.setOpaque(false);
+        pnlCapsLock.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+        pnlCapsLock.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel iconCaps = new JLabel(IconFactory.createWarningIcon(UITheme.WARNING_TEXT, 12));
+        JLabel lblCaps = new JLabel("Caps Lock đang bật");
+        lblCaps.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblCaps.setForeground(UITheme.WARNING_TEXT);
+        pnlCapsLock.add(iconCaps);
+        pnlCapsLock.add(lblCaps);
+        pnlCapsLock.setVisible(false);
+
+        txtPassword.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) { checkCapsLock(); }
+            @Override
+            public void keyReleased(KeyEvent e) { checkCapsLock(); }
+        });
+        txtPassword.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) { checkCapsLock(); }
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) { pnlCapsLock.setVisible(false); }
+        });
+
+        // Phím tắt Esc xóa lỗi
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CLEAR_ERROR");
+        getActionMap().put("CLEAR_ERROR", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                hideInlineError();
+            }
+        });
 
         // 5. Hàng tùy chọn: Ghi nhớ đăng nhập (trái) & Quên mật khẩu (phải)
         JPanel optionRow = new JPanel(new BorderLayout());
@@ -282,7 +321,9 @@ public class LoginFormPanel extends JPanel {
         formContainer.add(lblPassTag);
         formContainer.add(Box.createVerticalStrut(6));
         formContainer.add(txtPassword);
-        formContainer.add(Box.createVerticalStrut(10));
+        formContainer.add(Box.createVerticalStrut(4));
+        formContainer.add(pnlCapsLock);
+        formContainer.add(Box.createVerticalStrut(6));
 
         formContainer.add(optionRow);
         formContainer.add(Box.createVerticalStrut(10));
@@ -433,6 +474,9 @@ public class LoginFormPanel extends JPanel {
     }
 
     private void executeLogin() {
+        if (lockTimer != null && lockTimer.isRunning()) {
+            return;
+        }
         hideInlineError();
         txtIdentifier.select(0, 0);
         txtPassword.select(0, 0);
@@ -481,11 +525,55 @@ public class LoginFormPanel extends JPanel {
         worker.execute();
     }
 
-    private void handleLoginResult(LoginResult result, String identifier) {
-        setFormInteractive(true);
-        btnLogin.setText("ĐĂNG NHẬP");
+    private void checkCapsLock() {
+        boolean capsOn = false;
+        try {
+            capsOn = Toolkit.getDefaultToolkit().getLockingKeyState(KeyEvent.VK_CAPS_LOCK);
+        } catch (Exception ignored) {}
+        pnlCapsLock.setVisible(capsOn && txtPassword.hasFocus());
+        revalidate();
+        repaint();
+    }
 
+    private void startLockCountdown(long lockMinutes, String baseMsg) {
+        if (lockTimer != null && lockTimer.isRunning()) {
+            lockTimer.stop();
+        }
+        remainingLockSeconds = Math.max(1, lockMinutes) * 60;
+        setFormInteractive(false);
+        btnLogin.setEnabled(false);
+
+        updateLockMessage(baseMsg);
+
+        lockTimer = new javax.swing.Timer(1000, e -> {
+            remainingLockSeconds--;
+            if (remainingLockSeconds <= 0) {
+                lockTimer.stop();
+                hideInlineError();
+                setFormInteractive(true);
+                btnLogin.setEnabled(true);
+                btnLogin.setText("ĐĂNG NHẬP");
+            } else {
+                updateLockMessage(baseMsg);
+            }
+        });
+        lockTimer.start();
+    }
+
+    private void updateLockMessage(String baseMsg) {
+        long mm = remainingLockSeconds / 60;
+        long ss = remainingLockSeconds % 60;
+        String timerText = String.format("%02d:%02d", mm, ss);
+        showInlineError(baseMsg + " (Mở khóa sau: " + timerText + ")");
+    }
+
+    private void handleLoginResult(LoginResult result, String identifier) {
         if (result.isSuccess()) {
+            if (lockTimer != null && lockTimer.isRunning()) {
+                lockTimer.stop();
+            }
+            setFormInteractive(true);
+            btnLogin.setText("ĐĂNG NHẬP");
             UserSession.setCurrentUser(result.getUser());
 
             // Lưu username nếu người dùng chọn ghi nhớ (chỉ lưu identifier, KHÔNG lưu mật khẩu)
@@ -503,9 +591,15 @@ public class LoginFormPanel extends JPanel {
                 parentWindow.dispose();
             }
         } else {
-            showInlineError(result.getErrorMessage());
-            txtPassword.setText("");
-            txtPassword.requestFocusInWindow();
+            if ("AUTH_002".equals(result.getErrorCode()) || result.getRemainingLockMinutes() > 0) {
+                startLockCountdown(result.getRemainingLockMinutes(), result.getErrorMessage());
+            } else {
+                setFormInteractive(true);
+                btnLogin.setText("ĐĂNG NHẬP");
+                showInlineError(result.getErrorMessage());
+                txtPassword.setText("");
+                txtPassword.requestFocusInWindow();
+            }
         }
     }
 }

@@ -402,6 +402,14 @@ public class MainDashboardFrame extends JFrame {
         boolean isReader = currentUser.isReader();
         boolean isGuest = currentUser.isGuest();
         if (isGuest) {
+            JButton btnRegister = UITheme.createPillButton("Đăng Ký", UITheme.TINT, UITheme.ON_TINT);
+            btnRegister.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 12f));
+            btnRegister.addActionListener(e -> {
+                dispose();
+                new com.ximilib.presentation.view.RegisterForm().setVisible(true);
+            });
+            actionsPanel.add(btnRegister);
+
             JButton btnLogin = UITheme.createPillButton("Đăng Nhập", UITheme.PRIMARY, Color.WHITE);
             btnLogin.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 12f));
             btnLogin.addActionListener(e -> {
