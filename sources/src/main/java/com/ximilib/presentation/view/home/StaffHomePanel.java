@@ -829,7 +829,7 @@ public class StaffHomePanel extends JPanel {
         new SwingWorker<BookSummaryDto, Void>() {
             @Override
             protected BookSummaryDto doInBackground() {
-                var res = bookCatalogService.searchBooks(
+                com.ximilib.application.dto.PagedResult<com.ximilib.application.dto.BookSummaryDto> res = bookCatalogService.searchBooks(
                     new com.ximilib.application.dto.BookSearchCriteria(tile.bookId(), null, com.ximilib.application.dto.BookSearchCriteria.AvailabilityFilter.ALL),
                     1, 1
                 );

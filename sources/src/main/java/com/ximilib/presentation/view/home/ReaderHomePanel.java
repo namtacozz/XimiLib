@@ -526,7 +526,7 @@ public class ReaderHomePanel extends JPanel {
         new SwingWorker<BookSummaryDto, Void>() {
             @Override
             protected BookSummaryDto doInBackground() {
-                var res = bookCatalogService.searchBooks(
+                com.ximilib.application.dto.PagedResult<BookSummaryDto> res = bookCatalogService.searchBooks(
                     new BookSearchCriteria(bookId, null, BookSearchCriteria.AvailabilityFilter.ALL),
                     1, 1
                 );

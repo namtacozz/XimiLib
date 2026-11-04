@@ -451,7 +451,7 @@ public class BookCatalogView extends JPanel {
                     int modelCol = bookTable.convertColumnIndexToModel(viewCol);
                     int modelRow = bookTable.convertRowIndexToModel(viewRow);
                     if (modelCol == 1 || (e.getClickCount() == 2 && modelCol != 0 && modelCol != 7)) {
-                        var book = tableModel.getBookAt(modelRow);
+                        BookSummaryDto book = tableModel.getBookAt(modelRow);
                         if (book != null) {
                             com.ximilib.presentation.component.BookDetailModalPanel.show(BookCatalogView.this, book);
                         }

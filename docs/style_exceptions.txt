@@ -6,13 +6,13 @@
 # Bất kỳ mã nguồn mới nào làm tăng số vi phạm vượt ngưỡng này sẽ bị StyleRuleTest chặn.
 
 # 1. Số lượng file package-info.java (sẽ được xóa trong các PR refactor)
-package_info.allowed=26
+package_info.allowed=0
 
 # 2. Số lượng dòng comment (//, /*, Javadoc) (sẽ được xóa sạch theo Luật A)
-comments.allowed=1776
+comments.allowed=1684
 
 # 3. Số lượng cú pháp Stream API, Optional, var (sẽ được thay bằng loop/if theo Luật C)
-stream_optional_var.allowed=42
+stream_optional_var.allowed=24
 
 # 4. Số lượng định danh chứa tiếng Việt (đã đạt chuẩn 0)
 vietnamese_identifiers.allowed=0

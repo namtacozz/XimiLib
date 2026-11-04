@@ -458,8 +458,15 @@ public class ReaderBorrowRegistrationView extends JPanel {
                     }
 
                     // Tải số lượng sách đang mượn về nhà
-                    var loans = circulationService.getReaderLoans(currentUser.getId());
-                    long homeLoans = (loans != null) ? loans.stream().filter(l -> l.getStatus() == 1 && l.getLoanType() == LoanType.VE_NHA).count() : 0;
+                    java.util.List<com.ximilib.application.dto.BorrowTicketDto> loans = circulationService.getReaderLoans(currentUser.getId());
+                    long homeLoans = 0;
+                    if (loans != null) {
+                        for (com.ximilib.application.dto.BorrowTicketDto l : loans) {
+                            if (l.getStatus() == 1 && l.getLoanType() == LoanType.VE_NHA) {
+                                homeLoans++;
+                            }
+                        }
+                    }
                     lblActiveLoansCount.setText("Đang mượn: " + homeLoans + "/3 cuốn về nhà");
                 } catch (Exception ex) {
                     lblCardStatus.setText("Lỗi kiểm tra thẻ");

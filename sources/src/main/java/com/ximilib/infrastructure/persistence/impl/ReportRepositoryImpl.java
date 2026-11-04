@@ -35,23 +35,23 @@ public class ReportRepositoryImpl implements ReportPort {
 
         try (Connection conn = connectionManager.getConnection()) {
             // Total books
-            try (var ps = conn.prepareStatement("SELECT COUNT(*) FROM sach WHERE IsDeleted = FALSE");
-                 var rs = ps.executeQuery()) {
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM sach WHERE IsDeleted = FALSE");
+                 ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) totalBooks = rs.getInt(1);
             }
             // Active loans
-            try (var ps = conn.prepareStatement("SELECT COUNT(*) FROM phieumuon WHERE Trangthai = 1");
-                 var rs = ps.executeQuery()) {
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM phieumuon WHERE Trangthai = 1");
+                 ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) activeLoans = rs.getInt(1);
             }
             // Overdue
-            try (var ps = conn.prepareStatement("SELECT COUNT(*) FROM phieumuon WHERE Trangthai = 3 OR (Trangthai = 1 AND Hantranhan < NOW())");
-                 var rs = ps.executeQuery()) {
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM phieumuon WHERE Trangthai = 3 OR (Trangthai = 1 AND Hantranhan < NOW())");
+                 ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) overdueLoans = rs.getInt(1);
             }
             // Fines paid
-            try (var ps = conn.prepareStatement("SELECT COALESCE(SUM(Sotien), 0) FROM thanhtoan WHERE Trangthai = 1");
-                 var rs = ps.executeQuery()) {
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COALESCE(SUM(Sotien), 0) FROM thanhtoan WHERE Trangthai = 1");
+                 ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) totalFines = rs.getBigDecimal(1);
             }
         } catch (SQLException e) {

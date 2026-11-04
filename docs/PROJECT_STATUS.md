@@ -36,6 +36,25 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 
 ## 3. Nhật ký Thay đổi Dự án (Changelog)
 
+### [Sprint 23 — Chuẩn Hóa Phong Cách Sinh Viên Low-Code, Bộ Component & Cẩm Nang Vấn Đáp] - 2026-11-04
+#### Feat & Enhanced (Architecture, Style & Viva Readiness)
+- **Thiết lập Bộ Luật A - D & Phong cách Sinh viên Low-Code**:
+  * Ban hành `docs/CODING_STYLE.md`, cập nhật `AGENTS.md` §10 và `ARCHITECTURE.md` §7.1. Định danh 100% tiếng Anh, hàm `PascalCase` trực quan, cấu trúc phẳng không stream/Optional phức tạp.
+  * Xóa sạch 100% (26/26 file) `package-info.java` gây nhiễu mã nguồn.
+  * Loại bỏ toàn bộ từ khóa `var` và các hàm `stream()` thừa thãi tại các tầng Presentation và Infrastructure, chuyển sang vòng lặp `for-each` cơ bản dễ debug từng dòng.
+- **Hệ thống Kiểm thử Phong cách Tự động `StyleRuleTest`**:
+  * Bổ sung 8 test cases quét toàn diện mã nguồn: kiểm tra comment, package-info, stream/optional/var, định danh tiếng Việt, mã hex hard-code, dialog thuần OS và chuỗi tiếng Việt.
+  * Hạn mức ngoại lệ baseline được kiểm soát tự động qua `docs/style_exceptions.txt`.
+- **Bộ Thành phần Giao diện Dùng lại (Reusable Low-Code Components)**:
+  * Xây dựng 8 component chuẩn: `PrimaryButton`, `SecondaryButton`, `TextInputField`, `PasswordInputField`, `StatusBadge`, `SectionCard`, `PageHeader`, `FormErrorLabel` kết hợp `EmptyStatePanel`.
+  * Ban hành Bản đặc tả thiết kế chuẩn `docs/ui/DESIGN_BRIEF.md` (hệ thống 8px spacing, bảng màu pastel pink WCAG AA, bo góc 8/12/999px).
+- **Tập trung hóa Chuỗi Giao diện `UiText`**:
+  * Khởi tạo `sources/src/main/java/com/ximilib/presentation/util/UiText.java` tập trung mọi nhãn, tiêu đề, placeholder, thông báo lỗi và chuỗi nguyên văn chuẩn SRS (loại bỏ từ sáo rỗng AI, bỏ emoji trang trí, xưng hô thống nhất "bạn").
+- **Cẩm nang Vấn đáp Đồ án PBL `docs/VIVA_GUIDE.md`**:
+  * Biên soạn tài liệu chi tiết 8 luồng nghiệp vụ cốt lõi (Đăng nhập, Đăng ký, Tra cứu, Mượn sách, Trả sách & Phạt, Báo mất & Bồi thường, Thanh toán VietQR, Thống kê & Xuất Excel).
+  * Đối chiếu 4 tầng (View -> Service -> Repository -> SQL) kèm 24 câu hỏi vấn đáp thường gặp và câu trả lời mẫu cho sinh viên bảo vệ trước hội đồng.
+- **Tổng số test cases đạt: 121 tests JUnit 5 xanh 100%** (`DependencyRuleTest` và `StyleRuleTest` xanh tuyệt đối).
+
 ### [Sprint 22 — PR 4: Nâng Cấp Trải Nghiệm Khách & Bạn Đọc (Grid/Table, Carousel, Skeleton Loading, Phím Tắt Ctrl+F)] - 2026-11-04
 #### Feat & Enhanced (UI/UX)
 - **Chuyển đổi chế độ xem Grid (Thẻ bìa) / Bảng (Table)**: Nút toggle dạng icon vector tại `BookCatalogView`, lưu lựa chọn vào `UserSession.catalogViewMode` (bền vững trong phiên chạy). Chế độ Grid hiển thị thẻ sách kèm ảnh bìa tỉ lệ 2:3, hover shadow, badge tồn kho và điểm sao.

@@ -260,9 +260,18 @@ public class UserRoleManagementView extends JPanel {
 
                     // Update KPI counters
                     int total = list.size();
-                    long admins = list.stream().filter(u -> "ADMIN".equalsIgnoreCase(u.getRoleCode())).count();
-                    long librarians = list.stream().filter(u -> "LIBRARIAN".equalsIgnoreCase(u.getRoleCode())).count();
-                    long readers = list.stream().filter(u -> "READER".equalsIgnoreCase(u.getRoleCode())).count();
+                    long admins = 0;
+                    long librarians = 0;
+                    long readers = 0;
+                    for (UserAccountDto u : list) {
+                        if ("ADMIN".equalsIgnoreCase(u.getRoleCode())) {
+                            admins++;
+                        } else if ("LIBRARIAN".equalsIgnoreCase(u.getRoleCode())) {
+                            librarians++;
+                        } else if ("READER".equalsIgnoreCase(u.getRoleCode())) {
+                            readers++;
+                        }
+                    }
 
                     lblTotalUsers.setText(String.valueOf(total));
                     lblTotalAdmins.setText(String.valueOf(admins));

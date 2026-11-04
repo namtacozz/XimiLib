@@ -358,7 +358,7 @@ public class ReaderMyLoansView extends JPanel {
 
         try {
             if (!barcode.isEmpty()) {
-                var calc = circulationService.calculateCompensation(barcode, true, false);
+                com.ximilib.application.dto.CompensationResultDto calc = circulationService.calculateCompensation(barcode, true, false);
                 if (calc != null && calc.getTotalAmount() != null) {
                     lossAmount = calc.getTotalAmount();
                     if (calc.getFineTicketId() != null) {

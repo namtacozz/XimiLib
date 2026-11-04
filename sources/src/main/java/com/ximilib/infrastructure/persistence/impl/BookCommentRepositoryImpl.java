@@ -93,7 +93,13 @@ public class BookCommentRepositoryImpl implements BookCommentPort {
         List<BookCommentItem> cached = MEMORY_CACHE.get(bookId);
         if (cached != null) {
             for (BookCommentItem item : cached) {
-                boolean duplicate = comments.stream().anyMatch(c -> c.text().equals(item.text()));
+                boolean duplicate = false;
+                for (BookCommentItem c : comments) {
+                    if (c.text().equals(item.text())) {
+                        duplicate = true;
+                        break;
+                    }
+                }
                 if (!duplicate) {
                     comments.add(0, item);
                     count++;
