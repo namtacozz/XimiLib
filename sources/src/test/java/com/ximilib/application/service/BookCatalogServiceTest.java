@@ -93,7 +93,7 @@ class BookCatalogServiceTest {
     }
 
     @Test
-    @DisplayName("TC-05: Tuân thủ BR-09 - Chặn xóa sách đang có người mượn")
+    @DisplayName("TC-05: Tuân thủ BR-09 - Chặn xóa sách đang có người mượn với thông báo chuẩn SRS UC 3.2.3")
     void testSoftDeleteFailsWhenBookHasActiveLoans() {
         // MS-0011 có activeLoansCount = 2 > 0
         BookInUseException ex = assertThrows(BookInUseException.class, () -> {
@@ -101,7 +101,16 @@ class BookCatalogServiceTest {
         });
 
         assertNotNull(ex.getMessage());
-        assertTrue(ex.getMessage().contains("BR-09") || ex.getMessage().contains("mượn"));
+        assertTrue(ex.getMessage().contains("Không thể xóa đầu sách đang có độc giả mượn"));
+    }
+
+    @Test
+    @DisplayName("TC-05B: Tuân thủ BR-12 - Số lượng nhập kho ban đầu phải từ 1 cuốn trở lên")
+    void testSaveNewBookValidationBR12() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            service.saveNewBook("Sách Test", "Tác giả", "Công nghệ thông tin", "ISBN-123", 100000, 0);
+        });
+        assertTrue(ex.getMessage().contains("phải từ 1 cuốn trở lên"));
     }
 
     @Test

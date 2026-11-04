@@ -50,7 +50,16 @@ public class BookCatalogServiceImpl implements BookCatalogService {
 
     @Override
     public void saveNewBook(String title, String author, String categoryName, String publisherName, String shelfLocation, String isbn, double price, int initialCopies) {
-        bookRepository.saveNewBook(title, author, categoryName, publisherName, shelfLocation, isbn, price, initialCopies);
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Thông tin không hợp lệ: Tên sách không được để trống.");
+        }
+        if (initialCopies < 1) {
+            throw new IllegalArgumentException("Thông tin không hợp lệ: Số lượng sách nhập kho ban đầu phải từ 1 cuốn trở lên (Quy tắc BR-12).");
+        }
+        if (price < 0) {
+            throw new IllegalArgumentException("Thông tin không hợp lệ: Giá bìa sách không thể âm.");
+        }
+        bookRepository.saveNewBook(title.trim(), author, categoryName, publisherName, shelfLocation, isbn, price, initialCopies);
         DomainEventPublisher.publish(new BookStockChangedEvent("NEW_BOOK", "CREATED"));
     }
 
