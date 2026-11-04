@@ -86,9 +86,20 @@ public class BookDetailModalPanel extends JPanel {
             }
         });
 
-        JLabel lblCategory = new JLabel("Thể loại: " + (book.getCategoryName() != null ? book.getCategoryName() : "Không rõ"));
+        String catName = (book.getCategoryName() != null ? book.getCategoryName() : "Chưa phân loại");
+        JLabel lblCategory = new JLabel("<html>Thể loại: <u>" + catName + "</u> ↗</html>");
         lblCategory.setFont(UITheme.FONT_SMALL);
-        lblCategory.setForeground(UITheme.TEXT_MUTED);
+        lblCategory.setForeground(UITheme.PRIMARY);
+        lblCategory.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        lblCategory.setToolTipText("Bấm để lọc sách cùng thể loại");
+        lblCategory.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (book.getCategoryName() != null && !book.getCategoryName().trim().isEmpty()) {
+                    filterCatalog(book.getCategoryName().trim());
+                }
+            }
+        });
 
         lblRatingAverage = new JLabel("Đang tải điểm đánh giá...");
         lblRatingAverage.setIcon(com.ximilib.presentation.util.IconFactory.createStarIcon(new Color(245, 158, 11), 14));
@@ -283,26 +294,22 @@ public class BookDetailModalPanel extends JPanel {
     private void handleReserveBook() {
         com.ximilib.domain.model.User user = UserSession.getCurrentUser();
         if (user != null && user.isGuest()) {
-            UiModalHelper.closeModal("BOOK_DETAIL");
             if (com.ximilib.presentation.view.MainDashboardFrame.getInstance() != null) {
                 com.ximilib.presentation.view.MainDashboardFrame.getInstance().promptGuestLogin(
-                    "Bạn đang duyệt thư viện với tư cách Khách viếng thăm.<br><br>"
-                    + "Để <b>Đặt trước</b> cuốn sách <b>" + book.getTitle() + "</b> khi có bản sao mới, vui lòng <b>Đăng nhập</b> tài khoản bạn đọc."
+                    "Vui lòng đăng nhập tài khoản bạn đọc để đặt trước cuốn sách này."
                 );
             }
             return;
         }
-        UiModalHelper.showToastInfo(this, "Yêu cầu đặt trước cuốn sách '" + book.getTitle() + "' đã được ghi nhận vào hàng chờ ưu tiên!");
+        UiModalHelper.showToastInfo(this, "Yêu cầu đặt trước cuốn sách '" + book.getTitle() + "' đã được ghi nhận vào hàng chờ ưu tiên.");
     }
 
     private void handleBorrowBook() {
         com.ximilib.domain.model.User user = UserSession.getCurrentUser();
         if (user != null && user.isGuest()) {
-            UiModalHelper.closeModal("BOOK_DETAIL");
             if (com.ximilib.presentation.view.MainDashboardFrame.getInstance() != null) {
                 com.ximilib.presentation.view.MainDashboardFrame.getInstance().promptGuestLogin(
-                    "Bạn đang duyệt thư viện với tư cách Khách viếng thăm.<br><br>"
-                    + "Để đăng ký mượn cuốn sách <b>" + book.getTitle() + "</b>, vui lòng <b>Đăng nhập</b> tài khoản bạn đọc hoặc liên hệ thủ thư tại quầy để được cấp thẻ thư viện."
+                    "Vui lòng đăng nhập tài khoản bạn đọc để đăng ký mượn cuốn sách này."
                 );
             }
             return;

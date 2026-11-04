@@ -128,7 +128,11 @@ public class UiModalHelper {
      */
     public static void showModal(Component parent, String title, Component content) {
         runOnEdt(() -> {
-            SimpleModalBorder border = new SimpleModalBorder(content, title, SimpleModalBorder.CLOSE_OPTION, (controller, action) -> controller.close());
+            SimpleModalBorder border = new SimpleModalBorder(content, title, SimpleModalBorder.CLOSE_OPTION, (controller, action) -> {
+                if (action == SimpleModalBorder.CLOSE_OPTION || action == SimpleModalBorder.CANCEL_OPTION || action == SimpleModalBorder.OK_OPTION) {
+                    controller.close();
+                }
+            });
             Option option = ModalDialog.createOption();
             option.setBackgroundClickType(Option.BackgroundClickType.BLOCK);
             ModalDialog.showModal(parent, border, option);
@@ -137,13 +141,17 @@ public class UiModalHelper {
 
     public static void showMessage(Component parent, String title, String message) {
         runOnEdt(() -> {
-            JLabel lblMessage = new JLabel("<html><body style='width: 280px; padding: 4px;'>" + message + "</body></html>");
+            JLabel lblMessage = new JLabel("<html><body style='width: 300px; padding: 6px;'>" + message + "</body></html>");
             lblMessage.setFont(new Font("Segoe UI", Font.PLAIN, 13));
             SimpleModalBorder border = new SimpleModalBorder(
                 lblMessage,
                 title,
                 SimpleModalBorder.CLOSE_OPTION,
-                (controller, action) -> controller.close()
+                (controller, action) -> {
+                    if (action == SimpleModalBorder.CLOSE_OPTION || action == SimpleModalBorder.CANCEL_OPTION || action == SimpleModalBorder.OK_OPTION) {
+                        controller.close();
+                    }
+                }
             );
             Option option = ModalDialog.createOption();
             option.setBackgroundClickType(Option.BackgroundClickType.BLOCK);

@@ -272,7 +272,7 @@ public class UserRepositoryImpl implements UserRepository, UserQueryPort {
     public List<PatronDto> searchPatrons(String keyword) {
         StringBuilder sql = new StringBuilder("""
             SELECT u.ID, u.Tendangnhap, u.Hoten, u.Email, u.Sdt,
-                   t.Mathe, t.Ngaycap, t.Ngayhethan, t.Trangthai
+                   t.Mathe, t.Ngaycap, t.Ngayhethan, t.Trangthai AS CardTrangthai
             FROM nguoidung u
             LEFT JOIN thethuvien t ON u.ID = t.ID
             WHERE u.Trangthai = 1 AND u.Mavaitro = 'READER'
@@ -280,10 +280,16 @@ public class UserRepositoryImpl implements UserRepository, UserQueryPort {
         List<Object> params = new ArrayList<>();
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append(" AND (LOWER(u.Hoten) LIKE ? OR LOWER(u.Email) LIKE ? OR LOWER(t.Mathe) LIKE ? OR LOWER(u.Tendangnhap) LIKE ?) ");
-            String kw = "%" + keyword.trim().toLowerCase() + "%";
+            String rawKw = keyword.trim().toLowerCase();
+            String kw = "%" + rawKw + "%";
             params.add(kw); params.add(kw); params.add(kw); params.add(kw);
+            sql.append(" ORDER BY CASE WHEN LOWER(u.Hoten) = ? THEN 1 WHEN LOWER(u.Hoten) LIKE ? THEN 2 WHEN LOWER(t.Mathe) LIKE ? THEN 3 ELSE 4 END, u.Hoten ASC LIMIT 100");
+            params.add(rawKw);
+            params.add(rawKw + "%");
+            params.add(rawKw + "%");
+        } else {
+            sql.append(" ORDER BY u.Hoten ASC LIMIT 100");
         }
-        sql.append(" ORDER BY u.ID DESC LIMIT 100");
 
         List<PatronDto> list = new ArrayList<>();
         try (Connection conn = connectionManager.getConnection();
@@ -295,16 +301,20 @@ public class UserRepositoryImpl implements UserRepository, UserQueryPort {
                 while (rs.next()) {
                     Date issue = rs.getDate("Ngaycap");
                     Date expiry = rs.getDate("Ngayhethan");
+                    String cardNum = rs.getString("Mathe");
+                    int cardStatus = rs.getInt("CardTrangthai");
+                    boolean hasCard = (cardNum != null && !cardNum.isBlank());
+                    String statusStr = (!hasCard || rs.wasNull()) ? "CHUA_CAP" : (cardStatus == 1 ? "HOAT_DONG" : "KHOA");
                     list.add(new PatronDto(
                         rs.getString("ID"),
                         rs.getString("Tendangnhap"),
                         rs.getString("Hoten"),
                         rs.getString("Email"),
                         rs.getString("Sdt"),
-                        rs.getString("Mathe"),
+                        cardNum,
                         issue != null ? issue.toLocalDate() : null,
                         expiry != null ? expiry.toLocalDate() : null,
-                        rs.getString("Mathe") == null ? "CHUA_CAP" : (rs.getInt("Trangthai") == 1 ? "HOAT_DONG" : "KHOA")
+                        statusStr
                     ));
                 }
             }

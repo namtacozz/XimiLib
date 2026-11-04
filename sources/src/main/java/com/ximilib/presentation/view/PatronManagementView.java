@@ -206,7 +206,7 @@ public class PatronManagementView extends JPanel {
         form.add(btnDelete);
 
         UiModalHelper.showCustomModal(
-            SwingUtilities.getWindowAncestor(this) != null ? SwingUtilities.getWindowAncestor(this) : this,
+            this,
             "PATRON_EDIT",
             "Chi tiết & Chỉnh sửa hồ sơ độc giả",
             form,
@@ -216,7 +216,7 @@ public class PatronManagementView extends JPanel {
                     controller.close();
                     UiModalHelper.showToastSuccess(this, "Đã lưu cập nhật thông tin!");
                     loadPatronsAsync(txtSearch.getText().trim());
-                } else {
+                } else if (action == raven.modal.component.SimpleModalBorder.CANCEL_OPTION || action == raven.modal.component.SimpleModalBorder.CLOSE_OPTION) {
                     controller.close();
                 }
             }

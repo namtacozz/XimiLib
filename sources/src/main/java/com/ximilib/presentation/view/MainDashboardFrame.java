@@ -136,7 +136,7 @@ public class MainDashboardFrame extends JFrame {
             if (bookTabbedView != null) bookTabbedView.selectTab(2);
             cardLayout.show(centerContainer, "KHO_SACH");
             sidebarPanel.setActiveRoute("Kho Sách");
-        } else if ("Mượn – Trả".equalsIgnoreCase(r) || "Bàn lưu hành (Desk)".equalsIgnoreCase(r) || "DESK".equalsIgnoreCase(r)) {
+        } else if ("Mượn – Trả".equalsIgnoreCase(r) || "Bàn lưu hành".equalsIgnoreCase(r) || "Bàn lưu hành (Desk)".equalsIgnoreCase(r) || "DESK".equalsIgnoreCase(r)) {
             if (circulationTabbedView != null) circulationTabbedView.selectTab(0);
             cardLayout.show(centerContainer, "MUON_TRA");
             sidebarPanel.setActiveRoute("Mượn – Trả");
@@ -234,7 +234,7 @@ public class MainDashboardFrame extends JFrame {
             CirculationDeskView deskView = new CirculationDeskView(AppContainer.getInstance().getCirculationService());
             ReturnAndCompensationView returnView = new ReturnAndCompensationView(AppContainer.getInstance().getCirculationService());
             circulationTabbedView = new TabbedViewPanel(
-                List.of("Bàn lưu hành (Desk)", "Xử lý trả & Bồi hoàn"),
+                List.of("Bàn lưu hành", "Xử lý trả & Bồi hoàn"),
                 List.of(deskView, returnView)
             );
             centerContainer.add(circulationTabbedView, "MUON_TRA");
@@ -514,10 +514,13 @@ public class MainDashboardFrame extends JFrame {
     }
 
     public void promptGuestLogin(String message) {
+        String msg = (message != null && !message.isBlank())
+            ? message
+            : "Vui lòng đăng nhập tài khoản bạn đọc để tiếp tục.";
         UiModalHelper.showMessage(
             this,
             "Yêu cầu đăng nhập",
-            "Để đăng ký mượn sách vui lòng đăng nhập."
+            msg
         );
     }
 

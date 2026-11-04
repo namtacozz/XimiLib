@@ -57,6 +57,7 @@ public class ReturnAndCompensationView extends JPanel {
 
     private BorrowDetailInfo currentDetail;
     private BigDecimal currentTotalFee = BigDecimal.ZERO;
+    private Timer borrowerSuggestTimer;
 
     public ReturnAndCompensationView() {
         this(AppContainer.getInstance().getCirculationService(), AppContainer.getInstance().getAuthenticationService());
@@ -386,8 +387,17 @@ public class ReturnAndCompensationView extends JPanel {
     }
 
     private void triggerBorrowerSuggest(JPopupMenu popup) {
+        if (borrowerSuggestTimer != null && borrowerSuggestTimer.isRunning()) {
+            borrowerSuggestTimer.stop();
+        }
+        borrowerSuggestTimer = new Timer(200, ev -> executeBorrowerSuggest(popup));
+        borrowerSuggestTimer.setRepeats(false);
+        borrowerSuggestTimer.start();
+    }
+
+    private void executeBorrowerSuggest(JPopupMenu popup) {
         String query = txtBorrower.getText().trim();
-        if (query.length() < 2) {
+        if (query.isEmpty()) {
             popup.setVisible(false);
             return;
         }
@@ -402,7 +412,7 @@ public class ReturnAndCompensationView extends JPanel {
                     List<PatronDto> patrons = get();
                     popup.removeAll();
                     if (patrons != null && !patrons.isEmpty() && txtBorrower.isFocusOwner()) {
-                        int limit = Math.min(patrons.size(), 5);
+                        int limit = Math.min(patrons.size(), 10);
                         for (int i = 0; i < limit; i++) {
                             PatronDto p = patrons.get(i);
                             JMenuItem item = new JMenuItem(p.getFullName() + " (" + p.getCardNumber() + ")");

@@ -195,21 +195,14 @@ public class ReaderMyLoansView extends JPanel {
             UiModalHelper.showToastWarning(this, "Không xác định được mã cuốn sách của phiếu mượn này.");
             return;
         }
-        // Lấy mã cuốn sách đầu tiên nếu có nhiều cuốn
         String barcode = copyBarcode.split(";")[0].trim();
 
-        String confirmMsg = """
-            Bạn có chắc chắn muốn BÁO MẤT cuốn sách thuộc phiếu mượn #%s không?
-
-            Theo quy định của Thư viện:
-            • Phiếu mượn sẽ chuyển sang trạng thái 'Chờ xử lý bồi thường'.
-            • Tiền bồi thường = (200%% * Giá bìa gốc) + 20.000 VNĐ phí xử lý kỹ thuật + phạt quá hạn (nếu có).
-            • Bạn có thể thanh toán trực tuyến ngay qua mã VietQR hoặc nộp tiền tại quầy.
-            """.formatted(ticket.getTicketId());
+        String confirmMsg = "Xác nhận báo mất cuốn sách này?<br><br>"
+            + "Thư viện sẽ tạo phiếu đền bù theo quy định và bạn có thể thanh toán thuận tiện qua mã VietQR.";
 
         UiModalHelper.showConfirm(
             this,
-            "Xác Nhận Báo Mất Sách",
+            "Xác nhận báo mất sách",
             confirmMsg,
             () -> {
                 try {

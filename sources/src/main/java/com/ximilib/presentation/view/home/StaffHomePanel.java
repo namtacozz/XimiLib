@@ -178,7 +178,7 @@ public class StaffHomePanel extends JPanel {
 
         cardActiveLoans = new KpiCard(
             KpiCard.CardType.ACTIVE_LOANS, "—", "Sách đang cho mượn", null,
-            () -> navigate("Bàn lưu hành (Desk)")
+            () -> navigate("Bàn lưu hành")
         );
 
         cardMembers = new KpiCard(
@@ -323,7 +323,7 @@ public class StaffHomePanel extends JPanel {
 
         pendingHeader = new SectionHeader(
             "Chờ nhận sách (Online)", null, "Xem tất cả >",
-            () -> navigate("Bàn lưu hành (Desk)")
+            () -> navigate("Bàn lưu hành")
         );
         pnlPending.add(pendingHeader, BorderLayout.NORTH);
 
@@ -361,7 +361,7 @@ public class StaffHomePanel extends JPanel {
         JPanel gridButtons = new JPanel(new GridLayout(2, 2, 6, 6));
         gridButtons.setOpaque(false);
 
-        gridButtons.add(createQuickActionButton("Lập phiếu mượn", UITheme.PRIMARY, Color.WHITE, () -> navigate("Bàn lưu hành (Desk)")));
+        gridButtons.add(createQuickActionButton("Lập phiếu mượn", UITheme.PRIMARY, Color.WHITE, () -> navigate("Bàn lưu hành")));
         gridButtons.add(createQuickActionButton("Trả sách & Phạt", UITheme.TINT, UITheme.ON_TINT, () -> navigate("Xử lý trả & bồi hoàn")));
         gridButtons.add(createQuickActionButton("Thêm độc giả", UITheme.TINT_LIGHT, UITheme.TEXT_MAIN, () -> navigate("Hồ sơ độc giả & Thẻ")));
         gridButtons.add(createQuickActionButton("Quản lý kho", UITheme.TINT_LIGHT, UITheme.TEXT_MAIN, () -> navigate("Kho sách")));

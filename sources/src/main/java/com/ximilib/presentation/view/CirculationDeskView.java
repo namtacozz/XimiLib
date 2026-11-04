@@ -51,6 +51,7 @@ public class CirculationDeskView extends JPanel {
     private JTextField txtBarcode;
     private JLabel lblBarcodeNote;
     private JLabel lblCartCounter;
+    private Timer readerSuggestTimer;
 
     // Loan Summary Box
     private JLabel lblDueDateSummary;
@@ -94,7 +95,7 @@ public class CirculationDeskView extends JPanel {
         titleBox.setOpaque(false);
         titleBox.setLayout(new BoxLayout(titleBox, BoxLayout.Y_AXIS));
 
-        JLabel lblTitle = new JLabel("Bàn lưu hành sách (Circulation Desk)");
+        JLabel lblTitle = new JLabel("Bàn lưu hành sách");
         lblTitle.setFont(UITheme.FONT_TITLE_LARGE);
         lblTitle.setForeground(UITheme.TEXT_MAIN);
 
@@ -462,8 +463,17 @@ public class CirculationDeskView extends JPanel {
     }
 
     private void triggerReaderSuggest(JPopupMenu popup) {
+        if (readerSuggestTimer != null && readerSuggestTimer.isRunning()) {
+            readerSuggestTimer.stop();
+        }
+        readerSuggestTimer = new Timer(200, ev -> executeReaderSuggest(popup));
+        readerSuggestTimer.setRepeats(false);
+        readerSuggestTimer.start();
+    }
+
+    private void executeReaderSuggest(JPopupMenu popup) {
         String query = txtReaderCard.getText().trim();
-        if (query.length() < 2) {
+        if (query.isEmpty()) {
             popup.setVisible(false);
             return;
         }
@@ -478,7 +488,7 @@ public class CirculationDeskView extends JPanel {
                     List<PatronDto> patrons = get();
                     popup.removeAll();
                     if (patrons != null && !patrons.isEmpty() && txtReaderCard.isFocusOwner()) {
-                        int limit = Math.min(patrons.size(), 5);
+                        int limit = Math.min(patrons.size(), 10);
                         for (int i = 0; i < limit; i++) {
                             PatronDto p = patrons.get(i);
                             JMenuItem item = new JMenuItem(p.getFullName() + " (" + p.getCardNumber() + ")");
