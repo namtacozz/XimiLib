@@ -26,7 +26,7 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 ## 2. Tiêu chuẩn Hoàn thành (Definition of Done - DoD)
 Đã đạt **100% 6 tiêu chí DoD**:
 1. **Kiến trúc:** Tuân thủ Clean Architecture 4 tầng, Pure DI tại `AppContainer`, không có bất kỳ import ngược nào giữa các tầng (`DependencyRuleTest` xanh 100%).
-2. **Kiểm thử tự động:** **100 test cases JUnit 5** bao gồm Unit tests các tầng và Integration tests kết nối, giao dịch, leak detection.
+2. **Kiểm thử tự động:** **106 test cases JUnit 5** bao gồm Unit tests các tầng và Integration tests kết nối, giao dịch, leak detection.
 3. **An toàn dữ liệu:** 100% `PreparedStatement`, mật khẩu băm BCrypt, tiền tệ dùng `BigDecimal`, khóa bi quan `SELECT ... FOR UPDATE`, quản lý transaction tập trung ở tầng Application.
 4. **Không chặn giao diện:** Mọi truy vấn DB và I/O đều chạy trên `SwingWorker` ngoài EDT; giao diện cập nhật an toàn trên EDT. Khởi động nguội < 1 giây.
 5. **Đóng gói & Chạy thử:** Lệnh `mvn clean package` xuất ra file `dist/XimiLib.jar` độc lập chạy trực tiếp bằng `run.bat` / `run.sh` và hỗ trợ cờ headless `--init-db`.
@@ -36,11 +36,24 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 
 ## 3. Nhật ký Thay đổi Dự án (Changelog)
 
-### [Sprint 18 — Đồng Bộ Toàn Diện Tài Liệu, Schema V5 & Quy Tắc Nghiệp Vụ SRS] - 2026-11-04
+### [Sprint 18 — Đồng Bộ Toàn Diện Tài Liệu, Schema V5, Nguồn Mã & Quy Tắc Nghiệp Vụ SRS] - 2026-11-04
 #### Added & Updated
+- **Thực thi toàn bộ Use Cases SRS (UC 3.2.1 đến UC 3.2.9) và DEV-01..DEV-10**:
+  * **UC 3.2.1 (Đăng nhập)**: Hỗ trợ đăng nhập linh hoạt bằng Tên đăng nhập, Email hoặc Số điện thoại (DEV-02); thông báo tài khoản bị khóa đúng nguyên văn `"Tài khoản của bạn đã bị khóa. Vui lòng liên hệ thủ thư"`; chuẩn hóa thông báo sai mật khẩu/tài khoản chống liệt kê.
+  * **UC 3.2.2 (Đăng ký bạn đọc)**: Chuẩn hóa 7 trường thông tin (Họ tên, Ngày sinh qua DatePicker, CCCD, Địa chỉ, Email, SĐT, Mật khẩu); ràng buộc mật khẩu $\ge 8$ ký tự chữ hoa/số/ký tự đặc biệt (BR-10); kiểm tra CCCD 9 hoặc 12 chữ số (BR-11); thông báo trùng lặp chuẩn `"Số CMND/CCCD hoặc Email đã được đăng ký trên hệ thống"`.
+  * **UC 3.2.3 (Quản lý sách)**: Sinh mã sách tự động `MSxxxx` (BR-13); số lượng sách nhập kho $\ge 1$ (BR-12); chặn xóa sách đang có người mượn với thông báo chuẩn `"Không thể xóa đầu sách đang có độc giả mượn"` (BR-09); soft-delete `IsDeleted = TRUE`.
+  * **UC 3.2.4 (Tra cứu sách)**: Tận dụng index tìm kiếm đa trường `idx_sach_search`; trạng thái rỗng hiển thị đúng thông điệp chuẩn `"Không tìm thấy cuốn sách nào khớp với từ khóa của bạn"` và hướng dẫn độc giả.
+  * **UC 3.2.5 (Đặt mượn trực tuyến)**: Phân định mượn về nhà (14 ngày) và tại chỗ (17:00 trong ngày); chặn quá hạn `"Bạn có sách quá hạn chưa hoàn trả. Vui lòng trả sách trước khi mượn tiếp"`; chặn quá hạn mức 3 cuốn `"Bạn đã đạt giới hạn mượn tối đa 3 cuốn sách mang về"`; chặn thẻ hết hạn `"Thẻ thư viện của bạn đã hết hạn sử dụng. Vui lòng liên hệ thủ thư để gia hạn"`; thông báo thành công nhận sách 24h.
+  * **UC 3.2.6 (Bàn lưu hành quầy)**: Quét thẻ độc giả/CCCD $\rightarrow$ quét mã vạch $\rightarrow$ lập phiếu `DANG_MUON`; trả sách kiểm tra quá hạn và hư hại.
+  * **UC 3.2.7 (Báo cáo & Kiểm toán)**: Ghi log kiểm toán song song file `logs/audit.log` và CSDL bảng `auditlog` (DEV-04); hỗ trợ In báo cáo trực tiếp / Print to PDF qua Java Print API (DEV-05); thông báo rỗng chuẩn `"Không có phát sinh giao dịch trong mốc thời gian đã chọn"`.
+  * **UC 3.2.8 (Cộng đồng & Nhận xét)**: Khi khách vãng lai gửi bình luận, hiển thị in-app modal prompt `"Vui lòng đăng nhập để gửi bình luận"` kèm nút điều hướng đến trang Đăng nhập.
+  * **UC 3.2.9 (Báo mất & Bồi hoàn)**: Chuẩn hóa FSM 2 bước (`CHO_XU_LY_BOI_THUONG` $\rightarrow$ thanh toán $\rightarrow$ `DA_MAT`); công thức bồi thường $200\% \times \text{giá bìa} + 20.000\text{đ} + \text{phạt trễ}$; ghi nhận `thanhtoan.magiaodich` duy nhất.
+  * **YC-10 & YC-13**: Cung cấp `SystemSettingsPort.getInt()` / `getBigDecimal()` đọc cấu hình động từ `cauhinh` (DEV-06); vòng lặp tự động kết nối lại (auto-reconnect 3 lần backoff) trong `DatabaseConnectionManager`; tác vụ bảo trì nền `BackgroundJobManager` định kỳ quét quá hạn và duy trì thư mục sao lưu CSDL (DEV-07).
+  * **Bộ kiểm thử toàn diện**: Nâng tổng số test cases lên **106 tests** (100% PASS, 0 failure, 0 error).
+
 - **Đồng bộ hóa Tài liệu Đặc tả (SSOT SRS)**:
   * Lập [docs/TRACEABILITY.md](file:///f:/AppMaking/XimiLib/docs/TRACEABILITY.md) làm ma trận truy vết chuẩn xác cho toàn bộ 14 yêu cầu YC-01..YC-14, Use Case 3.2.1..3.2.9 và Sổ đăng ký sai lệch DEV-01..DEV-10.
-  * Cập nhật `DATABASE_SCHEMA.md` lên 23 bảng (thêm `binhluan`, `gopy`, `cauhinh`), chuẩn hóa 7 trạng thái FSM của phiếu mượn và hình thức `TAI_CHO` / `VE_NHA`.
+  * Cập nhật `DATABASE_SCHEMA.md` lên 24 bảng (thêm `binhluan`, `gopy`, `cauhinh`, `auditlog`), chuẩn hóa 7 trạng thái FSM của phiếu mượn và hình thức `TAI_CHO` / `VE_NHA`.
   * Chuẩn hóa `BUSINESS_RULES.md`: FSM 2 bước cho Báo mất sách (`CHO_XU_LY_BOI_THUONG` -> `DA_MAT`), bổ sung BR-10..BR-14 (mật khẩu 8 ký tự, CCCD 9/12 số, SL nhập >= 1, quét quá hạn 00:00).
   * Chuẩn hóa `ARCHITECTURE.md`: sửa mẫu `BookRepositoryImpl` khớp schema thật, viết lại §7.3 theo `TransactionCoordinator`/`TransactionManager`, bổ sung cây package các Query Ports mới và cơ chế so khớp regex SePay.
 
