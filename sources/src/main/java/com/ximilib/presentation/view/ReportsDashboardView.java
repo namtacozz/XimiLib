@@ -320,6 +320,9 @@ public class ReportsDashboardView extends JPanel {
                 try {
                     DefaultTableModel model = get();
                     reportTable.setModel(model);
+                    if (model.getRowCount() == 0) {
+                        UiModalHelper.showToastWarning(ReportsDashboardView.this, "Không có phát sinh giao dịch trong mốc thời gian đã chọn");
+                    }
                 } catch (Exception e) {
                     UiModalHelper.showToastError(ReportsDashboardView.this, "Lỗi tải dữ liệu báo cáo!");
                 }
@@ -329,7 +332,7 @@ public class ReportsDashboardView extends JPanel {
 
     private void exportToCsv() {
         if (reportTable.getRowCount() == 0) {
-            UiModalHelper.showToastWarning(this, "Không có dữ liệu báo cáo để xuất!");
+            UiModalHelper.showToastWarning(this, "Không có phát sinh giao dịch trong mốc thời gian đã chọn");
             return;
         }
 
@@ -379,7 +382,7 @@ public class ReportsDashboardView extends JPanel {
 
     private void exportToXlsx() {
         if (reportTable.getRowCount() == 0) {
-            UiModalHelper.showToastWarning(this, "Không có dữ liệu báo cáo để xuất!");
+            UiModalHelper.showToastWarning(this, "Không có phát sinh giao dịch trong mốc thời gian đã chọn");
             return;
         }
 
@@ -713,6 +716,10 @@ public class ReportsDashboardView extends JPanel {
     }
 
     private void printReport() {
+        if (reportTable.getRowCount() == 0) {
+            UiModalHelper.showToastWarning(this, "Không có phát sinh giao dịch trong mốc thời gian đã chọn");
+            return;
+        }
         try {
             String title = (String) cmbReportType.getSelectedItem();
             boolean complete = reportTable.print(JTable.PrintMode.FIT_WIDTH,
