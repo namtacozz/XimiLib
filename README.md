@@ -51,7 +51,7 @@ run.bat
 # hoặc: scripts\run.bat
 ```
 
-*Script `setup` sẽ tự động kiểm tra JDK 17+, MySQL client, hỏi mật khẩu root MySQL ẩn danh, tạo cơ sở dữ liệu `ximilib_db`, cấp quyền tài khoản `ximilib_app`, nạp chuỗi migrations V1 -> V2 -> V3 -> V4, nạp 221 đầu sách mẫu và tạo sẵn file `config/db.properties` từ bản demo.*
+*Script `setup` sẽ tự động kiểm tra JDK 17+, MySQL client, hỏi mật khẩu root MySQL ẩn danh, tạo cơ sở dữ liệu `ximilib_db`, cấp quyền tài khoản `ximilib_app`, nạp chuỗi migrations V1 -> V2 -> V3 -> V4 -> V5, nạp 221 đầu sách mẫu và tạo sẵn file `config/db.properties` từ bản demo.*
 
 ### 3. Danh sách tài khoản thử nghiệm (Demo Accounts)
 Mật khẩu đã được mã hóa bằng chuẩn BCrypt trong cơ sở dữ liệu mẫu, tuân thủ chính sách mật khẩu SRS (tối thiểu 8 ký tự, gồm ít nhất 1 chữ hoa, 1 số và 1 ký tự đặc biệt theo BR-10):
@@ -82,6 +82,7 @@ Nếu bạn muốn tự thiết lập từng bước thay vì dùng script:
    mysql -u ximilib_app -p ximilib_db < db/migrations/V2__srs_schema_updates.sql
    mysql -u ximilib_app -p ximilib_db < db/migrations/V3__enforce_bcrypt_passwords.sql
    mysql -u ximilib_app -p ximilib_db < db/migrations/V4__report_and_search_indexes.sql
+   mysql -u ximilib_app -p ximilib_db < db/migrations/V5__add_audit_log.sql
    mysql -u ximilib_app -p ximilib_db < db/seed/seed_books.sql
    ```
 4. **Đóng gói và khởi chạy:**
@@ -125,6 +126,9 @@ XimiLib/                                        # [ROOT] Thư mục gốc dự �
 │   ├── BUSINESS_RULES.md                       # Máy trạng thái FSM, Công thức phạt & bồi thường (BR-01..BR-14)
 │   ├── PROJECT_STATUS.md                       # Ma trận F-01..F-12 MoSCoW, DoD, Changelog Week 10
 │   ├── TRACEABILITY.md                         # Ma trận truy vết YC-01..YC-14, UC 3.2.1..3.2.9, Deviation Register
+│   ├── CODING_STYLE.md                         # Chuẩn phong cách mã nguồn sinh viên low-code (R-13..R-17)
+│   ├── VIVA_GUIDE.md                           # Cẩm nang 8 luồng nghiệp vụ & 24 câu hỏi vấn đáp đồ án PBL3
+│   ├── CLEANUP_REPORT.md                       # Báo cáo kiểm kê dọn dẹp kho lưu trữ
 │   └── academic/                               # Báo cáo và tài liệu học thuật đồ án PBL
 │       ├── BaoCao_TienDo_GiuaKi_PBL_Nhom1.docx # Báo cáo tiến độ giữa kỳ
 │       ├── Dac_Ta_SRS_XimiLib.docx             # Đặc tả yêu cầu phần mềm chuẩn IEEE 830
@@ -133,7 +137,7 @@ XimiLib/                                        # [ROOT] Thư mục gốc dự �
 │
 ├── db/                                         # QUẢN TRỊ CƠ SỞ DỮ LIỆU MYSQL 8.0+
 │   ├── schema.sql                              # Script DDL 20 bảng, khóa ngoại và chỉ mục chính thức
-│   ├── migrations/                             # Các bản migration phiên bản hóa (V1, V2, V3, V4)
+│   ├── migrations/                             # Các bản migration phiên bản hóa (V1 -> V5)
 │   └── seed/                                   # Dữ liệu mẫu (221 đầu sách, bản sao, phiếu mượn demo)
 │
 ├── assets/                                     # TÀI NGUYÊN HÌNH ẢNH & MOCKUP
@@ -172,4 +176,6 @@ Toàn bộ quy chuẩn phát triển và ràng buộc kiến trúc được quy 
 - **Quy tắc nghiệp vụ:** [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md) — Máy trạng thái FSM Phiếu mượn/Cuốn sách, Công thức phạt & bồi thường (BR-01..BR-14).
 - **Tiến độ dự án:** [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) — Ma trận tính năng F-01..F-12, DoD, Nhật ký Sprint Week 10.
 - **Ma trận truy vết & Sai lệch:** [docs/TRACEABILITY.md](docs/TRACEABILITY.md) — Ánh xạ YC-01..YC-14, UC 3.2.1..3.2.9 và Deviation Register DEV-01..DEV-10.
+- **Chuẩn phong cách mã nguồn:** [docs/CODING_STYLE.md](docs/CODING_STYLE.md) — Hướng dẫn phong cách sinh viên low-code (R-13..R-17), cấm stream/Optional/comment, biến tường minh.
+- **Cẩm nang vấn đáp đồ án:** [docs/VIVA_GUIDE.md](docs/VIVA_GUIDE.md) — Hướng dẫn 8 luồng nghiệp vụ cốt lõi và 24 câu hỏi - trả lời bảo vệ đồ án trước hội đồng.
 - **Công cụ PBL Workspace:** Mở trực tiếp [docs/academic/pbl_workspace.html](docs/academic/pbl_workspace.html) trên trình duyệt để quản lý tiến độ nhóm và sơ đồ thực thể tương tác.
