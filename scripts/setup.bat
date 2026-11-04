@@ -7,11 +7,11 @@ echo ===================================================
 echo   XIMILIB - THIET LAP MOI TRUONG DU AN PBL3
 echo ===================================================
 
-rem 1. Kiem tra Java 17+
+rem 1. Kiem tra Java 25 LTS
 where java >nul 2>nul
 if %errorlevel% neq 0 (
     echo [LOI] Khong tim thay Java tren he thong!
-    echo Vui long cai dat OpenJDK 17 tro len va them vao bien moi truong PATH.
+    echo Vui long cai dat OpenJDK 25 LTS va them vao bien moi truong PATH.
     exit /b 1
 )
 
@@ -20,8 +20,8 @@ for /f "tokens=3" %%g in ('java -version 2^>^&1 ^| findstr /i "version"') do (
 )
 for /f "delims=." %%v in ("%JAVA_RAW%") do set "JAVA_VER=%%v"
 if defined JAVA_VER (
-    if %JAVA_VER% lss 17 (
-        echo [LOI] Phien ban Java hien tai la %JAVA_VER%. Du an yeu cau Java 17 tro len.
+    if %JAVA_VER% lss 21 (
+        echo [LOI] Phien ban Java hien tai la %JAVA_VER%. Du an yeu cau Java 21 LTS tro len.
         exit /b 1
     )
     echo [OK] Moi truong Java: Phien ban !JAVA_VER!

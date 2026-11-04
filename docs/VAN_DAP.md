@@ -1,7 +1,7 @@
 # CẨM NANG VẤN ĐÁP ĐỒ ÁN PBL — HỆ THỐNG QUẢN LÝ THƯ VIỆN XIMILIB
 
 > **Dành cho sinh viên bảo vệ đồ án trước Hội đồng chấm thi PBL (Trường ĐH Bách Khoa - ĐH Đà Nẵng)**  
-> *Phiên bản: 1.0 | Cập nhật: 10/2026 | Hệ thống: Java 17, Swing + FlatLaf, MySQL 8.4*
+> *Phiên bản: 1.0 | Cập nhật: 10/2026 | Hệ thống: Java 25 LTS, Swing + FlatLaf, MySQL 8.4*
 
 ---
 

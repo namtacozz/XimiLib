@@ -93,7 +93,7 @@ public class UserSessionTest {
 
     @Test
     public void testAvatarInitialCalculationSafety() {
-        // Tránh lỗi StringIndexOutOfBoundsException khi có khoảng trắng ở cuối
+
         assertEquals("A", UITheme.getAvatarInitial("Trần Văn An "));
         assertEquals("K", UITheme.getAvatarInitial("Phan Vũ Xuân Kiên"));
         assertEquals("A", UITheme.getAvatarInitial("Admin"));

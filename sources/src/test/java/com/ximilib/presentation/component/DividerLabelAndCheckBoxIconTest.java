@@ -36,10 +36,8 @@ class DividerLabelAndCheckBoxIconTest {
         BufferedImage img = new BufferedImage(100, 30, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = img.createGraphics();
 
-        // 1. Vẽ khi unchecked
         assertDoesNotThrow(() -> icon.paintIcon(chk, g2, 0, 0));
 
-        // 2. Vẽ khi checked
         chk.setSelected(true);
         assertDoesNotThrow(() -> icon.paintIcon(chk, g2, 0, 0));
 

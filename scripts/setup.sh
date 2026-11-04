@@ -12,16 +12,16 @@ echo "==================================================="
 echo "  XIMILIB - THIẾT LẬP MÔI TRƯỜNG DỰ ÁN PBL3"
 echo "==================================================="
 
-# 1. Kiểm tra Java 17+
+# 1. Kiểm tra Java 25 LTS
 if ! command -v java >/dev/null 2>&1; then
     echo "[LỖI] Không tìm thấy Java trên hệ thống!"
-    echo "Vui lòng cài đặt OpenJDK 17 trở lên và thêm vào biến môi trường PATH."
+    echo "Vui lòng cài đặt OpenJDK 25 LTS và thêm vào biến môi trường PATH."
     exit 1
 fi
 
 JAVA_VER=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F '.' '{print $1}')
-if [ -n "$JAVA_VER" ] && [ "$JAVA_VER" -lt 17 ] 2>/dev/null; then
-    echo "[LỖI] Phiên bản Java hiện tại là $JAVA_VER. Dự án yêu cầu Java 17 trở lên."
+if [ -n "$JAVA_VER" ] && [ "$JAVA_VER" -lt 21 ] 2>/dev/null; then
+    echo "[LỖI] Phiên bản Java hiện tại là $JAVA_VER. Dự án yêu cầu Java 21 LTS trở lên."
     exit 1
 fi
 echo "[OK] Môi trường Java: Phiên bản $JAVA_VER"

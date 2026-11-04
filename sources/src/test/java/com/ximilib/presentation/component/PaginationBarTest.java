@@ -26,7 +26,7 @@ class PaginationBarTest {
         bar.setOnPageChange(selectedPage::set);
 
         bar.updatePagination(1, 5, 10, 50);
-        // Test callback registration
+
         assertNotNull(bar);
     }
 

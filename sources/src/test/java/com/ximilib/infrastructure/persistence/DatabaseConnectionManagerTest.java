@@ -49,7 +49,7 @@ class DatabaseConnectionManagerTest {
 
         SQLException ex = assertThrows(SQLException.class, brokenManager::getConnection);
         assertNotNull(ex.getMessage());
-        assertTrue(ex.getMessage().contains("Không thể kết nối đến máy chủ CSDL MySQL") 
+        assertTrue(ex.getMessage().contains("Không thể kết nối đến máy chủ CSDL MySQL")
                 || ex.getMessage().contains("Lỗi kết nối cơ sở dữ liệu"),
                 "Thông báo ngoại lệ phải được dịch sang tiếng Việt thân thiện: " + ex.getMessage());
         brokenManager.close();
@@ -103,25 +103,22 @@ class DatabaseConnectionManagerTest {
     @Test
     @DisplayName("TC-DB-05: Phân biệt chính xác mã lỗi 1045, 1044, 1049 và lỗi dịch vụ MySQL chưa chạy")
     void testWrapConnectionExceptionErrorCodes() {
-        // 1045: Sai user hoặc mật khẩu
+
         SQLException ex1045 = new SQLException("Access denied for user 'app'@'localhost'", "28000", 1045);
         SQLException wrapped1045 = DatabaseConnectionManager.wrapConnectionException(ex1045);
         assertTrue(wrapped1045.getMessage().contains("Tên người dùng hoặc mật khẩu CSDL không chính xác"),
                 "Mã lỗi 1045 phải báo sai user/mật khẩu: " + wrapped1045.getMessage());
 
-        // 1044: Thiếu quyền trên database
         SQLException ex1044 = new SQLException("Access denied for user 'app'@'localhost' to database 'ximilib_db'", "42000", 1044);
         SQLException wrapped1044 = DatabaseConnectionManager.wrapConnectionException(ex1044);
         assertTrue(wrapped1044.getMessage().contains("không có quyền truy cập cơ sở dữ liệu"),
                 "Mã lỗi 1044 phải báo thiếu quyền truy cập CSDL: " + wrapped1044.getMessage());
 
-        // 1049: Database không tồn tại
         SQLException ex1049 = new SQLException("Unknown database 'ximilib_db'", "42000", 1049);
         SQLException wrapped1049 = DatabaseConnectionManager.wrapConnectionException(ex1049);
         assertTrue(wrapped1049.getMessage().contains("Không tìm thấy cơ sở dữ liệu"),
                 "Mã lỗi 1049 phải báo database không tồn tại: " + wrapped1049.getMessage());
 
-        // Lỗi dịch vụ MySQL chưa chạy (Communications link failure / Connection refused)
         SQLException exConnRefused = new SQLException("Communications link failure: Connection refused", "08S01", 0);
         SQLException wrappedConn = DatabaseConnectionManager.wrapConnectionException(exConnRefused);
         assertTrue(wrappedConn.getMessage().contains("Không thể kết nối đến máy chủ CSDL MySQL"),

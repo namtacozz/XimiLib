@@ -17,10 +17,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-/**
- * StorageRepositoryIT: Integration Test cho ZoneRepository và ShelfRepository trên MySQL.
- * Bỏ qua gracefully nếu MySQL không sẵn sàng.
- */
 public class StorageRepositoryIT {
 
     private static DatabaseConnectionManager manager;

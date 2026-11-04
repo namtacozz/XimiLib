@@ -120,8 +120,6 @@ class StorageServiceTest {
         assertFalse(shelfRepo.shelves.containsKey("KE-01"));
     }
 
-    // --- STUB IMPLEMENTATIONS ---
-
     private static class StubZoneRepository implements ZoneRepository {
         final Map<String, Zone> zones = new HashMap<>();
         final Map<String, Integer> shelfCounts = new HashMap<>();

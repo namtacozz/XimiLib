@@ -9,11 +9,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * DBConnectionLeakIT: Integration Test kiểm tra kết nối MySQL thật.
- * Yêu cầu: MySQL đang chạy và config/db.properties hợp lệ.
- * Dùng Assumptions.assumeTrue để skip gracefully khi thiếu DB.
- */
 public class DBConnectionLeakIT {
 
     private static DatabaseConnectionManager manager;
@@ -23,7 +18,7 @@ public class DBConnectionLeakIT {
     static void setUp() {
         try {
             manager = new DatabaseConnectionManager();
-            // Thử lấy connection để kiểm tra DB có sẵn không
+
             try (Connection conn = manager.getConnection()) {
                 dbAvailable = conn != null && !conn.isClosed();
             }

@@ -2,7 +2,7 @@
 
 > **Đồ án PBL3:** Hệ thống Quản lý Thư viện Desktop đa nền tảng (Windows / macOS / Linux)  
 > **Khoa Công nghệ Thông tin — Trường Đại học Bách Khoa, Đại học Đà Nẵng**  
-> **Phiên bản:** `1.1.0` | **Nền tảng:** `Java 17 (Swing FlatLaf)` + `MySQL 8.0+` (JDBC thuần `DriverManager`)
+> **Phiên bản:** `1.1.0` | **Nền tảng:** `Java 25 LTS (Swing FlatLaf)` + `MySQL 8.0+` (JDBC thuần `DriverManager`)
 
 ---
 
@@ -22,7 +22,7 @@
 > Bản đóng gói `dist/XimiLib.jar` không nằm trong Git (được loại trừ bởi `.gitignore`). Khi clone dự án về máy tính mới, bạn chỉ cần thực hiện thiết lập tự động hoặc thủ công theo hướng dẫn dưới đây để sẵn sàng chạy.
 
 ### 1. Yêu cầu Tiên quyết
-- **Java Development Kit (JDK):** Phiên bản **Java 17** trở lên.
+- **Java Development Kit (JDK):** Phiên bản **Java 25 LTS**.
 - **Apache Maven:** Phiên bản **3.8+**.
 - **Hệ quản trị CSDL:** **MySQL 8.0+** đang hoạt động (cổng mặc định `3306`).
 
@@ -51,7 +51,7 @@ run.bat
 # hoặc: scripts\run.bat
 ```
 
-*Script `setup` sẽ tự động kiểm tra JDK 17+, MySQL client, hỏi mật khẩu root MySQL ẩn danh, tạo cơ sở dữ liệu `ximilib_db`, cấp quyền tài khoản `ximilib_app`, nạp chuỗi migrations V1 -> V2 -> V3 -> V4 -> V5, nạp 221 đầu sách mẫu và tạo sẵn file `config/db.properties` từ bản demo.*
+*Script `setup` sẽ tự động kiểm tra JDK 25 LTS, MySQL client, hỏi mật khẩu root MySQL ẩn danh, tạo cơ sở dữ liệu `ximilib_db`, cấp quyền tài khoản `ximilib_app`, nạp chuỗi migrations V1 -> V2 -> V3 -> V4 -> V5, nạp 221 đầu sách mẫu và tạo sẵn file `config/db.properties` từ bản demo.*
 
 ### 3. Danh sách tài khoản thử nghiệm (Demo Accounts)
 Mật khẩu đã được mã hóa bằng chuẩn BCrypt trong cơ sở dữ liệu mẫu, tuân thủ chính sách mật khẩu SRS (tối thiểu 8 ký tự, gồm ít nhất 1 chữ hoa, 1 số và 1 ký tự đặc biệt theo BR-10):
@@ -145,7 +145,7 @@ XimiLib/                                        # [ROOT] Thư mục gốc dự �
 │   ├── librack_exact_login.jpg                 # Ảnh mẫu thiết kế giao diện Đăng nhập
 │   └── usecase.jpg                             # Sơ đồ Use Case tổng thể hệ thống
 │
-├── sources/                                    # MÃ NGUỒN DỰ ÁN MAVEN (Java 17)
+├── sources/                                    # MÃ NGUỒN DỰ ÁN MAVEN (Java 25 LTS)
 │   ├── pom.xml                                 # Cấu hình Maven dependencies & Assembly plugin
 │   └── src/
 │       ├── main/java/com/ximilib/              # Mã nguồn các tầng (domain, application, infra, presentation)

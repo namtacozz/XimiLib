@@ -215,7 +215,7 @@ class AuthenticationServiceTest {
     @Test
     @DisplayName("TC-AUTH-10: CSDL chứa mật khẩu thô (plaintext) - Chặn hoàn toàn, tuyệt đối không đăng nhập được")
     void testPlaintextPasswordInDatabaseFailsToLogin() {
-        // Tài khoản plain.user có mật khẩu lưu trực tiếp là "123456" (chưa băm BCrypt)
+
         LoginResult result = authService.login("plain.user", "123456");
 
         assertFalse(result.isSuccess(), "Mật khẩu thô không khớp định dạng BCrypt phải bị từ chối");
@@ -227,7 +227,7 @@ class AuthenticationServiceTest {
     @Test
     @DisplayName("TC-AUTH-11: CSDL chứa chuỗi hash hỏng / không hợp lệ - Trả lỗi AUTH chung, không văng exception")
     void testCorruptHashInDatabaseFailsGracefully() {
-        // Tài khoản corrupt.user có chuỗi hash không hợp lệ
+
         assertDoesNotThrow(() -> {
             LoginResult result = authService.login("corrupt.user", "123456");
             assertFalse(result.isSuccess());
@@ -258,7 +258,7 @@ class AuthenticationServiceTest {
     @Test
     @DisplayName("TC-AUTH-13: Hoạt động chuẩn xác với Fake/Mock PasswordHasher (Inversion of Control)")
     void testLoginWithFakePasswordHasherPort() {
-        // Tạo fake PasswordHasher dùng tiền tố "fakehash_"
+
         PasswordHasher fakeHasher = new PasswordHasher() {
             @Override
             public String hash(String rawPassword) {
@@ -279,12 +279,10 @@ class AuthenticationServiceTest {
         StubUserRepository stubRepo = new StubUserRepository(fakeHasher);
         AuthenticationServiceImpl customService = new AuthenticationServiceImpl(stubRepo, fakeHasher);
 
-        // Đăng nhập thành công qua fakeHasher
         LoginResult successResult = customService.login("admin", "admin123");
         assertTrue(successResult.isSuccess());
         assertEquals("admin", successResult.getUser().getUsername());
 
-        // Đăng nhập sai qua fakeHasher
         LoginResult failResult = customService.login("admin", "wrongpass");
         assertFalse(failResult.isSuccess());
         assertEquals("AUTH_001", failResult.getErrorCode());
@@ -313,13 +311,10 @@ class AuthenticationServiceTest {
             User u3 = new User("ND003", "nam.le", hash123456, "Lê Võ Thành Nam", "nam.le@dut.udn.vn", "0903", "Thủ Thư");
             User u4 = new User("ND004", "sinhvien", hash123456, "Trần Văn An", "an.tran@dut.udn.vn", "0904", "Bạn Đọc");
 
-            // Tài khoản lưu mật khẩu dạng chuỗi trần (plaintext) trong DB
             User uPlain = new User("ND099", "plain.user", "123456", "Người Dùng Plaintext", "plain@dut.udn.vn", "0909", "Bạn Đọc");
 
-            // Tài khoản lưu hash bị hỏng (corrupted hash) trong DB
             User uCorrupt = new User("ND098", "corrupt.user", "$2a$10$abcdefghijklmno_corrupt_hash_invalid", "Người Dùng Hash Hỏng", "corrupt@dut.udn.vn", "0908", "Bạn Đọc");
 
-            // Tài khoản bị khóa / vô hiệu hóa
             User uDisabled = new User("ND097", "disabled.user", hash123456, "Người Dùng Bị Khóa", "disabled@dut.udn.vn", "0907", "Bạn Đọc");
             uDisabled.setDeleted(true);
 

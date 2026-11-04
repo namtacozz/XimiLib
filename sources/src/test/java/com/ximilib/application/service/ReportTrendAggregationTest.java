@@ -28,17 +28,14 @@ class ReportTrendAggregationTest {
 
         assertEquals(7, sampleMetrics.size());
 
-        // Tổng lượt mượn trong 7 ngày
         int totalBorrows = sampleMetrics.stream().mapToInt(DailyMetric::borrowCount).sum();
         assertEquals(36, totalBorrows);
 
-        // Tổng doanh thu phạt trong 7 ngày
         BigDecimal totalFines = sampleMetrics.stream()
                 .map(DailyMetric::fineRevenue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         assertEquals(new BigDecimal("64000.00"), totalFines);
 
-        // Đỉnh lượt mượn (Peak day)
         int maxBorrows = sampleMetrics.stream().mapToInt(DailyMetric::borrowCount).max().orElse(0);
         assertEquals(11, maxBorrows);
     }

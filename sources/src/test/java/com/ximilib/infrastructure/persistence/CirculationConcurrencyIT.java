@@ -21,10 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-/**
- * CirculationConcurrencyIT: Kiểm thử tích hợp tương tranh mượn sách và Rollback Transaction.
- * Yêu cầu: MySQL thật. Bỏ qua gracefully bằng Assumptions nếu MySQL không chạy.
- */
 public class CirculationConcurrencyIT {
 
     private static DatabaseConnectionManager manager;
@@ -62,7 +58,6 @@ public class CirculationConcurrencyIT {
     void testConcurrentBorrowSameCopy() throws InterruptedException, ExecutionException {
         assumeTrue(dbAvailable, "Bỏ qua: Không có kết nối MySQL");
 
-        // Tìm 1 cuốn sách đang KHA_DUNG trong DB
         String targetBarcode = findFirstAvailableCopyBarcode();
         assumeTrue(targetBarcode != null, "Không có cuốn sách KHA_DUNG để thử nghiệm tương tranh");
 
@@ -97,7 +92,6 @@ public class CirculationConcurrencyIT {
 
         executor.shutdown();
 
-        // Đúng 1 luồng thành công, 1 luồng thất bại do SELECT ... FOR UPDATE (R-05)
         assertTrue((r1 && !r2) || (!r1 && r2),
                 "Phải có đúng 1 luồng thành công và 1 luồng bị chặn, thực tế: r1=" + r1 + ", r2=" + r2);
     }
@@ -111,17 +105,15 @@ public class CirculationConcurrencyIT {
 
         assertThrows(RuntimeException.class, () -> {
             coordinator.executeVoid(tx -> {
-                // Thao tác 1: Insert phieumuon
+
                 repo.createBorrowTicket(tx, fakeTicketId, "USR-ADMIN-01", "CARD-ADMIN", LoanType.TAI_CHO,
                         java.time.LocalDateTime.now(), java.time.LocalDateTime.now().plusDays(1),
                         Collections.emptyList(), "Ghi chú test rollback");
 
-                // Giả lập lỗi giữa chừng để kích hoạt rollback
                 throw new RuntimeException("Cố ý ném lỗi để kiểm tra hoàn tác transaction");
             });
         });
 
-        // Kiểm tra phieumuon KHÔNG hề được lưu lại (đã rollback sạch)
         String checkSql = "SELECT COUNT(*) FROM phieumuon WHERE Maphieumuon = ?";
         try (Connection conn = manager.getConnection();
              PreparedStatement ps = conn.prepareStatement(checkSql)) {

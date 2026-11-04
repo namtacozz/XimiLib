@@ -12,17 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * TransactionManagerTest: Unit test cho TransactionManager, không cần MySQL thật.
- * Sử dụng java.lang.reflect.Proxy để fake Connection và anonymous class để fake DatabaseConnectionManager.
- */
 class TransactionManagerTest {
 
-    // -------------------------------------------------------------------------
-    // Helpers: fake Connection và fake DatabaseConnectionManager
-    // -------------------------------------------------------------------------
-
-    /** Tạo một Connection Proxy ghi lại các lệnh gọi setAutoCommit / commit / rollback / close. */
     private static Connection fakeConnection(
             AtomicBoolean committed,
             AtomicBoolean rolledBack,
@@ -38,10 +29,10 @@ class TransactionManagerTest {
                 case "close" -> closed.set(true);
                 case "isClosed" -> { return closed.get(); }
                 default -> {
-                    // mọi method khác: không làm gì, trả về default
+
                 }
             }
-            // Nếu được yêu cầu throw khi callback gọi bất kỳ method nào khác (không phải lifecycle)
+
             if (throwOnExecute && !java.util.Set.of(
                     "setAutoCommit", "commit", "rollback", "close", "isClosed").contains(method.getName())) {
                 throw new SQLException("Lỗi giả lập từ Connection");
@@ -57,7 +48,6 @@ class TransactionManagerTest {
                 handler);
     }
 
-    /** Fake DatabaseConnectionManager trả về Connection đã chuẩn bị. */
     private static DatabaseConnectionManager fakeManager(Connection conn) {
         return new DatabaseConnectionManager("jdbc:fake://localhost/fake", "user", "pass") {
             @Override
@@ -66,10 +56,6 @@ class TransactionManagerTest {
             }
         };
     }
-
-    // -------------------------------------------------------------------------
-    // Test cases
-    // -------------------------------------------------------------------------
 
     @Test
     @DisplayName("TM-01: execute(callback) trả về giá trị đúng, commit được gọi, rollback KHÔNG được gọi")

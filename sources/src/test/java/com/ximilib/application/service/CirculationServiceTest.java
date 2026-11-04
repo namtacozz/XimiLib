@@ -49,7 +49,7 @@ class CirculationServiceTest {
     @Test
     @DisplayName("SRS TC-2: Trả sách trễ 5 ngày phạt 10.000 VNĐ (BR-06)")
     void testReturnOverdueFiveDays() {
-        // Cuốn sách mượn có hạn trả là 5 ngày trước
+
         repository.addActiveLoan("BK001-C01", LocalDateTime.now().minusDays(5), new BigDecimal("80000.00"));
 
         ReturnResultDto result = circulationService.returnBook("BK001-C01", "Bình thường");
@@ -74,18 +74,16 @@ class CirculationServiceTest {
     @Test
     @DisplayName("SRS TC-4 & R-10: Báo mất sách tính bồi thường 200% + 20k phí, chuyển CHO_XU_LY_BOI_THUONG rồi nộp phạt chuyển DA_MAT")
     void testReportLossAndPayCompensation() {
-        // Sách giá bìa 100.000đ, không trễ hạn
+
         repository.addActiveLoan("BK002-C01", LocalDateTime.now().plusDays(5), new BigDecimal("100000.00"));
 
         CompensationResultDto loss = circulationService.reportLoss("BK002-C01");
 
-        // 200% của 100.000 = 200.000 + 20.000 phí kỹ thuật = 220.000 VNĐ
         assertEquals(new BigDecimal("200000.00"), loss.getBookLossAmount());
         assertEquals(new BigDecimal("20000.00"), loss.getTechFee());
         assertEquals(new BigDecimal("220000.00"), loss.getTotalAmount());
         assertEquals(LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode(), repository.getTicketStatus(loss.getBorrowTicketId()));
 
-        // Nộp phạt hoàn tất: phiếu chuyển sang DA_MAT (5)
         circulationService.payFine(loss.getFineTicketId(), "TIEN_MAT");
         assertEquals(LoanTicketStatus.DA_MAT.getCode(), repository.getTicketStatus(loss.getBorrowTicketId()));
     }

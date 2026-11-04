@@ -39,7 +39,7 @@ class MySqlBookCatalogIntegrationTest {
     }
 
     private void assumeDatabaseAvailable() {
-        Assumptions.assumeTrue(isDatabaseAvailable(), 
+        Assumptions.assumeTrue(isDatabaseAvailable(),
             "Bỏ qua kiểm thử tích hợp: Máy chủ MySQL không khả dụng hoặc thông tin kết nối chưa được thiết lập.");
     }
 
@@ -115,7 +115,7 @@ class MySqlBookCatalogIntegrationTest {
     @DisplayName("IT-06: Xác thực tài khoản người dùng thật từ bảng nguoidung (không bị lỗi cột Sodienthoai)")
     void testFindUserByIdentifierInMySql() {
         assumeDatabaseAvailable();
-        com.ximilib.infrastructure.persistence.impl.UserRepositoryImpl userRepo = 
+        com.ximilib.infrastructure.persistence.impl.UserRepositoryImpl userRepo =
             new com.ximilib.infrastructure.persistence.impl.UserRepositoryImpl(connectionManager);
         var userOpt = userRepo.findByIdentifier("kien.phan");
         assertTrue(userOpt.isPresent(), "Phải tìm thấy tài khoản kien.phan trong MySQL");

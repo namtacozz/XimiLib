@@ -43,7 +43,7 @@ class BookCatalogServiceTest {
     @Test
     @DisplayName("TC-02: Lọc sách theo Thể loại (Category)")
     void testFilterByCategory() {
-        // Category 4 = Công nghệ thông tin
+
         BookSearchCriteria criteria = new BookSearchCriteria("", 4, BookSearchCriteria.AvailabilityFilter.ALL);
         PagedResult<BookSummaryDto> result = service.searchBooks(criteria, 1, 10);
 
@@ -56,7 +56,7 @@ class BookCatalogServiceTest {
     @Test
     @DisplayName("TC-03: Lọc sách theo Tình trạng (Còn sách / Hết sách)")
     void testFilterByAvailability() {
-        // Chỉ lấy sách còn bản sao khả dụng
+
         BookSearchCriteria criteriaAvailable = new BookSearchCriteria("", null, BookSearchCriteria.AvailabilityFilter.AVAILABLE_ONLY);
         PagedResult<BookSummaryDto> availResult = service.searchBooks(criteriaAvailable, 1, 10);
 
@@ -65,7 +65,6 @@ class BookCatalogServiceTest {
             assertTrue(b.getAvailableCopies() > 0);
         }
 
-        // Chỉ lấy sách đã hết bản sao khả dụng
         BookSearchCriteria criteriaOutOfStock = new BookSearchCriteria("", null, BookSearchCriteria.AvailabilityFilter.OUT_OF_STOCK);
         PagedResult<BookSummaryDto> outResult = service.searchBooks(criteriaOutOfStock, 1, 10);
 
@@ -88,14 +87,13 @@ class BookCatalogServiceTest {
         assertEquals(5, page2.getItems().size());
         assertEquals(2, page2.getPage());
 
-        // Kiểm tra hai trang không trùng lặp phần tử đầu tiên
         assertNotEquals(page1.getItems().get(0).getBookId(), page2.getItems().get(0).getBookId());
     }
 
     @Test
     @DisplayName("TC-05: Tuân thủ BR-09 - Chặn xóa sách đang có người mượn với thông báo chuẩn SRS UC 3.2.3")
     void testSoftDeleteFailsWhenBookHasActiveLoans() {
-        // MS-0011 có activeLoansCount = 2 > 0
+
         BookInUseException ex = assertThrows(BookInUseException.class, () -> {
             service.deleteBook("MS-0011");
         });
@@ -116,12 +114,11 @@ class BookCatalogServiceTest {
     @Test
     @DisplayName("TC-06: Xóa mềm thành công khi sách không có người mượn")
     void testSoftDeleteSucceedsWhenNoActiveLoans() {
-        // MS-0013 có activeLoansCount = 0
+
         assertDoesNotThrow(() -> {
             service.deleteBook("MS-0013");
         });
 
-        // Kiểm tra sách đã bị đánh dấu xóa mềm
         BookSearchCriteria criteria = new BookSearchCriteria("Advanced Discrete Mathematics", null, BookSearchCriteria.AvailabilityFilter.ALL);
         PagedResult<BookSummaryDto> result = service.searchBooks(criteria, 1, 10);
         assertTrue(result.getItems().isEmpty(), "Sách đã xóa mềm không được xuất hiện trong kết quả tìm kiếm");
@@ -130,14 +127,12 @@ class BookCatalogServiceTest {
     @Test
     @DisplayName("TC-07: Xóa hàng loạt sách - tự động bỏ qua sách đang mượn theo BR-09")
     void testBatchDeleteSkipsBooksInUse() {
-        // MS-0011 (đang mượn: 2), MS-0013 (không mượn: 0), MS-0019 (không mượn: 0)
+
         List<String> ids = List.of("MS-0011", "MS-0013", "MS-0019");
         int deletedCount = service.deleteBooksBatch(ids);
 
-        // Chỉ xóa được 2 cuốn không có người mượn
         assertEquals(2, deletedCount);
 
-        // MS-0011 vẫn phải còn tồn tại
         BookSearchCriteria criteria = new BookSearchCriteria("Literature", null, BookSearchCriteria.AvailabilityFilter.ALL);
         PagedResult<BookSummaryDto> result = service.searchBooks(criteria, 1, 10);
         assertFalse(result.getItems().isEmpty());
@@ -152,9 +147,6 @@ class BookCatalogServiceTest {
         assertEquals("Công nghệ thông tin", categories.get(4));
     }
 
-    /**
-     * StubBookRepository: Lớp giả lập cho BookRepository dùng riêng trong Unit Test
-     */
     private static class StubBookRepository implements BookRepository, BookQueryPort {
         private final List<BookSummaryDto> books = new ArrayList<>();
         private final Map<Integer, String> categories = new LinkedHashMap<>();

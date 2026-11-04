@@ -69,15 +69,14 @@ class SecurityUtilTest {
         assertTrue(SecurityUtil.validatePasswordStrength("Admin@12345"));
         assertTrue(SecurityUtil.validatePasswordStrength("XimiLib#2026"));
 
-        // Thiếu ký tự đặc biệt
         assertFalse(SecurityUtil.validatePasswordStrength("Admin12345"));
-        // Thiếu chữ hoa
+
         assertFalse(SecurityUtil.validatePasswordStrength("admin@12345"));
-        // Thiếu số
+
         assertFalse(SecurityUtil.validatePasswordStrength("Admin@Password"));
-        // Quá ngắn (< 8 ký tự)
+
         assertFalse(SecurityUtil.validatePasswordStrength("Adm@1"));
-        // Null
+
         assertFalse(SecurityUtil.validatePasswordStrength(null));
     }
 
@@ -87,13 +86,12 @@ class SecurityUtilTest {
         assertTrue(SecurityUtil.validateCccd("123456789"));
         assertTrue(SecurityUtil.validateCccd("012345678901"));
 
-        // Sai độ dài
         assertFalse(SecurityUtil.validateCccd("12345678"));
         assertFalse(SecurityUtil.validateCccd("1234567890"));
         assertFalse(SecurityUtil.validateCccd("0123456789012"));
-        // Chứa chữ
+
         assertFalse(SecurityUtil.validateCccd("12345678A"));
-        // Null
+
         assertFalse(SecurityUtil.validateCccd(null));
     }
 }

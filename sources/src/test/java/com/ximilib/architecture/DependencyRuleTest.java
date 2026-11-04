@@ -25,28 +25,10 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-/**
- * Kiểm tra các quy tắc phụ thuộc kiến trúc (Dependency Rules) của XimiLib bằng JUnit 5 thuần.
- * <p>
- * Các quy tắc kiến trúc theo AGENTS.md và ARCHITECTURE.md:
- * 1. domain không import: javax.swing, java.sql, com.ximilib.application,
- *    com.ximilib.infrastructure, com.ximilib.presentation, com.ximilib.gui.
- * 2. application không import: javax.swing, java.sql, com.ximilib.infrastructure,
- *    com.ximilib.presentation, com.ximilib.gui.
- * 3. presentation và gui không import: java.sql, com.ximilib.infrastructure.persistence, com.ximilib.infrastructure.security.
- * 4. Không được tồn tại package com.ximilib.gui và com.ximilib.models (được ghi nhận trong baseline).
- * <p>
- * Cơ chế Baseline (arch-baseline.txt):
- * - Test CHỈ FAIL khi:
- *   (a) Xuất hiện vi phạm MỚI chưa được ghi nhận trong baseline.
- *   (b) Một vi phạm trong baseline đã được giải quyết nhưng chưa được xóa khỏi arch-baseline.txt (ép dọn sạch baseline).
- * - So khớp độc lập số dòng (dựa trên file + import) để tránh vỡ khi code dịch chuyển dòng.
- */
 public class DependencyRuleTest {
 
     private static final String BASELINE_RESOURCE = "/arch-baseline.txt";
 
-    // Danh sách package bị cấm theo từng tầng
     private static final List<String> DOMAIN_FORBIDDEN = List.of(
             "javax.swing",
             "java.sql",
@@ -75,15 +57,12 @@ public class DependencyRuleTest {
             "com.ximilib.models"
     );
 
-    /**
-     * Đại diện cho một vi phạm import phát hiện được.
-     */
     private static class ImportViolation {
         final Path filePath;
         final int lineNumber;
         final String importTarget;
         final String rule;
-        final String key; // normalizePath(filePath) + " -> " + importTarget
+        final String key;
 
         ImportViolation(Path filePath, int lineNumber, String importTarget, String rule) {
             this.filePath = filePath;
@@ -94,9 +73,6 @@ public class DependencyRuleTest {
         }
     }
 
-    /**
-     * Đại diện cho một mục import trong baseline file.
-     */
     private static class BaselineImportEntry {
         final String rawLine;
         final int baselineLineNumber;
@@ -228,9 +204,6 @@ public class DependencyRuleTest {
         }
     }
 
-    /**
-     * Quét tất cả các file Java trong thư mục nguồn và phát hiện các vi phạm import.
-     */
     private List<ImportViolation> scanImportViolations(Path srcMainJava) throws IOException {
         List<ImportViolation> violations = new ArrayList<>();
 
@@ -273,9 +246,6 @@ public class DependencyRuleTest {
         return violations;
     }
 
-    /**
-     * Xác định danh sách các package bị cấm dựa vào package của class hiện tại.
-     */
     private List<String> getForbiddenTargetsForPackage(String packageName) {
         if (packageName.startsWith("com.ximilib.domain")) {
             return DOMAIN_FORBIDDEN;
@@ -315,9 +285,6 @@ public class DependencyRuleTest {
         return "Vi phạm luật phụ thuộc kiến trúc: " + forbidden;
     }
 
-    /**
-     * Quét các package khai báo của từng file.
-     */
     private Map<String, List<Path>> scanDeclaredPackages(Path srcMainJava) throws IOException {
         Map<String, List<Path>> map = new LinkedHashMap<>();
         try (Stream<Path> stream = Files.walk(srcMainJava)) {
@@ -367,9 +334,6 @@ public class DependencyRuleTest {
         return line;
     }
 
-    /**
-     * Chuẩn hóa đường dẫn file để so khớp độc lập hệ điều hành và thư mục gốc thực thi.
-     */
     private static String normalizePath(String path) {
         String p = path.replace('\\', '/').trim();
         int idx = p.indexOf("com/ximilib/");
@@ -398,7 +362,6 @@ public class DependencyRuleTest {
                 continue;
             }
 
-            // Dạng luật package: FORBIDDEN_PACKAGE:<package> hoặc PACKAGE_RULE:<package>
             if (rawLine.startsWith("FORBIDDEN_PACKAGE:") || rawLine.startsWith("PACKAGE_RULE:") || rawLine.startsWith("PACKAGE:")) {
                 int colon = rawLine.indexOf(':');
                 String pkg = rawLine.substring(colon + 1).trim();
@@ -406,11 +369,10 @@ public class DependencyRuleTest {
                 continue;
             }
 
-            // Dạng import vi phạm: <đường-dẫn-file>:<số-dòng>:<import> hoặc <đường-dẫn-file>:<import>
             String[] parts = rawLine.split(":");
             if (parts.length >= 3) {
                 String path = parts[0].trim();
-                // parts[1] là số dòng
+
                 String imp = parts[2].trim();
                 String norm = normalizePath(path);
                 BaselineImportEntry entry = new BaselineImportEntry(rawLine, i + 1, norm, imp);
@@ -435,7 +397,6 @@ public class DependencyRuleTest {
             }
         }
 
-        // Fallback đọc trực tiếp từ hệ thống file nếu chạy ngoài classpath
         Path candidate1 = Paths.get("src/test/resources/arch-baseline.txt");
         if (Files.exists(candidate1)) {
             return Files.readAllLines(candidate1, StandardCharsets.UTF_8);
@@ -448,9 +409,6 @@ public class DependencyRuleTest {
         throw new IOException("Không tìm thấy file arch-baseline.txt trên classpath lẫn hệ thống file!");
     }
 
-    /**
-     * Định vị thư mục nguồn Java chính xác dù chạy từ gốc repo hay từ thư mục sources.
-     */
     private Path resolveSourceDirectory() {
         Path p1 = Paths.get("src/main/java");
         if (Files.exists(p1) && Files.isDirectory(p1)) {

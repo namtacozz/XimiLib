@@ -36,6 +36,11 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 
 ## 3. Nhật ký Thay đổi Dự án (Changelog)
 
+### [Runtime Upgrade — Java 25 LTS] - 2026-11-04
+#### Changed
+- Nâng runtime và mức biên dịch Maven của XimiLib lên Java 25 LTS.
+- Đồng bộ script thiết lập và tài liệu dự án với Java 25 LTS.
+
 ### [Sprint 25 — Tối Ưu Bàn Lưu Hành, Khắc Phục Lỗi JTable Editor Thẻ Độc Giả, Hoàn Thiện Modal Size & Humanizer] - 2026-11-04
 #### Fixed & Enhanced (Core UI/UX, Component Architecture & Humanizer)
 - **Quản lý Thẻ & Bạn đọc (`PatronManagementView`)**:

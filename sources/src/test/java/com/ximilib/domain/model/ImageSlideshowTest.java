@@ -16,25 +16,21 @@ public class ImageSlideshowTest {
         assertEquals(0, slideshow.getCurrentIndex());
         assertEquals(s1, slideshow.getCurrentSlide());
 
-        // Next wraps around
         assertEquals(1, slideshow.next());
         assertEquals(s2, slideshow.getCurrentSlide());
         assertEquals(0, slideshow.next());
         assertEquals(s1, slideshow.getCurrentSlide());
 
-        // Previous wraps around
         assertEquals(1, slideshow.previous());
         assertEquals(s2, slideshow.getCurrentSlide());
         assertEquals(0, slideshow.previous());
         assertEquals(s1, slideshow.getCurrentSlide());
 
-        // Go to specific index
         slideshow.goTo(1);
         assertEquals(1, slideshow.getCurrentIndex());
-        slideshow.goTo(99); // invalid
+        slideshow.goTo(99);
         assertEquals(1, slideshow.getCurrentIndex());
 
-        // Pause state
         assertFalse(slideshow.isPaused());
         slideshow.setPaused(true);
         assertTrue(slideshow.isPaused());

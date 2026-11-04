@@ -5,7 +5,7 @@ set -e
 cd "$(dirname "$0")/.."
 
 echo "==================================================="
-echo "  XIMILIB BUILD SYSTEM (Java 17 + Maven)"
+echo "  XIMILIB BUILD SYSTEM (Java 25 LTS + Maven)"
 echo "==================================================="
 echo "[1/2] Bắt đầu đóng gói Maven từ sources/pom.xml..."
 

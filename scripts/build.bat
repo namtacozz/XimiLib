@@ -4,7 +4,7 @@ title XimiLib - Build Maven and Export Release JAR
 cd /d "%~dp0.."
 
 echo ===================================================
-echo   XIMILIB BUILD SYSTEM (Java 17 + Maven)
+echo   XIMILIB BUILD SYSTEM (Java 25 LTS + Maven)
 echo ===================================================
 echo [1/2] Bat dau dong goi Maven tu sources/pom.xml...
 

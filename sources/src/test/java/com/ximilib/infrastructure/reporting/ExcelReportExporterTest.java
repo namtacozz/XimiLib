@@ -36,7 +36,7 @@ class ExcelReportExporterTest {
 
         Path tempFile = Files.createTempFile("ximilib_test_report_", ".xlsx");
         try {
-            // 1. Xuất file bằng ExcelReportExporter
+
             try (OutputStream fos = Files.newOutputStream(tempFile)) {
                 exporter.exportToExcel(fos, sheetTitle, headers, rows);
             }
@@ -44,7 +44,6 @@ class ExcelReportExporterTest {
             assertTrue(Files.exists(tempFile));
             assertTrue(Files.size(tempFile) > 0, "File .xlsx tạo ra không được rỗng");
 
-            // 2. Đọc lại file bằng Apache POI và kiểm chứng dữ liệu
             try (InputStream fis = Files.newInputStream(tempFile);
                  Workbook wb = new XSSFWorkbook(fis)) {
 
@@ -52,7 +51,6 @@ class ExcelReportExporterTest {
                 Sheet sheet = wb.getSheetAt(0);
                 assertEquals(sheetTitle, sheet.getSheetName());
 
-                // Kiểm tra Header
                 Row headerRow = sheet.getRow(0);
                 assertNotNull(headerRow);
                 assertEquals(5, headerRow.getPhysicalNumberOfCells());
@@ -60,7 +58,6 @@ class ExcelReportExporterTest {
                     assertEquals(headers[i], headerRow.getCell(i).getStringCellValue());
                 }
 
-                // Kiểm tra Dòng dữ liệu 1
                 Row dataRow1 = sheet.getRow(1);
                 assertNotNull(dataRow1);
                 assertEquals("MS001", dataRow1.getCell(0).getStringCellValue());
@@ -71,7 +68,6 @@ class ExcelReportExporterTest {
                 String dateStr = dataRow1.getCell(4).getStringCellValue();
                 assertEquals("01/11/2026", dateStr);
 
-                // Kiểm tra Dòng dữ liệu 2
                 Row dataRow2 = sheet.getRow(2);
                 assertNotNull(dataRow2);
                 assertEquals("MS002", dataRow2.getCell(0).getStringCellValue());

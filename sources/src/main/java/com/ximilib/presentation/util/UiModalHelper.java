@@ -23,7 +23,7 @@ public class UiModalHelper {
     public static void initMainFrame(JFrame frame) {
         if (frame != null && (!GlassPanePopup.isInit() || GlassPanePopup.getMainFrame() != frame)) {
             GlassPanePopup.install(frame);
-            // Chan snapshot animation tranh loi NullPointerException: VolatileImage.createGraphics()
+
             GlassPanePopup.setDefaultOption(new DefaultOption() {
                 @Override
                 public boolean useSnapshot() {
@@ -31,15 +31,11 @@ public class UiModalHelper {
                 }
             });
         }
-        // Cau hinh mac dinh ModalDialog: Chon BLOCK background click de tranh bi dong popup lap tuc
+
         Option defaultModalOption = ModalDialog.createOption();
         defaultModalOption.setBackgroundClickType(Option.BackgroundClickType.BLOCK);
         ModalDialog.setDefaultOption(defaultModalOption);
     }
-
-    // =========================================================================
-    // 1. TOAST NOTIFICATIONS (Thay the JOptionPane.showMessageDialog)
-    // =========================================================================
 
     public static void showToastSuccess(Component parent, String message) {
         runOnEdt(() -> Toast.show(parent, Toast.Type.SUCCESS, message));
@@ -57,13 +53,6 @@ public class UiModalHelper {
         runOnEdt(() -> Toast.show(parent, Toast.Type.INFO, message));
     }
 
-    // =========================================================================
-    // 2. MODAL DIALOGS (Thay the JOptionPane.showConfirmDialog & Custom Dialog)
-    // =========================================================================
-
-    /**
-     * Hiển thị hộp thoại xác nhận (YES / NO) bằng SimpleModalBorder.
-     */
     public static void showConfirm(Component parent, String title, String message, Runnable onConfirm) {
         runOnEdt(() -> {
             JLabel lblMessage = new JLabel("<html><body style='width: 280px; padding: 4px;'>" + message + "</body></html>");
@@ -91,9 +80,6 @@ public class UiModalHelper {
         });
     }
 
-    /**
-     * Hiển thị Custom Form Modal (Thêm/Sửa sách, Lập phiếu mượn, Báo mất...)
-     */
     public static void showCustomModal(Component parent, String id, String title, Component content, int optionType, ModalCallback callback) {
         runOnEdt(() -> {
             SimpleModalBorder border = new SimpleModalBorder(content, title, optionType, callback);
@@ -110,9 +96,6 @@ public class UiModalHelper {
         });
     }
 
-    /**
-     * Hiển thị Modal với nút đóng cơ bản
-     */
     public static void showModal(Component parent, String title, Component content) {
         runOnEdt(() -> {
             SimpleModalBorder border = new SimpleModalBorder(content, title, SimpleModalBorder.CLOSE_OPTION, (controller, action) -> {
@@ -153,10 +136,6 @@ public class UiModalHelper {
             }
         });
     }
-
-    // =========================================================================
-    // 3. GLASSPANE POPUP (Quick Lightweight Overlays: Digital Card, Chuong Thong Bao)
-    // =========================================================================
 
     public static void showQuickPopup(Component content) {
         runOnEdt(() -> {
@@ -206,15 +185,6 @@ public class UiModalHelper {
         runOnEdt(GlassPanePopup::closePopupLast);
     }
 
-    // =========================================================================
-    // 4. DATE & TIME PICKER (Chuẩn hóa LocalDate, LocalTime)
-    // =========================================================================
-
-    /**
-     * Tạo DatePicker gắn vào JFormattedTextField với format dd/MM/yyyy.
-     * @param editor Text field hiển thị và nhận nhập ngày
-     * @param isRange true nếu chọn khoảng ngày (Between), false nếu chọn 1 ngày
-     */
     public static DatePicker createDatePicker(JFormattedTextField editor, boolean isRange) {
         DatePicker datePicker = new DatePicker();
         datePicker.setDateFormat("dd/MM/yyyy");
@@ -226,9 +196,6 @@ public class UiModalHelper {
         return datePicker;
     }
 
-    /**
-     * Tạo TimePicker gắn vào JFormattedTextField (mặc định 24h: HH:mm).
-     */
     public static TimePicker createTimePicker(JFormattedTextField editor, boolean is24Hour) {
         TimePicker timePicker = new TimePicker();
         timePicker.set24HourView(is24Hour);
@@ -236,9 +203,6 @@ public class UiModalHelper {
         return timePicker;
     }
 
-    /**
-     * Helper đảm bảo thực thi trên Swing EDT
-     */
     public static void runOnEdt(Runnable r) {
         if (SwingUtilities.isEventDispatchThread()) {
             r.run();
