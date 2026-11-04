@@ -429,8 +429,8 @@ public class BookCatalogView extends JPanel {
         return new EmptyStatePanel(
             Illustrations.EMPTY_SEARCH,
             140,
-            "Không tìm thấy sách phù hợp",
-            "Hãy thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc đang chọn.",
+            "Không tìm thấy cuốn sách nào khớp với từ khóa của bạn",
+            "Hãy thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc đang chọn để khám phá các đầu sách cùng thể loại.",
             "Đặt lại bộ lọc",
             this::resetFilters
         );
