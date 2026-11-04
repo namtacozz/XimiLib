@@ -296,13 +296,26 @@ public class BookDetailModalPanel extends JPanel {
     }
 
     private void submitComment() {
+        com.ximilib.domain.model.User user = UserSession.getCurrentUser();
+        if (user == null || user.isGuest()) {
+            UiModalHelper.closeModal("BOOK_DETAIL");
+            if (com.ximilib.presentation.view.MainDashboardFrame.getInstance() != null) {
+                com.ximilib.presentation.view.MainDashboardFrame.getInstance().promptGuestLogin(
+                    "Vui lòng đăng nhập để gửi bình luận"
+                );
+            } else {
+                UiModalHelper.showToastWarning(this, "Vui lòng đăng nhập để gửi bình luận");
+            }
+            return;
+        }
+
         String content = txtNewComment.getText().trim();
         if (content.isEmpty()) {
             UiModalHelper.showToastWarning(this, "Vui lòng nhập nội dung nhận xét!");
             return;
         }
 
-        String userId = (UserSession.getCurrentUser() != null) ? UserSession.getCurrentUser().getId() : "ND001";
+        String userId = user.getId();
         int stars = (Integer) cmbRating.getSelectedItem();
 
         new SwingWorker<Void, Void>() {
