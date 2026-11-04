@@ -11,9 +11,12 @@ import raven.modal.component.SimpleModalBorder;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import javax.imageio.ImageIO;
 
 /**
  * BookDetailModalPanel: Chi tiết đầu sách, Vị trí vật lý & Đánh giá/Bình luận (SRS UC-8, F-11).
@@ -87,6 +90,18 @@ public class BookDetailModalPanel extends JPanel {
         details.add(Box.createVerticalStrut(4));
         details.add(lblRatingAverage);
 
+        // Mô tả tóm tắt nội dung sách
+        String desc = book.getDescription();
+        if (desc == null || desc.trim().isEmpty()) {
+            desc = "Tác phẩm tiêu biểu thuộc danh mục " + (book.getCategoryName() != null ? book.getCategoryName() : "Thư viện")
+                 + ", được lưu trữ và phục vụ bạn đọc tại Thư viện ĐHBK Đà Nẵng.";
+        }
+        JLabel lblDesc = new JLabel("<html><p style='width:240px; color:#475569; font-size:11px; margin-top:4px;'>"
+            + desc + "</p></html>");
+        lblDesc.setFont(UITheme.FONT_SMALL);
+        details.add(Box.createVerticalStrut(4));
+        details.add(lblDesc);
+
         topInfoPanel.add(lblCover, BorderLayout.WEST);
         topInfoPanel.add(details, BorderLayout.CENTER);
         add(topInfoPanel, BorderLayout.NORTH);
@@ -129,7 +144,7 @@ public class BookDetailModalPanel extends JPanel {
 
         if (book.getAvailableCopies() > 0) {
             panel.add(Box.createVerticalStrut(14));
-            JButton btnBorrow = UITheme.createPillButton("Đăng Ký Mượn Cuốn Này (App)", UITheme.PRIMARY, Color.WHITE);
+            JButton btnBorrow = UITheme.createPillButton("Đăng Ký Mượn Sách", UITheme.PRIMARY, Color.WHITE);
             btnBorrow.setFont(UITheme.FONT_BOLD);
             btnBorrow.setAlignmentX(Component.LEFT_ALIGNMENT);
             btnBorrow.setPreferredSize(new Dimension(280, 38));
@@ -288,18 +303,62 @@ public class BookDetailModalPanel extends JPanel {
         return card;
     }
 
+    private ImageIcon createPastelPlaceholder(String title, int w, int h) {
+        BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = img.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        Color[] pastels = {
+            new Color(254, 242, 242), new Color(238, 242, 255), new Color(236, 253, 245),
+            new Color(254, 243, 199), new Color(250, 245, 255), new Color(240, 253, 250)
+        };
+        Color[] texts = {
+            new Color(153, 27, 27), new Color(55, 48, 163), new Color(6, 95, 70),
+            new Color(146, 64, 14), new Color(107, 33, 168), new Color(17, 94, 89)
+        };
+        int idx = Math.abs(title.hashCode()) % pastels.length;
+        g2.setColor(pastels[idx]);
+        g2.fillRect(0, 0, w, h);
+        g2.setColor(new Color(0, 0, 0, 15));
+        g2.fillRect(0, 0, 6, h);
+        String initial = (!title.isBlank()) ? String.valueOf(title.charAt(0)).toUpperCase() : "B";
+        g2.setColor(texts[idx]);
+        g2.setFont(new Font("Segoe UI", Font.BOLD, 36));
+        FontMetrics fm = g2.getFontMetrics();
+        g2.drawString(initial, (w - fm.stringWidth(initial)) / 2, (h + fm.getAscent() - fm.getDescent()) / 2);
+        g2.dispose();
+        return new ImageIcon(img);
+    }
+
     private void loadCoverAsync(JLabel label, String path) {
+        label.setIcon(createPastelPlaceholder(book.getTitle(), 105, 145));
+        label.setText(null);
+        if (path == null || path.isBlank()) return;
+
         new SwingWorker<ImageIcon, Void>() {
             @Override
             protected ImageIcon doInBackground() {
-                if (path != null && !path.isBlank()) {
-                    File f = new File(path);
-                    if (f.exists()) {
-                        ImageIcon raw = new ImageIcon(f.getAbsolutePath());
-                        Image scaled = raw.getImage().getScaledInstance(105, 145, Image.SCALE_SMOOTH);
+                try {
+                    BufferedImage raw = null;
+                    String resPath = path.startsWith("/") ? path : "/assets/covers/" + path;
+                    URL url = getClass().getResource(resPath);
+                    if (url != null) raw = ImageIO.read(url);
+                    if (raw == null) {
+                        File f = new File(path);
+                        if (f.exists()) raw = ImageIO.read(f);
+                    }
+                    if (raw == null) {
+                        File fRes = new File("sources/src/main/resources/assets/covers/" + new File(path).getName());
+                        if (fRes.exists()) raw = ImageIO.read(fRes);
+                    }
+                    if (raw == null) {
+                        File fRes2 = new File("src/main/resources/assets/covers/" + new File(path).getName());
+                        if (fRes2.exists()) raw = ImageIO.read(fRes2);
+                    }
+                    if (raw != null) {
+                        Image scaled = raw.getScaledInstance(105, 145, Image.SCALE_SMOOTH);
                         return new ImageIcon(scaled);
                     }
-                }
+                } catch (Exception ignored) {}
                 return null;
             }
 
@@ -309,11 +368,8 @@ public class BookDetailModalPanel extends JPanel {
                     ImageIcon icon = get();
                     if (icon != null) {
                         label.setIcon(icon);
-                    } else {
-                        label.setText("No Cover");
                     }
-                } catch (Exception ignored) {
-                }
+                } catch (Exception ignored) {}
             }
         }.execute();
     }

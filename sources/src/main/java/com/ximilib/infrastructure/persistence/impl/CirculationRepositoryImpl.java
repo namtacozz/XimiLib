@@ -198,9 +198,12 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
         List<String> sortedCopyIds = new ArrayList<>(copyIds);
         Collections.sort(sortedCopyIds); // Khóa theo thứ tự id tăng dần tránh deadlock (R-05)
 
+        boolean isOnlineOrder = (notes != null && (notes.toLowerCase().contains("online") || notes.toLowerCase().contains("app") || notes.toLowerCase().contains("đặt mượn")));
+        int initialStatus = isOnlineOrder ? 0 : 1; // 0 = CHO_DUYET (Chờ nhận sách), 1 = DANG_MUON
+
         String insertTicketSql = """
             INSERT INTO phieumuon (Maphieumuon, ID, Mathe, Hinhthuc, Ngaymuon, Hantranhan, Trangthai, Ghichuphieu)
-            VALUES (?, ?, ?, ?, ?, ?, 1, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """;
         String insertDetailSql = """
             INSERT INTO chitietphieumuon (Machitiet, Maphieumuon, Macuonsach, Tinhtrangkhimuon)
@@ -229,7 +232,8 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
                 psTicket.setString(4, loanType.name());
                 psTicket.setDate(5, Date.valueOf(borrowDate.toLocalDate()));
                 psTicket.setTimestamp(6, Timestamp.valueOf(dueDate));
-                psTicket.setString(7, notes != null ? notes : "");
+                psTicket.setInt(7, initialStatus);
+                psTicket.setString(8, notes != null ? notes : "");
                 psTicket.executeUpdate();
             }
 

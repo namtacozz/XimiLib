@@ -89,7 +89,14 @@ public class User {
         return s.contains("THỦ THƯ") || s.contains("LIBRARIAN");
     }
 
+    public boolean isGuest() {
+        if ("GUEST".equalsIgnoreCase(id)) return true;
+        if (role == null) return false;
+        String s = role.trim().toUpperCase();
+        return s.contains("KHÁCH") || s.contains("GUEST");
+    }
+
     public boolean isReader() {
-        return !isAdmin() && !isLibrarian();
+        return !isAdmin() && !isLibrarian() && !isGuest();
     }
 }

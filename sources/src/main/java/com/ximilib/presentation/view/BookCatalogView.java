@@ -446,8 +446,8 @@ public class BookCatalogView extends JPanel {
 
         UiModalHelper.showConfirm(
             this,
-            "Xác Nhận Xóa Đầu Sách (BR-09)",
-            "Bạn có chắc chắn muốn chuyển đầu sách \"" + book.getTitle() + "\" vào Thùng rác (Xóa mềm)?",
+            "Xác Nhận Xóa Sách",
+            "Bạn có chắc chắn muốn chuyển sách \"" + book.getTitle() + "\" vào Thùng rác (Xóa mềm)?",
             () -> {
                 SwingWorker<Void, Void> deleteWorker = new SwingWorker<>() {
                     @Override
@@ -474,7 +474,7 @@ public class BookCatalogView extends JPanel {
                                 if (cause instanceof BookInUseException inUseEx) {
                                     UiModalHelper.showToastWarning(
                                         BookCatalogView.this,
-                                        inUseEx.getMessage() + " (Vui lòng thu hồi tất cả các cuốn sách trước khi xóa theo BR-09)"
+                                        inUseEx.getMessage() + " (Vui lòng thu hồi tất cả các cuốn sách trước khi xóa)"
                                     );
                                 } else {
                                     UiModalHelper.showToastError(
@@ -519,7 +519,7 @@ public class BookCatalogView extends JPanel {
                                 selectedBookIds.clear();
                                 String msg = "Đã xóa thành công " + deleted + " đầu sách.";
                                 if (toDelete.size() - deleted > 0) {
-                                    msg += " (Bỏ qua " + (toDelete.size() - deleted) + " đầu sách do có cuốn đang mượn theo BR-09)";
+                                    msg += " (Bỏ qua " + (toDelete.size() - deleted) + " cuốn do đang có người mượn)";
                                 }
                                 UiModalHelper.showToastSuccess(BookCatalogView.this, msg);
                                 loadDataAsync();

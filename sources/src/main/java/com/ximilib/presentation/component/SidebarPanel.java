@@ -76,6 +76,7 @@ public class SidebarPanel extends JPanel {
         String normRole = (roleName != null) ? roleName.trim().toUpperCase() : "";
         boolean isAdmin = normRole.contains("QUẢN TRỊ") || normRole.contains("ADMIN");
         boolean isLibrarian = normRole.contains("THỦ THƯ") || normRole.contains("LIBRARIAN");
+        boolean isGuest = normRole.contains("KHÁCH") || normRole.contains("GUEST");
 
         // Menu 1: Trang chủ (mọi vai trò)
         JButton btnHome = createMenuItem("Trang chủ", IconFactory.createHomeIcon(Color.WHITE, 16), true);
@@ -105,6 +106,11 @@ public class SidebarPanel extends JPanel {
             menuContainer.add(createMenuItem("Hồ sơ độc giả & Thẻ", IconFactory.createUsersIcon(UITheme.TEXT_MUTED, 16), false));
             menuContainer.add(Box.createVerticalStrut(6));
             menuContainer.add(createMenuItem("Thống kê thư viện", IconFactory.createChartIcon(UITheme.TEXT_MUTED, 16), false));
+            menuContainer.add(Box.createVerticalStrut(6));
+            menuContainer.add(createMenuItem("Hộp thư góp ý", IconFactory.createHelpIcon(UITheme.TEXT_MUTED, 16), false));
+        } else if (isGuest) {
+            // KHÁCH (Tra cứu sách & Trợ giúp, Đóng góp ý kiến)
+            menuContainer.add(createMenuItem("Khám phá sách", IconFactory.createBookIcon(UITheme.TEXT_MUTED, 16), false));
             menuContainer.add(Box.createVerticalStrut(6));
             menuContainer.add(createMenuItem("Hộp thư góp ý", IconFactory.createHelpIcon(UITheme.TEXT_MUTED, 16), false));
         } else {

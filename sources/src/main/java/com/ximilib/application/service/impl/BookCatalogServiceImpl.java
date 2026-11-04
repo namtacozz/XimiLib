@@ -49,6 +49,12 @@ public class BookCatalogServiceImpl implements BookCatalogService {
     }
 
     @Override
+    public void saveNewBook(String title, String author, String categoryName, String isbn, double price, int initialCopies) {
+        bookRepository.saveNewBook(title, author, categoryName, isbn, price, initialCopies);
+        DomainEventPublisher.publish(new BookStockChangedEvent("NEW_BOOK", "CREATED"));
+    }
+
+    @Override
     public void deleteBook(String bookId) throws BookInUseException {
         if (bookId == null || bookId.trim().isEmpty()) return;
         int activeLoans = bookRepository.countActiveLoans(bookId);

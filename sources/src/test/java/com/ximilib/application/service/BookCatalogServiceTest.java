@@ -241,6 +241,11 @@ class BookCatalogServiceTest {
         }
 
         @Override
+        public void saveNewBook(String title, String author, String categoryName, String isbn, double price, int initialCopies) {
+            books.add(new BookSummaryDto("MS-" + (books.size() + 1), title, author, 1, categoryName, "NXB Trẻ", initialCopies, initialCopies, Color.BLUE, false, 0));
+        }
+
+        @Override
         public List<BookSummaryDto> getDeletedBooks() {
             return books.stream().filter(BookSummaryDto::isDeleted).collect(Collectors.toList());
         }

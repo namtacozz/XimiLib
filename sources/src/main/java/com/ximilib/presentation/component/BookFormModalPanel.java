@@ -1,6 +1,7 @@
 package com.ximilib.presentation.component;
 
 import com.ximilib.application.dto.BookSummaryDto;
+import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UiModalHelper;
 import java.awt.*;
@@ -12,8 +13,8 @@ import raven.modal.component.SimpleModalBorder;
 import raven.modal.option.Option;
 
 /**
- * BookFormModalPanel: Form Them/Sua dau sach & cuon sach vat ly (UC-3)
- * tich hop DatePicker cho truong ngay nhap/ngay xuat ban.
+ * BookFormModalPanel: Form Thêm/Sửa thông tin sách
+ * Tích hợp lưu vào CSDL và DatePicker chuẩn dd/MM/yyyy.
  */
 public class BookFormModalPanel extends JPanel {
 
@@ -35,7 +36,7 @@ public class BookFormModalPanel extends JPanel {
 
     public static void show(Component parent, BookSummaryDto book, Runnable onSaveSuccess) {
         BookFormModalPanel panel = new BookFormModalPanel(book);
-        String title = (book == null) ? "Thêm Đầu Sách Mới (UC-3)" : "Chỉnh Sửa Thông Tin Sách";
+        String title = (book == null) ? "Thêm Sách Mới" : "Chỉnh Sửa Thông Tin Sách";
 
         SimpleModalBorder border = new SimpleModalBorder(
             panel,
@@ -44,9 +45,24 @@ public class BookFormModalPanel extends JPanel {
             (controller, action) -> {
                 if (action == SimpleModalBorder.OK_OPTION) {
                     if (panel.validateForm()) {
-                        controller.close();
-                        UiModalHelper.showToastSuccess(parent, "Đã lưu thông tin đầu sách thành công!");
-                        if (onSaveSuccess != null) onSaveSuccess.run();
+                        try {
+                            String t = panel.txtTitle.getText().trim();
+                            String a = panel.txtAuthor.getText().trim();
+                            String cat = (String) panel.cmbCategory.getSelectedItem();
+                            String isbn = panel.txtIsbn.getText().trim();
+                            double price = 50000;
+                            try {
+                                String cleanPrice = panel.txtPrice.getText().trim().replace(".", "").replace(",", "");
+                                price = Double.parseDouble(cleanPrice);
+                            } catch (Exception ignored) {}
+
+                            AppContainer.getInstance().getBookCatalogService().saveNewBook(t, a, cat, isbn, price, 3);
+                            controller.close();
+                            UiModalHelper.showToastSuccess(parent, "Đã lưu và thêm sách vào kho thành công!");
+                            if (onSaveSuccess != null) onSaveSuccess.run();
+                        } catch (Exception ex) {
+                            UiModalHelper.showToastError(parent, "Lỗi lưu sách: " + ex.getMessage());
+                        }
                     }
                 } else if (action == SimpleModalBorder.CANCEL_OPTION || action == SimpleModalBorder.CLOSE_OPTION) {
                     controller.close();

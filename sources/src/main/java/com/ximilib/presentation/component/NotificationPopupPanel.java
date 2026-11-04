@@ -74,14 +74,14 @@ public class NotificationPopupPanel extends GlassPaneChild {
         // Danh sách thông báo mẫu
         List<NotificationItem> list = new ArrayList<>();
         list.add(new NotificationItem(
-            "Cảnh báo quá hạn (BR-06)",
+            "Cảnh báo quá hạn trả sách",
             "Phiếu mượn PM001 có cuốn 'Clean Code' trễ 2 ngày. Phí phạt hiện tại: 4.000 VNĐ.",
             "Hôm nay 00:00",
             true
         ));
         list.add(new NotificationItem(
             "Nhắc hạn trả sách sắp tới",
-            "Đầu sách 'Thiết Kế Mẫu Phần Mềm' cần hoàn trả trước 17:00 ngày 29/10/2026.",
+            "Cuốn sách 'Thiết Kế Mẫu Phần Mềm' cần hoàn trả trước 17:00 ngày 29/10/2026.",
             "Hôm qua 09:30",
             false
         ));

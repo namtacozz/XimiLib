@@ -91,6 +91,7 @@ public class BookCoverTile extends JPanel {
         coverPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -145,6 +146,7 @@ public class BookCoverTile extends JPanel {
                 g2.dispose();
             }
         };
+        coverPanel.setOpaque(false);
         coverPanel.setLayout(new GridBagLayout());
         coverPanel.setPreferredSize(new Dimension(COVER_WIDTH, COVER_HEIGHT));
         coverPanel.setMaximumSize(new Dimension(COVER_WIDTH, COVER_HEIGHT));
@@ -315,9 +317,12 @@ public class BookCoverTile extends JPanel {
             protected BufferedImage doInBackground() {
                 try {
                     BufferedImage raw = null;
-                    // 1. Thử load từ classpath
-                    String resPath = path.startsWith("/") ? path : "/assets/covers/" + path;
-                    URL url = getClass().getResource(resPath);
+                    // 1. Thử load tức thì từ classpath với tên file chuẩn
+                    String fileName = new File(path).getName();
+                    URL url = getClass().getResource("/assets/covers/" + fileName);
+                    if (url == null) {
+                        url = getClass().getResource(path.startsWith("/") ? path : "/" + path);
+                    }
                     if (url != null) {
                         raw = ImageIO.read(url);
                     }
@@ -331,14 +336,14 @@ public class BookCoverTile extends JPanel {
                     }
 
                     if (raw == null) {
-                        File fRes = new File("sources/src/main/resources/assets/covers/" + new File(path).getName());
+                        File fRes = new File("sources/src/main/resources/assets/covers/" + fileName);
                         if (fRes.exists()) {
                             raw = ImageIO.read(fRes);
                         }
                     }
 
                     if (raw == null) {
-                        File fRes2 = new File("src/main/resources/assets/covers/" + new File(path).getName());
+                        File fRes2 = new File("src/main/resources/assets/covers/" + fileName);
                         if (fRes2.exists()) {
                             raw = ImageIO.read(fRes2);
                         }

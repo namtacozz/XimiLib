@@ -14,7 +14,7 @@ import java.text.NumberFormat;
 import java.util.Locale;
 
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
+import javax.swing.table.*;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -109,10 +109,12 @@ public class ReaderMyLoansView extends JPanel {
 
         loanTable.getColumnModel().getColumn(0).setPreferredWidth(120);
         loanTable.getColumnModel().getColumn(1).setPreferredWidth(280);
-        loanTable.getColumnModel().getColumn(2).setPreferredWidth(130);
-        loanTable.getColumnModel().getColumn(3).setPreferredWidth(130);
-        loanTable.getColumnModel().getColumn(4).setPreferredWidth(150);
-        loanTable.getColumnModel().getColumn(5).setPreferredWidth(210);
+        loanTable.getColumnModel().getColumn(2).setPreferredWidth(120);
+        loanTable.getColumnModel().getColumn(3).setPreferredWidth(120);
+        loanTable.getColumnModel().getColumn(4).setPreferredWidth(140);
+        loanTable.getColumnModel().getColumn(4).setCellRenderer(new StatusBadgeRenderer());
+        loanTable.getColumnModel().getColumn(5).setPreferredWidth(230);
+        loanTable.getColumnModel().getColumn(5).setMinWidth(210);
 
         ActionCell cell = new ActionCell();
         loanTable.getColumnModel().getColumn(5).setCellRenderer(cell);
@@ -196,15 +198,15 @@ public class ReaderMyLoansView extends JPanel {
         String confirmMsg = """
             Bạn có chắc chắn muốn BÁO MẤT cuốn sách thuộc phiếu mượn #%s không?
 
-            Theo quy định của Thư viện (SRS YC-09 & BR-08):
+            Theo quy định của Thư viện:
             • Phiếu mượn sẽ chuyển sang trạng thái 'Chờ xử lý bồi thường'.
-            • Tiền bồi thường = (200%% * Giá bìa gốc) + 20.000 VNĐ phí kỹ thuật + phạt quá hạn (nếu có).
+            • Tiền bồi thường = (200%% * Giá bìa gốc) + 20.000 VNĐ phí xử lý kỹ thuật + phạt quá hạn (nếu có).
             • Bạn có thể thanh toán trực tuyến ngay qua mã VietQR hoặc nộp tiền tại quầy.
             """.formatted(ticket.getTicketId());
 
         UiModalHelper.showConfirm(
             this,
-            "Xác Nhận Báo Mất Sách (SRS YC-09)",
+            "Xác Nhận Báo Mất Sách",
             confirmMsg,
             () -> {
                 try {
@@ -262,7 +264,7 @@ public class ReaderMyLoansView extends JPanel {
     }
 
     private class LoanTableModel extends AbstractTableModel {
-        private final String[] cols = {"Mã phiếu", "Đầu sách mượn", "Ngày mượn", "Hạn trả", "Tình trạng", "Thao tác"};
+        private final String[] cols = {"Mã phiếu", "Tên sách", "Ngày mượn", "Hạn trả", "Tình trạng", "Thao tác"};
         private final List<BorrowTicketDto> tickets = new ArrayList<>();
 
         public void setTickets(List<BorrowTicketDto> list) {
@@ -284,15 +286,73 @@ public class ReaderMyLoansView extends JPanel {
                 case 1 -> t.getBookTitle();
                 case 2 -> t.getBorrowDate() != null ? t.getBorrowDate().toLocalDate() : "-";
                 case 3 -> t.getDueDate() != null ? t.getDueDate().toLocalDate() : "-";
-                case 4 -> t.getStatusLabel();
+                case 4 -> t;
                 case 5 -> t;
                 default -> null;
             };
         }
     }
 
+    private static class StatusBadgeRenderer extends DefaultTableCellRenderer {
+        private final JPanel panel = new JPanel(new GridBagLayout());
+        private final JLabel badge = new JLabel();
+
+        StatusBadgeRenderer() {
+            panel.setOpaque(false);
+            badge.setFont(UITheme.FONT_BADGE);
+            badge.setOpaque(true);
+            badge.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+            panel.add(badge);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            if (value instanceof BorrowTicketDto t) {
+                int status = t.getStatus();
+                switch (status) {
+                    case 0 -> { // CHO_DUYET
+                        badge.setText("Chờ nhận sách");
+                        badge.setForeground(new Color(180, 83, 9)); // Amber text
+                        badge.setBackground(new Color(254, 243, 199)); // Amber bg (#FEF3C7)
+                    }
+                    case 1 -> { // DANG_MUON
+                        badge.setText("Đang mượn");
+                        badge.setForeground(new Color(67, 56, 202)); // Indigo text
+                        badge.setBackground(new Color(224, 231, 255)); // Indigo bg
+                    }
+                    case 2 -> { // DA_TRA
+                        badge.setText("Đã trả");
+                        badge.setForeground(new Color(21, 128, 61)); // Green text
+                        badge.setBackground(new Color(220, 252, 231)); // Green bg
+                    }
+                    case 3 -> { // QUA_HAN
+                        badge.setText("Quá hạn");
+                        badge.setForeground(new Color(185, 28, 28)); // Red text
+                        badge.setBackground(new Color(254, 226, 226)); // Red bg
+                    }
+                    case 4 -> { // CHO_XU_LY_BOI_THUONG
+                        badge.setText("Chờ bồi thường");
+                        badge.setForeground(new Color(194, 65, 12)); // Orange text
+                        badge.setBackground(new Color(255, 237, 213)); // Orange bg
+                    }
+                    case 5 -> { // DA_MAT
+                        badge.setText("Đã đền bù");
+                        badge.setForeground(new Color(75, 85, 99)); // Gray text
+                        badge.setBackground(new Color(243, 244, 246)); // Gray bg
+                    }
+                    default -> {
+                        badge.setText(t.getStatusLabel());
+                        badge.setForeground(UITheme.TEXT_MAIN);
+                        badge.setBackground(UITheme.TINT_LIGHT);
+                    }
+                }
+            }
+            return panel;
+        }
+    }
+
     private class ActionCell extends AbstractCellEditor implements javax.swing.table.TableCellRenderer, javax.swing.table.TableCellEditor {
-        private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 4));
+        private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 8));
         private final JButton btnRenew = UITheme.createPillButton("Gia hạn (+7d)", UITheme.PRIMARY_TINT, UITheme.ON_TINT);
         private final JButton btnReportLoss = UITheme.createPillButton("Báo mất", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
         private BorrowTicketDto currentTicket;
@@ -301,6 +361,10 @@ public class ReaderMyLoansView extends JPanel {
             panel.setOpaque(false);
             btnRenew.setFont(UITheme.FONT_BADGE);
             btnReportLoss.setFont(UITheme.FONT_BADGE);
+            btnRenew.setPreferredSize(new Dimension(105, 30));
+            btnReportLoss.setPreferredSize(new Dimension(75, 30));
+            btnRenew.setMargin(new Insets(2, 4, 2, 4));
+            btnReportLoss.setMargin(new Insets(2, 4, 2, 4));
 
             btnRenew.addActionListener(e -> {
                 fireEditingStopped();

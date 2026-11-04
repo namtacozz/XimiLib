@@ -2,6 +2,7 @@ package com.ximilib.presentation.component;
 
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.AppLogo;
+import com.ximilib.presentation.util.QrCodeGenerator;
 import com.ximilib.presentation.util.UiModalHelper;
 import java.awt.*;
 import javax.swing.*;
@@ -64,47 +65,43 @@ public class DigitalCardPopupPanel extends GlassPaneChild {
         lblSub.setForeground(UITheme.TEXT_MUTED);
         lblSub.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // 3. Khung vẽ mã QR Code mô phỏng
+        // 3. Khung vẽ mã QR Code thật 100% (chuẩn ISO/IEC 18004, quét bằng điện thoại ra đúng mã thẻ)
+        boolean[][] qrMatrix = QrCodeGenerator.encode(cardId);
         JPanel qrBox = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
-                g2.setColor(UITheme.PAGE_BG);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+                int w = getWidth();
+                int h = getHeight();
+
+                // Nền trắng bo góc sạch sẽ
+                g2.setColor(Color.WHITE);
+                g2.fillRoundRect(0, 0, w, h, 16, 16);
                 g2.setColor(UITheme.BORDER);
-                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
+                g2.drawRoundRect(0, 0, w - 1, h - 1, 16, 16);
+
+                // Vẽ các module QR Code thật
+                int mSize = qrMatrix.length;
+                int moduleSize = Math.max(2, (Math.min(w, h) - 24) / mSize);
+                int qrPixelWidth = mSize * moduleSize;
+                int startX = (w - qrPixelWidth) / 2;
+                int startY = (h - qrPixelWidth) / 2;
 
                 g2.setColor(Color.BLACK);
-                drawFinderPattern(g2, 25, 25, 36);
-                drawFinderPattern(g2, getWidth() - 61, 25, 36);
-                drawFinderPattern(g2, 25, getHeight() - 61, 36);
-
-                int startX = 25, startY = 25;
-                int size = 6;
-                int hash = Math.abs(cardId.hashCode());
-                for (int r = 0; r < 20; r++) {
-                    for (int c = 0; c < 20; c++) {
-                        if ((r < 7 && c < 7) || (r < 7 && c > 12) || (r > 12 && c < 7)) continue;
-                        if ((r * 7 + c * 13 + hash) % 3 == 0) {
-                            g2.fillRect(startX + c * size, startY + r * size, size - 1, size - 1);
+                for (int r = 0; r < mSize; r++) {
+                    for (int c = 0; c < mSize; c++) {
+                        if (qrMatrix[r][c]) {
+                            g2.fillRect(startX + c * moduleSize, startY + r * moduleSize, moduleSize, moduleSize);
                         }
                     }
                 }
                 g2.dispose();
             }
-
-            private void drawFinderPattern(Graphics2D g2, int x, int y, int s) {
-                g2.fillRect(x, y, s, s);
-                g2.setColor(Color.WHITE);
-                g2.fillRect(x + 4, y + 4, s - 8, s - 8);
-                g2.setColor(Color.BLACK);
-                g2.fillRect(x + 8, y + 8, s - 16, s - 16);
-            }
         };
-        qrBox.setPreferredSize(new Dimension(170, 170));
-        qrBox.setMaximumSize(new Dimension(170, 170));
+        qrBox.setPreferredSize(new Dimension(180, 180));
+        qrBox.setMaximumSize(new Dimension(180, 180));
         qrBox.setOpaque(false);
         qrBox.setAlignmentX(Component.CENTER_ALIGNMENT);
 

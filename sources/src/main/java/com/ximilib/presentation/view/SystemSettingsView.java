@@ -59,7 +59,7 @@ public class SystemSettingsView extends JPanel {
         titleBox.setOpaque(false);
         titleBox.setLayout(new BoxLayout(titleBox, BoxLayout.Y_AXIS));
 
-        JLabel lblBreadcrumb = new JLabel("Trang chủ / Cài đặt quy định (SRS)");
+        JLabel lblBreadcrumb = new JLabel("Trang chủ / Cài đặt quy định");
         lblBreadcrumb.setFont(UITheme.FONT_SMALL);
         lblBreadcrumb.setForeground(UITheme.TEXT_MUTED);
 

@@ -7,7 +7,7 @@ public class BookInUseException extends BusinessRuleException {
 
     public BookInUseException(String bookTitle, int activeLoansCount) {
         super("BR_09_BOOK_IN_USE",
-            "Không thể xóa đầu sách \"" + bookTitle + "\": Hiện vẫn còn " + activeLoansCount + 
-            " cuốn sách đang được độc giả mượn (Quy tắc BR-09).");
+            "Không thể xóa sách \"" + bookTitle + "\": Hiện vẫn còn " + activeLoansCount + 
+            " cuốn sách đang được độc giả mượn. Vui lòng thu hồi trước khi xóa.");
     }
 }

@@ -20,6 +20,7 @@ public class BookSummaryDto {
     private String coverImage;       // Đường dẫn ảnh bìa (tương đối trong resources: /assets/covers/...)
     private boolean isDeleted;       // sach.IsDeleted (Soft-delete)
     private int activeLoansCount;    // Số cuốn đang mượn (phục vụ kiểm tra BR-09)
+    private String description;      // sach.Motasach (Mô tả nội dung tóm tắt)
 
     public BookSummaryDto(String bookId, String title, String author, Integer categoryId,
                           String categoryName, String publisherName, int availableCopies,
@@ -87,6 +88,14 @@ public class BookSummaryDto {
 
     public int getActiveLoansCount() {
         return activeLoansCount;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public boolean isAvailable() {

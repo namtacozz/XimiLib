@@ -86,7 +86,7 @@ public class ReportsDashboardView extends JPanel {
         lblBreadcrumb.setFont(UITheme.FONT_SMALL);
         lblBreadcrumb.setForeground(UITheme.TEXT_MUTED);
 
-        JLabel lblTitle = new JLabel("Báo Cáo & Thống Kê Định Kỳ (SRS UC-7)");
+        JLabel lblTitle = new JLabel("Báo Cáo & Thống Kê Định Kỳ");
         lblTitle.setFont(UITheme.FONT_TITLE_LARGE);
         lblTitle.setForeground(UITheme.TEXT_MAIN);
 
@@ -492,7 +492,7 @@ public class ReportsDashboardView extends JPanel {
             new StatusOption(1, "Đang mượn", new Color(59, 130, 246), "Sách đang được bạn đọc mượn sử dụng hợp lệ."),
             new StatusOption(2, "Đã trả (Hoàn tất)", new Color(16, 185, 129), "Xác nhận độc giả đã hoàn trả đầy đủ sách về kho."),
             new StatusOption(3, "Quá hạn", new Color(239, 68, 68), "Phiếu mượn đã vượt quá thời hạn trả quy định."),
-            new StatusOption(4, "Chờ xử lý bồi thường", new Color(217, 119, 6), "Sách bị mất/hỏng. Chuyển sang quy trình đền bù (BR-08)."),
+            new StatusOption(4, "Chờ xử lý bồi thường", new Color(217, 119, 6), "Sách bị mất/hỏng. Chuyển sang quy trình đền bù."),
             new StatusOption(5, "Đã mất / Bồi hoàn xong", new Color(107, 114, 128), "Độc giả đã hoàn tất nộp tiền bồi hoàn sách mất."),
             new StatusOption(6, "Đã hủy phiếu", new Color(148, 163, 184), "Phiếu mượn bị hủy do quá hạn nhận hoặc độc giả hủy.")
         };

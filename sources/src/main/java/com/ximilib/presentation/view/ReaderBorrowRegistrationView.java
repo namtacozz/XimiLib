@@ -317,10 +317,12 @@ public class ReaderBorrowRegistrationView extends JPanel {
         JLabel lblCopySelect = new JLabel("Chọn cuốn sách vật lý (mã vạch khả dụng):");
         lblCopySelect.setFont(UITheme.FONT_BOLD);
         lblCopySelect.setForeground(UITheme.TEXT_MAIN);
+        lblCopySelect.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         cmbAvailableCopies = new JComboBox<>();
         cmbAvailableCopies.setFont(UITheme.FONT_REGULAR);
         cmbAvailableCopies.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        cmbAvailableCopies.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         body.add(lblCopySelect);
         body.add(Box.createVerticalStrut(6));
@@ -328,14 +330,19 @@ public class ReaderBorrowRegistrationView extends JPanel {
         body.add(Box.createVerticalStrut(14));
 
         // Hình thức mượn
-        JLabel lblFormTitle = new JLabel("Hình thức mượn sách (Quy định SRS):");
+        JLabel lblFormTitle = new JLabel("Hình thức mượn sách:");
         lblFormTitle.setFont(UITheme.FONT_BOLD);
         lblFormTitle.setForeground(UITheme.TEXT_MAIN);
+        lblFormTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        radVeNha = new JRadioButton("Mượn về nhà (Tối đa 14 ngày - BR-02)");
-        radTaiCho = new JRadioButton("Đọc tại chỗ (Hoàn trả trước 17:00 cùng ngày - BR-04)");
+        radVeNha = new JRadioButton("Mượn về nhà (Tối đa 14 ngày)");
+        radTaiCho = new JRadioButton("Đọc tại chỗ (Trả trước 17:00 trong ngày)");
         radVeNha.setFont(UITheme.FONT_REGULAR);
         radTaiCho.setFont(UITheme.FONT_REGULAR);
+        radVeNha.setOpaque(false);
+        radTaiCho.setOpaque(false);
+        radVeNha.setAlignmentX(Component.LEFT_ALIGNMENT);
+        radTaiCho.setAlignmentX(Component.LEFT_ALIGNMENT);
         radVeNha.setSelected(true);
 
         ButtonGroup grp = new ButtonGroup();
@@ -355,6 +362,7 @@ public class ReaderBorrowRegistrationView extends JPanel {
         lblDueDatePreview = new JLabel("Hạn trả dự kiến: --");
         lblDueDatePreview.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblDueDatePreview.setForeground(new Color(13, 148, 136)); // Teal color
+        lblDueDatePreview.setAlignmentX(Component.LEFT_ALIGNMENT);
         body.add(lblDueDatePreview);
         body.add(Box.createVerticalStrut(12));
 
@@ -362,10 +370,12 @@ public class ReaderBorrowRegistrationView extends JPanel {
         JLabel lblNotes = new JLabel("Ghi chú mượn (Tùy chọn):");
         lblNotes.setFont(UITheme.FONT_SMALL);
         lblNotes.setForeground(UITheme.TEXT_MUTED);
+        lblNotes.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         txtNotes = new JTextField();
         txtNotes.setFont(UITheme.FONT_REGULAR);
         txtNotes.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        txtNotes.setAlignmentX(Component.LEFT_ALIGNMENT);
         txtNotes.putClientProperty("JComponent.roundRect", true);
 
         body.add(lblNotes);
@@ -527,7 +537,7 @@ public class ReaderBorrowRegistrationView extends JPanel {
             return;
         }
 
-        // Hết sách trên kệ: Chuyển sang đặt trước sách (Reservation - SRS YC-05)
+        // Hết sách trên kệ: Chuyển sang đặt trước sách
         if (currentCopies.isEmpty()) {
             btnConfirmBorrow.setEnabled(false);
             btnConfirmBorrow.setText("Đang ghi nhận đặt trước...");
@@ -540,11 +550,11 @@ public class ReaderBorrowRegistrationView extends JPanel {
                 @Override
                 protected void done() {
                     btnConfirmBorrow.setEnabled(true);
-                    btnConfirmBorrow.setText("ĐẶT TRƯỚC SÁCH KHI CÓ LẠI (RESERVE)");
+                    btnConfirmBorrow.setText("ĐẶT TRƯỚC SÁCH KHI CÓ LẠI");
                     try {
                         get();
                         UiModalHelper.showToastSuccess(ReaderBorrowRegistrationView.this,
-                            "Đã đặt trước sách thành công! Thư viện sẽ ưu tiên giữ sách cho bạn ngay khi có người trả sách (SRS YC-05).");
+                            "Đã đặt trước sách thành công! Thư viện sẽ ưu tiên giữ sách cho bạn ngay khi có sách hoàn trả về kệ.");
                     } catch (Exception ex) {
                         UiModalHelper.showToastError(ReaderBorrowRegistrationView.this, ex.getMessage());
                     }
@@ -569,7 +579,7 @@ public class ReaderBorrowRegistrationView extends JPanel {
         LoanType loanType = radVeNha.isSelected() ? LoanType.VE_NHA : LoanType.TAI_CHO;
         String notes = txtNotes.getText().trim();
         if (notes.isEmpty()) {
-            notes = "Độc giả đặt mượn online qua App (SRS 3.2.5)";
+            notes = "Độc giả đặt mượn online qua App";
         }
 
         btnConfirmBorrow.setEnabled(false);
@@ -632,9 +642,19 @@ public class ReaderBorrowRegistrationView extends JPanel {
             @Override
             protected ImageIcon doInBackground() {
                 try {
-                    File file = new File("sources/src/main/resources/assets/covers/" + coverPath);
+                    String fileName = new File(coverPath).getName();
+                    String resPath = coverPath.startsWith("/") ? coverPath : "/assets/covers/" + fileName;
+                    java.net.URL url = getClass().getResource(resPath);
+                    if (url != null) {
+                        ImageIcon icon = new ImageIcon(url);
+                        Image img = icon.getImage().getScaledInstance(80, 110, Image.SCALE_SMOOTH);
+                        ImageIcon scaled = new ImageIcon(img);
+                        COVER_CACHE.put(coverPath, scaled);
+                        return scaled;
+                    }
+                    File file = new File("sources/src/main/resources/assets/covers/" + fileName);
                     if (!file.exists()) {
-                        file = new File("src/main/resources/assets/covers/" + coverPath);
+                        file = new File("src/main/resources/assets/covers/" + fileName);
                     }
                     if (file.exists()) {
                         ImageIcon icon = new ImageIcon(file.getAbsolutePath());

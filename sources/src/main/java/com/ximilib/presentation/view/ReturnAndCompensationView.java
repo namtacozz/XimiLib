@@ -139,8 +139,8 @@ public class ReturnAndCompensationView extends JPanel {
         // 3. Tình trạng hoàn trả
         formBox.add(createSectionLabel("3. TÌNH TRẠNG SÁCH KHI TIẾP NHẬN"));
         radNormal = new JRadioButton("Bình thường (Đạt tiêu chuẩn)", true);
-        radDamaged = new JRadioButton("Hỏng nhẹ / Rách bìa (+ 20.000đ phí kỹ thuật BR-08)");
-        radLost = new JRadioButton("Báo mất sách (Bồi thường 200% giá bìa + 20.000đ BR-08)");
+        radDamaged = new JRadioButton("Hỏng nhẹ / Rách bìa (+ 20.000đ phí xử lý)");
+        radLost = new JRadioButton("Báo mất sách (Bồi thường 200% giá bìa + 20.000đ)");
 
         ButtonGroup bg = new ButtonGroup();
         bg.add(radNormal);

@@ -120,9 +120,12 @@ public class CirculationServiceImpl implements CirculationService {
         // Thông báo đồng bộ giao diện
         DomainEventPublisher.publish(new BookStockChangedEvent("LOAN", "LOAN_CREATED"));
 
+        boolean isOnlineOrder = (notes != null && (notes.toLowerCase().contains("online") || notes.toLowerCase().contains("app") || notes.toLowerCase().contains("đặt mượn")));
+        int initialStatus = isOnlineOrder ? 0 : 1;
+
         return new BorrowTicketDto(
             ticketId, card.userId(), card.fullName(), card.cardNumber(), loanType,
-            borrowDate, dueDate, null, 1, "Mượn " + copyBarcodes.size() + " cuốn",
+            borrowDate, dueDate, null, initialStatus, "Mượn " + copyBarcodes.size() + " cuốn",
             String.join("; ", copyBarcodes), notes
         );
     }

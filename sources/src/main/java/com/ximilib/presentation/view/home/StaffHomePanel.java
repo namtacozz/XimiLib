@@ -19,8 +19,7 @@ import com.ximilib.presentation.component.SectionHeader;
 import com.ximilib.presentation.util.Illustrations;
 
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -68,6 +67,7 @@ public class StaffHomePanel extends JPanel {
     private CardLayout newBooksCardLayout;
     private JScrollPane scrollNewBooks;
     private Timer carouselTimer;
+    private int scrollTarget = -1;
 
     private DomainEventListener<BookStockChangedEvent> stockListener;
 
@@ -433,19 +433,19 @@ public class StaffHomePanel extends JPanel {
         lblSeeAll.setForeground(UITheme.PRIMARY);
         lblSeeAll.setCursor(new Cursor(Cursor.HAND_CURSOR));
         lblSeeAll.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 2));
-        lblSeeAll.addMouseListener(new MouseAdapter() {
+        lblSeeAll.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
                 navigate("Kho sách");
             }
 
             @Override
-            public void mouseEntered(MouseEvent e) {
+            public void mouseEntered(java.awt.event.MouseEvent e) {
                 lblSeeAll.setForeground(UITheme.PRIMARY_HOVER);
             }
 
             @Override
-            public void mouseExited(MouseEvent e) {
+            public void mouseExited(java.awt.event.MouseEvent e) {
                 lblSeeAll.setForeground(UITheme.PRIMARY);
             }
         });
@@ -524,19 +524,26 @@ public class StaffHomePanel extends JPanel {
         JScrollBar hBar = scrollNewBooks.getHorizontalScrollBar();
         if (hBar == null) return;
 
+        final int max = hBar.getMaximum() - hBar.getVisibleAmount();
+        if (max <= 0) return;
+
+        int base = (carouselTimer != null && carouselTimer.isRunning() && scrollTarget >= 0)
+            ? scrollTarget
+            : hBar.getValue();
+
+        scrollTarget = Math.max(0, Math.min(max, base + delta));
+        final int target = scrollTarget;
+
         if (carouselTimer != null && carouselTimer.isRunning()) {
             carouselTimer.stop();
         }
 
         final int start = hBar.getValue();
-        final int max = hBar.getMaximum() - hBar.getVisibleAmount();
-        final int target = Math.max(0, Math.min(max, start + delta));
         final int distance = target - start;
         if (distance == 0) return;
 
-        final int frames = 15;
-        final long durationMs = 220;
-        final int interval = (int) (durationMs / frames);
+        final int frames = 12;
+        final int interval = 16;
         final int[] step = {0};
 
         carouselTimer = new Timer(interval, null);
@@ -545,11 +552,13 @@ public class StaffHomePanel extends JPanel {
             float progress = (float) step[0] / frames;
             if (progress >= 1.0f) {
                 hBar.setValue(target);
+                scrollTarget = -1;
                 carouselTimer.stop();
+                scrollNewBooks.repaint();
             } else {
-                // Cubic ease-out: 1 - (1 - progress)^3
                 float ease = 1.0f - (float) Math.pow(1.0f - progress, 3);
                 hBar.setValue(start + Math.round(distance * ease));
+                scrollNewBooks.repaint();
             }
         });
         carouselTimer.start();
@@ -796,6 +805,7 @@ public class StaffHomePanel extends JPanel {
                             scrollNewBooks.setBorder(null);
                             scrollNewBooks.setOpaque(false);
                             scrollNewBooks.getViewport().setOpaque(false);
+                            scrollNewBooks.getViewport().setScrollMode(JViewport.SIMPLE_SCROLL_MODE);
                             scrollNewBooks.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
                             scrollNewBooks.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
                             scrollNewBooks.getHorizontalScrollBar().setUnitIncrement(24);

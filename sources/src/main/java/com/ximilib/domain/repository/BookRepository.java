@@ -23,6 +23,8 @@ public interface BookRepository {
 
     int countTotalBooks();
 
+    default void saveNewBook(String title, String author, String categoryName, String isbn, double price, int initialCopies) {}
+
     void restoreBook(String bookId);
 
     void addCategory(String name, String desc);

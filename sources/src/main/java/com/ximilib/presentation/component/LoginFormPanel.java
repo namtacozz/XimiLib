@@ -42,7 +42,7 @@ public class LoginFormPanel extends JPanel {
     private JLabel lblErrorMessage;
     private JLabel lblForgot;
     private JLabel lblRegisterNow;
-    private JLabel lblGuest;
+    private JButton btnGuest;
 
     public LoginFormPanel(Window parentWindow) {
         this(parentWindow, AppContainer.getInstance().getAuthenticationService());
@@ -282,31 +282,53 @@ public class LoginFormPanel extends JPanel {
         formContainer.add(Box.createVerticalStrut(14));
         formContainer.add(registerRow);
         
-        // Hàng Tra cứu không cần đăng nhập (Khách viếng thăm - SRS UC-4)
-        JPanel guestRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 0));
-        guestRow.setOpaque(false);
-        guestRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        guestRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
+        // Phân cách "Hoặc"
+        JPanel orRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));
+        orRow.setOpaque(false);
+        orRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        orRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+        JLabel lblOr = new JLabel("─── hoặc ───");
+        lblOr.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblOr.setForeground(UITheme.TEXT_MUTED);
+        orRow.add(lblOr);
 
-        lblGuest = new JLabel("Hoặc tra cứu sách không cần đăng nhập");
-        lblGuest.setFont(UITheme.FONT_SMALL);
-        lblGuest.setForeground(UITheme.PRIMARY);
-        lblGuest.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        lblGuest.addMouseListener(new MouseAdapter() {
+        // Nút bấm nổi bật: Đăng nhập với tư cách Khách
+        btnGuest = new JButton("Đăng nhập với tư cách Khách") {
             @Override
-            public void mouseClicked(MouseEvent e) {
-                if (!lblGuest.isEnabled()) return;
-                User guest = new User("GUEST", "guest", "", "Khách Viếng Thăm", "", "", "Khách");
-                MainDashboardFrame dashboard = new MainDashboardFrame(guest);
-                dashboard.setVisible(true);
-                if (parentWindow != null) {
-                    parentWindow.dispose();
-                }
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? UITheme.TINT_LIGHT : Color.WHITE);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.setColor(getModel().isRollover() ? UITheme.PRIMARY : UITheme.BORDER);
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnGuest.setFont(UITheme.FONT_BOLD);
+        btnGuest.setForeground(UITheme.PRIMARY);
+        btnGuest.setContentAreaFilled(false);
+        btnGuest.setBorderPainted(false);
+        btnGuest.setFocusPainted(false);
+        btnGuest.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnGuest.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
+        btnGuest.setPreferredSize(new Dimension(360, 38));
+        btnGuest.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnGuest.addActionListener(e -> {
+            if (!btnGuest.isEnabled()) return;
+            User guest = new User("GUEST", "guest", "", "Khách Viếng Thăm", "", "", "Khách");
+            MainDashboardFrame dashboard = new MainDashboardFrame(guest);
+            dashboard.setVisible(true);
+            if (parentWindow != null) {
+                parentWindow.dispose();
             }
         });
-        guestRow.add(lblGuest);
-        formContainer.add(Box.createVerticalStrut(6));
-        formContainer.add(guestRow);
+
+        formContainer.add(Box.createVerticalStrut(10));
+        formContainer.add(orRow);
+        formContainer.add(Box.createVerticalStrut(10));
+        formContainer.add(btnGuest);
         formContainer.add(Box.createVerticalGlue());
         formContainer.add(lblFooter);
 
@@ -402,7 +424,7 @@ public class LoginFormPanel extends JPanel {
         btnLogin.setEnabled(enabled);
         if (lblForgot != null) lblForgot.setEnabled(enabled);
         if (lblRegisterNow != null) lblRegisterNow.setEnabled(enabled);
-        if (lblGuest != null) lblGuest.setEnabled(enabled);
+        if (btnGuest != null) btnGuest.setEnabled(enabled);
     }
 
     private void executeLogin() {

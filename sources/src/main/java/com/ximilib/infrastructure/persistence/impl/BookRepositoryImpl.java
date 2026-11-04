@@ -99,7 +99,7 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
 
         // 2. Truy vấn dữ liệu phân trang
         String dataSql = "SELECT s.Masach, s.Tensach, s.Matheloai, MAX(t.Tentheloai) AS Tentheloai, s.Manxb, MAX(nxb.tennxb) AS tennxb, "
-                       + "       GROUP_CONCAT(tg.Tentacgia SEPARATOR ', ') AS Tentacgia, s.Isbn, s.Namxb, s.Giabia, s.Hinhanh, s.IsDeleted, "
+                       + "       GROUP_CONCAT(tg.Tentacgia SEPARATOR ', ') AS Tentacgia, s.Isbn, s.Namxb, s.Giabia, s.Hinhanh, s.Motasach, s.IsDeleted, "
                        + "       " + copiesSubquery + " AS available_copies, "
                        + "       COALESCE((SELECT COUNT(*) FROM cuonsach cs WHERE cs.Masach = s.Masach), 0) AS total_copies, "
                        + "       COALESCE((SELECT COUNT(*) FROM cuonsach cs WHERE cs.Masach = s.Masach AND cs.Trangthaisach = 'DANG_MUON'), 0) AS active_loans "
@@ -149,6 +149,7 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
                         availableCopies, totalCopies, color, isDeleted, activeLoans
                     );
                     dto.setCoverImage(hinhanh);
+                    dto.setDescription(rs.getString("Motasach"));
                     items.add(dto);
                 }
             }
@@ -348,6 +349,125 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi xóa thể loại: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void saveNewBook(String title, String author, String categoryName, String isbn, double price, int initialCopies) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên sách không được để trống!");
+        }
+        String cleanTitle = title.trim();
+        String cleanAuthor = (author != null && !author.trim().isEmpty()) ? author.trim() : "Nhiều tác giả";
+        String cleanIsbn = (isbn != null && !isbn.trim().isEmpty()) ? isbn.trim() : "978-604-00-0000-0";
+        if (initialCopies <= 0) initialCopies = 3;
+
+        try (Connection conn = connectionManager.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                // 1. Tìm hoặc lấy thể loại phù hợp
+                int catId = 1;
+                try (PreparedStatement psCat = conn.prepareStatement("SELECT Matheloai FROM theloai WHERE LOWER(Tentheloai) = ? LIMIT 1")) {
+                    psCat.setString(1, (categoryName != null ? categoryName.trim().toLowerCase() : ""));
+                    try (ResultSet rs = psCat.executeQuery()) {
+                        if (rs.next()) {
+                            catId = rs.getInt(1);
+                        } else {
+                            try (PreparedStatement psFirst = conn.prepareStatement("SELECT Matheloai FROM theloai ORDER BY Matheloai ASC LIMIT 1")) {
+                                try (ResultSet rsFirst = psFirst.executeQuery()) {
+                                    if (rsFirst.next()) catId = rsFirst.getInt(1);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 2. Tìm hoặc thêm tác giả mới
+                String authorId = null;
+                try (PreparedStatement psTg = conn.prepareStatement("SELECT Matacgia FROM tacgia WHERE LOWER(Tentacgia) = ? LIMIT 1")) {
+                    psTg.setString(1, cleanAuthor.toLowerCase());
+                    try (ResultSet rs = psTg.executeQuery()) {
+                        if (rs.next()) {
+                            authorId = rs.getString(1);
+                        }
+                    }
+                }
+                if (authorId == null) {
+                    int nextTgNum = 1;
+                    try (PreparedStatement psMaxTg = conn.prepareStatement("SELECT MAX(CAST(SUBSTRING(Matacgia, 3) AS UNSIGNED)) FROM tacgia WHERE Matacgia LIKE 'TG%'")) {
+                        try (ResultSet rs = psMaxTg.executeQuery()) {
+                            if (rs.next()) nextTgNum = rs.getInt(1) + 1;
+                        }
+                    }
+                    authorId = String.format("TG%03d", nextTgNum);
+                    try (PreparedStatement psInsTg = conn.prepareStatement("INSERT INTO tacgia (Matacgia, Tentacgia) VALUES (?, ?)")) {
+                        psInsTg.setString(1, authorId);
+                        psInsTg.setString(2, cleanAuthor);
+                        psInsTg.executeUpdate();
+                    }
+                }
+
+                // 3. Lấy NXB mặc định
+                String pubId = "NXB01";
+                try (PreparedStatement psPub = conn.prepareStatement("SELECT manxb FROM nhaxuatban LIMIT 1")) {
+                    try (ResultSet rs = psPub.executeQuery()) {
+                        if (rs.next()) pubId = rs.getString(1);
+                    }
+                }
+
+                // 4. Sinh mã sách tự động: MSxxxx
+                int nextBookNum = 1;
+                try (PreparedStatement psMaxBook = conn.prepareStatement("SELECT MAX(CAST(SUBSTRING(Masach, 3) AS UNSIGNED)) FROM sach WHERE Masach LIKE 'MS%'")) {
+                    try (ResultSet rs = psMaxBook.executeQuery()) {
+                        if (rs.next()) nextBookNum = rs.getInt(1) + 1;
+                    }
+                }
+                String bookId = String.format("MS%04d", nextBookNum);
+
+                // 5. Thêm sách vào bảng sach
+                String insBookSql = "INSERT INTO sach (Masach, Matheloai, Manxb, Tensach, Isbn, Namxb, Giabia, Hinhanh, IsDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, FALSE)";
+                try (PreparedStatement psBook = conn.prepareStatement(insBookSql)) {
+                    psBook.setString(1, bookId);
+                    psBook.setInt(2, catId);
+                    psBook.setString(3, pubId);
+                    psBook.setString(4, cleanTitle);
+                    psBook.setString(5, cleanIsbn);
+                    psBook.setInt(6, java.time.LocalDate.now().getYear());
+                    psBook.setBigDecimal(7, java.math.BigDecimal.valueOf(price > 0 ? price : 50000.0));
+                    psBook.setString(8, null);
+                    psBook.executeUpdate();
+                }
+
+                // 6. Thêm liên kết sach_tacgia
+                String insStSql = "INSERT INTO sach_tacgia (Masach, Matacgia, Vaitro) VALUES (?, ?, 'Tác giả chính')";
+                try (PreparedStatement psSt = conn.prepareStatement(insStSql)) {
+                    psSt.setString(1, bookId);
+                    psSt.setString(2, authorId);
+                    psSt.executeUpdate();
+                }
+
+                // 7. Tạo cuốn sách vật lý (cuonsach) ở trạng thái KHA_DUNG
+                String insCopySql = "INSERT INTO cuonsach (Macuonsach, Masach, Isbn, Trangthaisach) VALUES (?, ?, ?, 'KHA_DUNG')";
+                try (PreparedStatement psCopy = conn.prepareStatement(insCopySql)) {
+                    for (int i = 1; i <= initialCopies; i++) {
+                        String copyBarcode = String.format("%s-C%02d", bookId, i);
+                        psCopy.setString(1, copyBarcode);
+                        psCopy.setString(2, bookId);
+                        psCopy.setString(3, cleanIsbn);
+                        psCopy.addBatch();
+                    }
+                    psCopy.executeBatch();
+                }
+
+                conn.commit();
+            } catch (Exception ex) {
+                conn.rollback();
+                throw new RuntimeException("Lỗi lưu đầu sách vào CSDL: " + ex.getMessage(), ex);
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi kết nối cơ sở dữ liệu: " + e.getMessage(), e);
         }
     }
 }

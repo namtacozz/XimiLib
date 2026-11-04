@@ -26,6 +26,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private static final Pattern PWD_PATTERN = Pattern.compile("^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,}$");
     private static final Pattern CCCD_PATTERN = Pattern.compile("^(\\d{9}|\\d{12})$");
 
+    // Bộ nhớ đệm theo dõi số lần đăng nhập sai và khóa tạm thời đảm bảo độ chính xác tuyệt đối
+    private static final java.util.concurrent.ConcurrentHashMap<String, Integer> FAILED_ATTEMPTS_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final java.util.concurrent.ConcurrentHashMap<String, LocalDateTime> LOCKED_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+
     private final UserRepository userRepository;
     private final UserQueryPort userQueryPort;
     private final PasswordHasher passwordHasher;
@@ -54,6 +58,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return LoginResult.fail("AUTH_001", "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.");
         }
 
+        String normKey = identifier.trim().toLowerCase();
+        LocalDateTime cachedLock = LOCKED_CACHE.get(normKey);
+        LocalDateTime now = LocalDateTime.now();
+
+        // 1. Kiểm tra khóa tạm thời trong bộ nhớ đệm
+        if (cachedLock != null) {
+            if (cachedLock.isAfter(now)) {
+                long remainingMinutes = Math.max(1, Duration.between(now, cachedLock).toMinutes() + 1);
+                return LoginResult.locked(remainingMinutes,
+                    "Tài khoản đang bị tạm khóa " + remainingMinutes + " phút do nhập sai mật khẩu quá 5 lần. Vui lòng thử lại sau.");
+            } else {
+                LOCKED_CACHE.remove(normKey);
+                FAILED_ATTEMPTS_CACHE.remove(normKey);
+            }
+        }
+
         UserRepository repo = getRepo();
         Optional<User> userOpt = repo.findByIdentifier(identifier.trim());
 
@@ -63,44 +83,60 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         User user = userOpt.get();
 
-        // 1. Kiểm tra khóa tạm 15 phút theo BR-01
-        if (user.getLockedUntil() != null) {
-            LocalDateTime now = LocalDateTime.now();
-            if (user.getLockedUntil().isAfter(now)) {
-                long remainingMinutes = Math.max(1, Duration.between(now, user.getLockedUntil()).toMinutes() + 1);
+        // 2. Kiểm tra khóa tạm thời từ CSDL
+        LocalDateTime dbLock = user.getLockedUntil();
+        if (dbLock != null) {
+            if (dbLock.isAfter(now)) {
+                long remainingMinutes = Math.max(1, Duration.between(now, dbLock).toMinutes() + 1);
+                LOCKED_CACHE.put(normKey, dbLock);
                 return LoginResult.locked(remainingMinutes,
-                    "Tài khoản bị tạm khóa " + remainingMinutes + " phút do nhập sai quá 5 lần quy định (Quy tắc BR-01).");
+                    "Tài khoản đang bị tạm khóa " + remainingMinutes + " phút do nhập sai mật khẩu quá 5 lần. Vui lòng thử lại sau.");
             } else {
                 repo.resetFailedAttempts(user.getId());
                 user.setFailedAttempts(0);
                 user.setLockedUntil(null);
+                FAILED_ATTEMPTS_CACHE.remove(normKey);
+                LOCKED_CACHE.remove(normKey);
             }
         }
 
-        // 2. Kiểm tra mật khẩu bắt buộc bằng BCrypt qua PasswordHasher port (R-08, BR-01)
+        // 3. Kiểm tra mật khẩu bằng BCrypt
         boolean passwordMatches = false;
         try {
             passwordMatches = getHasher().matches(password, user.getPassword());
         } catch (Exception ignored) {
-            // Hash không hợp lệ / lỗi giải mã: trả lỗi AUTH chung, không lộ thông tin nội bộ
             passwordMatches = false;
         }
 
         if (!passwordMatches) {
-            int attempts = user.getFailedAttempts() + 1;
+            int currentFailures = Math.max(user.getFailedAttempts(), FAILED_ATTEMPTS_CACHE.getOrDefault(normKey, 0));
+            int attempts = currentFailures + 1;
+            FAILED_ATTEMPTS_CACHE.put(normKey, attempts);
+
             if (attempts >= LibraryPolicy.MAX_LOGIN_ATTEMPTS) {
                 LocalDateTime lockTime = LocalDateTime.now().plusMinutes(LibraryPolicy.LOCKOUT_MINUTES);
-                repo.updateFailedAttempts(user.getId(), attempts, lockTime);
+                LOCKED_CACHE.put(normKey, lockTime);
+                try {
+                    repo.updateFailedAttempts(user.getId(), attempts, lockTime);
+                } catch (Exception ignored) {}
                 return LoginResult.locked(LibraryPolicy.LOCKOUT_MINUTES,
-                    "Tài khoản bị tạm khóa " + LibraryPolicy.LOCKOUT_MINUTES + " phút do nhập sai quá 5 lần quy định (Quy tắc BR-01).");
+                    "Tài khoản bị tạm khóa 15 phút do nhập sai mật khẩu 5 lần liên tiếp. Vui lòng thử lại sau.");
             } else {
-                repo.updateFailedAttempts(user.getId(), attempts, null);
-                return LoginResult.fail("AUTH_001", "Tên đăng nhập hoặc mật khẩu không chính xác.");
+                try {
+                    repo.updateFailedAttempts(user.getId(), attempts, null);
+                } catch (Exception ignored) {}
+                int remaining = LibraryPolicy.MAX_LOGIN_ATTEMPTS - attempts;
+                return LoginResult.fail("AUTH_001",
+                    "Tên đăng nhập hoặc mật khẩu không chính xác. Bạn đã nhập sai " + attempts + "/5 lần (còn " + remaining + " lần thử).");
             }
         }
 
-        // 3. Đăng nhập thành công: Reset số lần sai và trả về kết quả
-        repo.resetFailedAttempts(user.getId());
+        // 4. Đăng nhập thành công: Đặt lại toàn bộ số lần sai
+        FAILED_ATTEMPTS_CACHE.remove(normKey);
+        LOCKED_CACHE.remove(normKey);
+        try {
+            repo.resetFailedAttempts(user.getId());
+        } catch (Exception ignored) {}
         return LoginResult.success(user);
     }
 

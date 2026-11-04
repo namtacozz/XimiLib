@@ -107,7 +107,8 @@ public class MainDashboardFrame extends JFrame {
         if ("Trang chủ".equalsIgnoreCase(r) || "HOME".equalsIgnoreCase(r)) {
             cardLayout.show(centerContainer, "HOME");
             sidebarPanel.setActiveRoute("Trang chủ");
-        } else if ("Kho sách".equalsIgnoreCase(r) || "Khám phá sách".equalsIgnoreCase(r) || "CATALOG".equalsIgnoreCase(r)) {
+        } else if ("Kho sách".equalsIgnoreCase(r) || "Khám phá sách".equalsIgnoreCase(r) || "CATALOG".equalsIgnoreCase(r) || "Đầu sách".equalsIgnoreCase(r)) {
+            if (bookTabbedView != null) bookTabbedView.selectTab(0);
             cardLayout.show(centerContainer, "KHO_SACH");
             sidebarPanel.setActiveRoute(currentUser.isReader() ? "Khám phá sách" : "Kho sách");
         } else if ("Quản lý thể loại".equalsIgnoreCase(r)) {
@@ -136,7 +137,7 @@ public class MainDashboardFrame extends JFrame {
             if (adminTabbedView != null) adminTabbedView.selectTab(0);
             cardLayout.show(centerContainer, "QUAN_TRI");
             sidebarPanel.setActiveRoute("Quản trị hệ thống");
-        } else if ("Cài đặt quy định (SRS)".equalsIgnoreCase(r)) {
+        } else if ("Cài đặt quy định".equalsIgnoreCase(r) || "Cài đặt quy định (SRS)".equalsIgnoreCase(r)) {
             if (adminTabbedView != null) adminTabbedView.selectTab(1);
             cardLayout.show(centerContainer, "QUAN_TRI");
             sidebarPanel.setActiveRoute("Quản trị hệ thống");
@@ -151,7 +152,7 @@ public class MainDashboardFrame extends JFrame {
         } else if ("Hộp thư góp ý".equalsIgnoreCase(r) || "Góp ý & Phản hồi".equalsIgnoreCase(r)) {
             cardLayout.show(centerContainer, "GOP_Y");
             sidebarPanel.setActiveRoute("Hộp thư góp ý");
-        } else if ("Trợ giúp".equalsIgnoreCase(r) || "Hướng dẫn (SRS)".equalsIgnoreCase(r)) {
+        } else if ("Trợ giúp".equalsIgnoreCase(r) || "Hướng dẫn".equalsIgnoreCase(r) || "Hướng dẫn (SRS)".equalsIgnoreCase(r)) {
             HelpGuideModalPanel.show(this);
         } else {
             UiModalHelper.showToastInfo(this, "Mục [" + routeName + "] đang được kết nối!");
@@ -204,7 +205,7 @@ public class MainDashboardFrame extends JFrame {
             CategoryManagementView catView = new CategoryManagementView(AppContainer.getInstance().getBookCatalogService());
             TrashAndRestoreView trashView = new TrashAndRestoreView(AppContainer.getInstance().getBookCatalogService());
             bookTabbedView = new TabbedViewPanel(
-                List.of("Đầu sách", "Quản lý thể loại", "Thùng rác & Khôi phục"),
+                List.of("Kho sách", "Quản lý thể loại", "Thùng rác & Khôi phục"),
                 List.of(bookCatalogView, catView, trashView)
             );
             centerContainer.add(bookTabbedView, "KHO_SACH");
@@ -232,7 +233,7 @@ public class MainDashboardFrame extends JFrame {
             UserRoleManagementView roleView = new UserRoleManagementView(AppContainer.getInstance().getAuthenticationService());
             SystemSettingsView settingsView = new SystemSettingsView(AppContainer.getInstance().getConnectionManager());
             adminTabbedView = new TabbedViewPanel(
-                List.of("Tài khoản & Phân quyền (RBAC)", "Cài đặt quy định (SRS)"),
+                List.of("Tài khoản & Phân quyền (RBAC)", "Cài đặt quy định"),
                 List.of(roleView, settingsView)
             );
             centerContainer.add(adminTabbedView, "QUAN_TRI");
@@ -349,7 +350,16 @@ public class MainDashboardFrame extends JFrame {
         actionsPanel.setOpaque(false);
 
         boolean isReader = currentUser.isReader();
-        if (!isReader) {
+        boolean isGuest = currentUser.isGuest();
+        if (isGuest) {
+            JButton btnLogin = UITheme.createPillButton("Đăng Nhập", UITheme.PRIMARY, Color.WHITE);
+            btnLogin.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 12f));
+            btnLogin.addActionListener(e -> {
+                dispose();
+                new com.ximilib.presentation.view.LoginForm().setVisible(true);
+            });
+            actionsPanel.add(btnLogin);
+        } else if (!isReader) {
             JButton btnCreateLoan = UITheme.createPillButton("+ Lập phiếu mượn", UITheme.PRIMARY, Color.WHITE);
             btnCreateLoan.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 12f));
             btnCreateLoan.addActionListener(e -> navigateTo("Mượn – Trả"));
@@ -363,43 +373,45 @@ public class MainDashboardFrame extends JFrame {
             actionsPanel.add(btnDigitalCard);
         }
 
-        // Chuông thông báo
-        bellPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(UITheme.PAGE_BG);
-                g2.fillOval(0, 0, getWidth(), getHeight());
-                IconFactory.drawBell(g2, 10, 10, 18, UITheme.TEXT_MAIN);
+        if (!isGuest) {
+            // Chuông thông báo
+            bellPanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(UITheme.PAGE_BG);
+                    g2.fillOval(0, 0, getWidth(), getHeight());
+                    IconFactory.drawBell(g2, 10, 10, 18, UITheme.TEXT_MAIN);
 
-                if (unreadNotifications > 0) {
-                    g2.setColor(UITheme.DANGER_TEXT);
-                    g2.fillOval(22, 4, 14, 14);
-                    g2.setColor(Color.WHITE);
-                    g2.setFont(new Font("Segoe UI", Font.BOLD, 8));
-                    String badge = (unreadNotifications > 9) ? "9+" : String.valueOf(unreadNotifications);
-                    FontMetrics fm = g2.getFontMetrics();
-                    int bx = 22 + (14 - fm.stringWidth(badge)) / 2;
-                    int by = 4 + (14 + fm.getAscent() - fm.getDescent()) / 2 - 1;
-                    g2.drawString(badge, bx, by);
+                    if (unreadNotifications > 0) {
+                        g2.setColor(UITheme.DANGER_TEXT);
+                        g2.fillOval(22, 4, 14, 14);
+                        g2.setColor(Color.WHITE);
+                        g2.setFont(new Font("Segoe UI", Font.BOLD, 8));
+                        String badge = (unreadNotifications > 9) ? "9+" : String.valueOf(unreadNotifications);
+                        FontMetrics fm = g2.getFontMetrics();
+                        int bx = 22 + (14 - fm.stringWidth(badge)) / 2;
+                        int by = 4 + (14 + fm.getAscent() - fm.getDescent()) / 2 - 1;
+                        g2.drawString(badge, bx, by);
+                    }
+                    g2.dispose();
                 }
-                g2.dispose();
-            }
-        };
-        bellPanel.setPreferredSize(new Dimension(38, 38));
-        bellPanel.setOpaque(false);
-        bellPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        bellPanel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                UiModalHelper.showQuickPopup(new NotificationPopupPanel());
-                unreadNotifications = 0;
-                bellPanel.repaint();
-            }
-        });
+            };
+            bellPanel.setPreferredSize(new Dimension(38, 38));
+            bellPanel.setOpaque(false);
+            bellPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            bellPanel.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    UiModalHelper.showQuickPopup(new NotificationPopupPanel());
+                    unreadNotifications = 0;
+                    bellPanel.repaint();
+                }
+            });
 
-        actionsPanel.add(bellPanel);
+            actionsPanel.add(bellPanel);
+        }
 
         topBar.add(userPanel, BorderLayout.WEST);
         topBar.add(searchBox, BorderLayout.CENTER);
@@ -433,6 +445,16 @@ public class MainDashboardFrame extends JFrame {
     }
 
     public void openBorrowRegistration(com.ximilib.application.dto.BookSummaryDto book) {
+        if (currentUser.isGuest()) {
+            UiModalHelper.showConfirm(this, "Yêu Cầu Đăng Nhập",
+                "Bạn đang truy cập với tư cách Khách. Vui lòng đăng nhập để đăng ký mượn sách!",
+                () -> {
+                    dispose();
+                    new com.ximilib.presentation.view.LoginForm().setVisible(true);
+                }
+            );
+            return;
+        }
         if (readerBorrowView != null && book != null) {
             readerBorrowView.selectBook(book);
         }

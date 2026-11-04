@@ -548,7 +548,7 @@ public class CirculationDeskView extends JPanel {
             BorderFactory.createEmptyBorder(8, 2, 0, 2)
         ));
 
-        JLabel lblRule = new JLabel("Quy định BR-02: Độc giả mượn về nhà tối đa 3 cuốn sách và không có khoản phạt chưa hoàn tất.");
+        JLabel lblRule = new JLabel("Lưu ý: Độc giả mượn về nhà tối đa 3 cuốn sách và không có khoản phạt chưa hoàn tất.");
         lblRule.setFont(new Font("Segoe UI", Font.ITALIC, 11));
         lblRule.setForeground(UITheme.TEXT_MUTED);
         bottomFooter.add(lblRule, BorderLayout.WEST);
@@ -927,7 +927,7 @@ public class CirculationDeskView extends JPanel {
         // Kiểm tra giới hạn 3 cuốn nếu mượn về nhà (BR-02)
         int loanTypeIdx = (cmbLoanType != null) ? cmbLoanType.getSelectedIndex() : 0;
         if (loanTypeIdx == 0 && cartBarcodes.size() >= 3) {
-            UiModalHelper.showToastWarning(this, "Quy định BR-02: Mỗi độc giả chỉ được mượn tối đa 3 cuốn sách về nhà!");
+            UiModalHelper.showToastWarning(this, "Mỗi độc giả chỉ được mượn tối đa 3 cuốn sách mang về nhà!");
             txtBarcode.setText("");
             return;
         }
