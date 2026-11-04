@@ -47,6 +47,7 @@ public class MainDashboardFrame extends JFrame {
     private TabbedViewPanel adminTabbedView;
     private ReaderHomePanel readerHomePanel;
     private StaffHomePanel staffHomePanel;
+    private SearchField txtSearchTop;
 
     private int unreadNotifications = 0;
     private JPanel bellPanel;
@@ -56,7 +57,7 @@ public class MainDashboardFrame extends JFrame {
     }
 
     public MainDashboardFrame(User user) {
-        this(user, (user != null && user.isGuest()) ? "Khám phá sách" : "Trang chủ");
+        this(user, "Trang chủ");
     }
 
     public MainDashboardFrame(User user, String initialRoute) {
@@ -107,11 +108,8 @@ public class MainDashboardFrame extends JFrame {
         String r = routeName.trim();
 
         if (currentUser.isGuest()) {
-            if ("Trang chủ".equalsIgnoreCase(r) || "HOME".equalsIgnoreCase(r)) {
-                navigateTo("Khám phá sách");
-                return;
-            }
-            boolean isAllowed = "Khám phá sách".equalsIgnoreCase(r) || "Kho sách".equalsIgnoreCase(r)
+            boolean isAllowed = "Trang chủ".equalsIgnoreCase(r) || "HOME".equalsIgnoreCase(r)
+                || "Khám phá sách".equalsIgnoreCase(r) || "Kho sách".equalsIgnoreCase(r)
                 || "Hộp thư góp ý".equalsIgnoreCase(r) || "Góp ý & Phản hồi".equalsIgnoreCase(r)
                 || "Trợ giúp".equalsIgnoreCase(r) || "Hướng dẫn".equalsIgnoreCase(r);
             if (!isAllowed) {
@@ -197,8 +195,8 @@ public class MainDashboardFrame extends JFrame {
         String normRole = currentUser.getRole().toUpperCase();
         boolean isAdmin = normRole.contains("ADMIN") || normRole.contains("QUẢN TRỊ");
 
-        // Card 1: HOME
-        if (isReader) {
+        // Card 1: HOME (Trang chủ phân quyền: ReaderHomePanel cho Độc giả & Khách, StaffHomePanel cho Thủ thư/Admin)
+        if (isReader || isGuest) {
             readerHomePanel = new ReaderHomePanel(
                 AppContainer.getInstance().getDashboardService(),
                 AppContainer.getInstance().getCirculationService(),
@@ -206,7 +204,7 @@ public class MainDashboardFrame extends JFrame {
                 this::navigateTo
             );
             centerContainer.add(readerHomePanel, "HOME");
-        } else if (!isGuest) {
+        } else {
             staffHomePanel = new StaffHomePanel(
                 AppContainer.getInstance().getDashboardService(),
                 AppContainer.getInstance().getBookCatalogService(),
@@ -383,9 +381,9 @@ public class MainDashboardFrame extends JFrame {
         searchBox.setOpaque(false);
         searchBox.setPreferredSize(new Dimension(420, 38));
 
-        SearchField txtSearch = new SearchField("Tìm kiếm sách, tác giả, thể loại...");
-        txtSearch.addActionListener(e -> {
-            String query = txtSearch.getText().trim();
+        txtSearchTop = new SearchField("Tìm kiếm sách, tác giả, thể loại...");
+        txtSearchTop.addActionListener(e -> {
+            String query = txtSearchTop.getText().trim();
             if (!query.isEmpty()) {
                 if (bookCatalogView != null) {
                     bookCatalogView.setSearchKeyword(query);
@@ -393,7 +391,19 @@ public class MainDashboardFrame extends JFrame {
                 navigateTo(currentUser.isReader() ? "Khám phá sách" : "Kho sách");
             }
         });
-        searchBox.add(txtSearch, BorderLayout.CENTER);
+        searchBox.add(txtSearchTop, BorderLayout.CENTER);
+
+        // Phím tắt Ctrl+F toàn cục
+        getRootPane().registerKeyboardAction(
+            e -> {
+                if (txtSearchTop != null) {
+                    txtSearchTop.requestFocusInWindow();
+                    txtSearchTop.selectAll();
+                }
+            },
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.KeyEvent.CTRL_DOWN_MASK),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
 
         // 3. Bên phải: Nút hành động chính + Chuông thông báo
         JPanel actionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 2));

@@ -102,4 +102,27 @@ public class UserSessionTest {
         assertEquals("U", UITheme.getAvatarInitial(null));
         assertEquals("B", UITheme.getAvatarInitial("  Bob  "));
     }
+
+    @Test
+    public void testCatalogViewModePersistence() {
+        assertEquals("TABLE", UserSession.getCatalogViewMode());
+
+        UserSession.setCatalogViewMode("GRID");
+        assertEquals("GRID", UserSession.getCatalogViewMode());
+
+        UserSession.setCatalogViewMode("table");
+        assertEquals("TABLE", UserSession.getCatalogViewMode());
+
+        UserSession.setCatalogViewMode("invalid");
+        assertEquals("TABLE", UserSession.getCatalogViewMode());
+    }
+
+    @Test
+    public void testColdStartPerformance() {
+        long start = System.currentTimeMillis();
+        com.ximilib.presentation.view.LoginForm form = new com.ximilib.presentation.view.LoginForm();
+        long elapsed = System.currentTimeMillis() - start;
+        assertTrue(elapsed < 3000, "Khởi động nguội phải dưới 3 giây, thực tế: " + elapsed + "ms");
+        form.dispose();
+    }
 }

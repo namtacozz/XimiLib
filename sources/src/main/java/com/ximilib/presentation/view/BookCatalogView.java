@@ -10,6 +10,9 @@ import com.ximilib.domain.event.DomainEventPublisher;
 import com.ximilib.domain.exception.BookInUseException;
 import com.ximilib.presentation.component.PaginationBar;
 import com.ximilib.presentation.component.SearchField;
+import com.ximilib.presentation.component.BookCoverTile;
+import com.ximilib.presentation.component.BookDetailModalPanel;
+import com.ximilib.presentation.util.IconFactory;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
@@ -50,6 +53,9 @@ public class BookCatalogView extends JPanel {
     private JPanel loadingOverlay;
     private JPanel emptyStatePanel;
     private JPanel tableContainer;
+    private JPanel gridPanel;
+    private JButton btnViewToggle;
+    private List<BookSummaryDto> lastLoadedBooks = new ArrayList<>();
 
     // Search state
     private javax.swing.Timer searchDebounceTimer;
@@ -94,6 +100,18 @@ public class BookCatalogView extends JPanel {
         centerWrap.add(createMainCardPanel(), BorderLayout.CENTER);
 
         add(centerWrap, BorderLayout.CENTER);
+
+        // Phím tắt Ctrl+F nhảy nhanh vào thanh tìm kiếm
+        registerKeyboardAction(
+            e -> {
+                if (txtSearch != null) {
+                    txtSearch.requestFocusInWindow();
+                    txtSearch.selectAll();
+                }
+            },
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.KeyEvent.CTRL_DOWN_MASK),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
     }
 
     private JPanel createGuestInvitationBanner() {
@@ -255,12 +273,21 @@ public class BookCatalogView extends JPanel {
         tableScroll.getViewport().setBackground(UITheme.CARD_BG);
         tableScroll.setOpaque(false);
 
+        gridPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 16));
+        gridPanel.setOpaque(false);
+        JScrollPane gridScroll = new JScrollPane(gridPanel);
+        gridScroll.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UITheme.BORDER));
+        gridScroll.getViewport().setBackground(UITheme.CARD_BG);
+        gridScroll.setOpaque(false);
+        gridScroll.getVerticalScrollBar().setUnitIncrement(16);
+
         loadingOverlay = createLoadingPanel();
         emptyStatePanel = createEmptyStatePanel();
 
         JPanel centerPanel = new JPanel(new CardLayout());
         centerPanel.setOpaque(false);
         centerPanel.add(tableScroll, "TABLE");
+        centerPanel.add(gridScroll, "GRID");
         centerPanel.add(loadingOverlay, "LOADING");
         centerPanel.add(emptyStatePanel, "EMPTY");
 
@@ -352,6 +379,19 @@ public class BookCatalogView extends JPanel {
         rightBox.add(txtSearch);
         rightBox.add(cmbCategory);
         rightBox.add(cmbAvailability);
+
+        btnViewToggle = UITheme.createPillButton(
+            "GRID".equalsIgnoreCase(UserSession.getCatalogViewMode()) ? "Danh sách" : "Lưới ảnh",
+            UITheme.TINT,
+            UITheme.ON_TINT
+        );
+        btnViewToggle.setFont(UITheme.FONT_BADGE);
+        btnViewToggle.setIcon("GRID".equalsIgnoreCase(UserSession.getCatalogViewMode())
+            ? IconFactory.createListIcon(UITheme.ON_TINT, 14)
+            : IconFactory.createGridIcon(UITheme.ON_TINT, 14));
+        btnViewToggle.setToolTipText("Chuyển đổi giữa chế độ xem Danh Sách và Lưới Ảnh Bìa");
+        btnViewToggle.addActionListener(e -> toggleViewMode());
+        rightBox.add(btnViewToggle);
 
         toolbar.add(leftBox, BorderLayout.WEST);
         toolbar.add(rightBox, BorderLayout.EAST);
@@ -499,18 +539,58 @@ public class BookCatalogView extends JPanel {
 
     private void updateUIWithResult(PagedResult<BookSummaryDto> result) {
         if (result == null || result.getItems().isEmpty()) {
+            this.lastLoadedBooks = Collections.emptyList();
             tableModel.setBooks(Collections.emptyList());
+            if (gridPanel != null) gridPanel.removeAll();
             lblTotalBooksCount.setText("(0 đầu sách)");
             paginationBar.updatePagination(1, 1, pageSize, 0);
             showCardView("EMPTY");
             return;
         }
 
+        this.lastLoadedBooks = result.getItems();
         tableModel.setBooks(result.getItems());
+        renderGridView(result.getItems());
         lblTotalBooksCount.setText("(" + result.getTotalElements() + " đầu sách)");
         paginationBar.updatePagination(result.getPage(), result.getTotalPages(), result.getPageSize(), result.getTotalElements());
         updateBulkDeleteButton();
-        showCardView("TABLE");
+
+        // Hiển thị theo chế độ đã lưu trong UserSession
+        showCardView(UserSession.getCatalogViewMode());
+    }
+
+    private void toggleViewMode() {
+        if ("GRID".equalsIgnoreCase(UserSession.getCatalogViewMode())) {
+            UserSession.setCatalogViewMode("TABLE");
+            btnViewToggle.setText("Lưới ảnh");
+            btnViewToggle.setIcon(IconFactory.createGridIcon(UITheme.ON_TINT, 14));
+            showCardView("TABLE");
+        } else {
+            UserSession.setCatalogViewMode("GRID");
+            btnViewToggle.setText("Danh sách");
+            btnViewToggle.setIcon(IconFactory.createListIcon(UITheme.ON_TINT, 14));
+            renderGridView(lastLoadedBooks);
+            showCardView("GRID");
+        }
+    }
+
+    private void renderGridView(List<BookSummaryDto> books) {
+        if (gridPanel == null) return;
+        gridPanel.removeAll();
+        if (books != null) {
+            for (BookSummaryDto b : books) {
+                BookCoverTile tile = new BookCoverTile(
+                    b.getCoverImage(),
+                    b.getTitle(),
+                    b.getAuthor(),
+                    b.getAvailableCopies(),
+                    () -> BookDetailModalPanel.show(BookCatalogView.this, b)
+                );
+                gridPanel.add(tile);
+            }
+        }
+        gridPanel.revalidate();
+        gridPanel.repaint();
     }
 
     private void showCardView(String viewName) {
@@ -519,13 +599,54 @@ public class BookCatalogView extends JPanel {
     }
 
     private JPanel createLoadingPanel() {
-        JPanel p = new JPanel(new GridBagLayout());
-        p.setOpaque(false);
-        JLabel lbl = new JLabel("Đang tải danh mục sách thư viện...");
-        lbl.setFont(UITheme.FONT_SUBTITLE);
-        lbl.setForeground(UITheme.TEXT_MUTED);
-        p.add(lbl);
-        return p;
+        JPanel skeletonPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                int rowHeight = 54;
+                int startY = 14;
+                int rows = 3;
+
+                Color shimmerBg = new Color(248, 250, 252); // slate 50
+                Color shimmerBar = new Color(226, 232, 240); // slate 200
+
+                for (int i = 0; i < rows; i++) {
+                    int y = startY + i * (rowHeight + 10);
+                    int w = getWidth() - 28;
+                    if (w <= 0) w = 600;
+
+                    // Khung hàng xám mờ
+                    g2.setColor(shimmerBg);
+                    g2.fillRoundRect(14, y, w, rowHeight, 10, 10);
+
+                    // Thumbnail ảnh bìa
+                    g2.setColor(shimmerBar);
+                    g2.fillRoundRect(26, y + 7, 32, 40, 6, 6);
+
+                    // Thanh tiêu đề dài
+                    g2.fillRoundRect(72, y + 14, Math.min(260, w / 3), 12, 6, 6);
+
+                    // Thanh tác giả
+                    g2.setColor(new Color(203, 213, 225)); // slate 300
+                    g2.fillRoundRect(72, y + 32, Math.min(150, w / 5), 8, 4, 4);
+
+                    // Thanh thể loại
+                    g2.setColor(shimmerBar);
+                    g2.fillRoundRect(Math.max(300, w - 210), y + 18, 80, 16, 8, 8);
+
+                    // Thanh tồn kho
+                    g2.setColor(new Color(254, 205, 211, 160)); // soft pink
+                    g2.fillRoundRect(Math.max(400, w - 100), y + 16, 70, 20, 10, 10);
+                }
+                g2.dispose();
+            }
+        };
+        skeletonPanel.setOpaque(false);
+        skeletonPanel.setPreferredSize(new Dimension(600, 220));
+        return skeletonPanel;
     }
 
     private JPanel createEmptyStatePanel() {

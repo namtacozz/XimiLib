@@ -64,6 +64,9 @@ public class ReaderHomePanel extends JPanel {
 
     private final JPanel loansContentPanel = new JPanel();
     private final JPanel newBooksGrid = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 12));
+    private JScrollPane newBooksScroll;
+    private SectionHeader loanHeader;
+    private javax.swing.Timer autoSlideTimer;
 
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
@@ -107,7 +110,7 @@ public class ReaderHomePanel extends JPanel {
         scrollContent.add(Box.createVerticalStrut(16));
 
         // 3. Sách bạn đang mượn
-        SectionHeader loanHeader = new SectionHeader(
+        loanHeader = new SectionHeader(
             "Sách bạn đang mượn",
             "Xem tất cả phiếu mượn",
             () -> navigationCallback.accept("MY_LOANS")
@@ -120,9 +123,9 @@ public class ReaderHomePanel extends JPanel {
         scrollContent.add(loansContentPanel);
         scrollContent.add(Box.createVerticalStrut(24));
 
-        // 4. Sách mới nhập
+        // 4. Sách mới nhập & Nổi bật (Carousel)
         SectionHeader booksHeader = new SectionHeader(
-            "Sách mới nhập",
+            "Sách mới nhập & Nổi bật",
             "Xem toàn bộ kho sách",
             () -> navigationCallback.accept("CATALOG")
         );
@@ -130,7 +133,14 @@ public class ReaderHomePanel extends JPanel {
         scrollContent.add(Box.createVerticalStrut(10));
 
         newBooksGrid.setOpaque(false);
-        scrollContent.add(newBooksGrid);
+        newBooksScroll = new JScrollPane(newBooksGrid);
+        newBooksScroll.setBorder(BorderFactory.createEmptyBorder());
+        newBooksScroll.setOpaque(false);
+        newBooksScroll.getViewport().setOpaque(false);
+        newBooksScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        newBooksScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        newBooksScroll.setPreferredSize(new Dimension(800, 240));
+        scrollContent.add(newBooksScroll);
 
         JScrollPane scrollPane = new JScrollPane(scrollContent);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -313,11 +323,26 @@ public class ReaderHomePanel extends JPanel {
             }
         }
 
-        // 3. Render danh sách sách đang mượn
-        renderActiveLoans(data.activeLoans());
+        User currentUser = UserSession.getCurrentUser();
+        if (currentUser != null && currentUser.isGuest()) {
+            lblGreeting.setText("Chào mừng quý khách đến với Thư viện XimiLib!");
+            lblCardTag.setText("Khách vãng lai");
+            alertBanner.setVisible(false);
+            if (loanHeader != null) loanHeader.setVisible(false);
+            loansContentPanel.setVisible(false);
+        } else {
+            if (loanHeader != null) loanHeader.setVisible(true);
+            loansContentPanel.setVisible(true);
+        }
 
-        // 4. Render danh sách sách mới nhập
+        // 3. Render danh sách sách đang mượn
+        if (currentUser == null || !currentUser.isGuest()) {
+            renderActiveLoans(data.activeLoans());
+        }
+
+        // 4. Render danh sách sách mới nhập & Khởi chạy Carousel trượt mượt mà
         renderNewBooks(data.newBooks());
+        startAutoSlide();
 
         revalidate();
         repaint();
@@ -519,5 +544,43 @@ public class ReaderHomePanel extends JPanel {
                 }
             }
         }.execute();
+    }
+
+    private void smoothScrollBooks(JScrollPane scroll, int delta) {
+        if (scroll == null) return;
+        JScrollBar bar = scroll.getHorizontalScrollBar();
+        int target = Math.max(0, Math.min(bar.getMaximum(), bar.getValue() + delta));
+        javax.swing.Timer timer = new javax.swing.Timer(15, null);
+        timer.addActionListener(new java.awt.event.ActionListener() {
+            int step = 0;
+            final int totalSteps = 12;
+            final int start = bar.getValue();
+            final int diff = target - start;
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                step++;
+                float progress = (float) step / totalSteps;
+                bar.setValue((int) (start + diff * progress));
+                if (step >= totalSteps) {
+                    timer.stop();
+                }
+            }
+        });
+        timer.start();
+    }
+
+    private void startAutoSlide() {
+        if (autoSlideTimer != null && autoSlideTimer.isRunning()) return;
+        autoSlideTimer = new javax.swing.Timer(4500, e -> {
+            if (newBooksScroll != null && newBooksScroll.isShowing()) {
+                JScrollBar bar = newBooksScroll.getHorizontalScrollBar();
+                if (bar.getValue() + bar.getVisibleAmount() >= bar.getMaximum() - 10) {
+                    smoothScrollBooks(newBooksScroll, -bar.getMaximum());
+                } else {
+                    smoothScrollBooks(newBooksScroll, 240);
+                }
+            }
+        });
+        autoSlideTimer.start();
     }
 }

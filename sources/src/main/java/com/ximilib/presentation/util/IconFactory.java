@@ -127,6 +127,36 @@ public class IconFactory {
     }
 
     /**
+     * Tạo icon Lưới (Grid) 2x2 ô vuông
+     */
+    public static Icon createGridIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            int box = (w - 3) / 2;
+            g2.fillRect(0, 0, box, box);
+            g2.fillRect(box + 3, 0, box, box);
+            g2.fillRect(0, box + 3, box, box);
+            g2.fillRect(box + 3, box + 3, box, box);
+        });
+    }
+
+    /**
+     * Tạo icon Danh sách (List/Table) 3 vạch ngang kèm chấm đầu dòng
+     */
+    public static Icon createListIcon(Color color, int size) {
+        return new VectorIcon(size, size, color, (g2, w, h, c) -> {
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(1.8f));
+            int gap = h / 4;
+            for (int i = 1; i <= 3; i++) {
+                int y = i * gap;
+                g2.fillOval(1, y - 2, 3, 3);
+                g2.drawLine(6, y, w - 2, y);
+            }
+        });
+    }
+
+    /**
      * Tạo icon Mặt Trên Bàn Chế Tạo 2D (Crafting Grid 3x3) của Bàn Lưu Hành.
      * Tái hiện chính xác 100% mặt trên cùng của khối Crafting Table người dùng gửi:
      * Khung vuông viền gỗ với 4 chốt góc và lưới chế tạo 3x3 (9 ô vuông phẳng).

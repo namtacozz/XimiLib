@@ -13,6 +13,7 @@ public class UserSession {
 
     private static final List<User> USERS = new CopyOnWriteArrayList<>();
     private static volatile User currentUser = null;
+    private static volatile String catalogViewMode = "TABLE";
 
     static {
         resetDefaultUsers();
@@ -107,5 +108,17 @@ public class UserSession {
 
     public static List<User> getAllUsers() {
         return USERS;
+    }
+
+    public static String getCatalogViewMode() {
+        return catalogViewMode;
+    }
+
+    public static void setCatalogViewMode(String mode) {
+        if ("GRID".equalsIgnoreCase(mode)) {
+            catalogViewMode = "GRID";
+        } else {
+            catalogViewMode = "TABLE";
+        }
     }
 }

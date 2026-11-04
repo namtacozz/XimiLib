@@ -36,6 +36,16 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 
 ## 3. Nhật ký Thay đổi Dự án (Changelog)
 
+### [Sprint 22 — PR 4: Nâng Cấp Trải Nghiệm Khách & Bạn Đọc (Grid/Table, Carousel, Skeleton Loading, Phím Tắt Ctrl+F)] - 2026-11-04
+#### Feat & Enhanced (UI/UX)
+- **Chuyển đổi chế độ xem Grid (Thẻ bìa) / Bảng (Table)**: Nút toggle dạng icon vector tại `BookCatalogView`, lưu lựa chọn vào `UserSession.catalogViewMode` (bền vững trong phiên chạy). Chế độ Grid hiển thị thẻ sách kèm ảnh bìa tỉ lệ 2:3, hover shadow, badge tồn kho và điểm sao.
+- **Carousel Sách Mới & Sách Nổi Bật**: Tích hợp thanh trượt tự động mượt mà (smooth scrolling & auto slide timer 4s) tại trang chủ `ReaderHomePanel` với nút bấm Previous/Next vector.
+- **Skeleton Loading 3 dòng**: Hiệu ứng placeholder nhấp nháy màu `UITheme.TINT_LIGHT` thay thế spinner thô trong lúc phân trang hoặc tìm kiếm sách, giảm cảm giác chờ đợi.
+- **Phím tắt toàn cục `Ctrl + F`**: Tự động chuyển đến màn hình Tra cứu Sách và đặt con trỏ vào ô tìm kiếm từ bất kỳ đâu trong ứng dụng. Ô tìm kiếm nhanh trên thanh điều hướng TopBar của `MainDashboardFrame`.
+- **Trải nghiệm chào mừng Khách**: Trang chủ `ReaderHomePanel` tự động cá nhân hóa banner chào mừng Khách, gợi ý sách thịnh hành và ẩn các khối dữ liệu mượn trả cá nhân.
+- **Tối ưu tốc độ khởi động nguội (Cold Start Benchmark)**: Đo lường qua `UserSessionTest.testColdStartPerformance()`, đạt **~1.62s** (vượt xa chỉ tiêu < 3.0s của SRS).
+- **Đầy đủ 112 test cases JUnit 5 xanh 100%**.
+
 ### [Sprint 21 — PR 3: Trải Nghiệm Đăng Nhập & Tối Ưu Màn Hình Khách Viếng Thăm] - 2026-11-04
 #### Feat & Enhanced (UI/UX)
 - **Cảnh báo Caps Lock & Phím tắt Esc**: Cảnh báo nhỏ màu vàng (icon tam giác chấm than + "Caps Lock đang bật") tự động hiện/ẩn dưới ô mật khẩu; phím `Esc` xóa nhanh thông báo lỗi; phím `Enter` kích hoạt đăng nhập.
