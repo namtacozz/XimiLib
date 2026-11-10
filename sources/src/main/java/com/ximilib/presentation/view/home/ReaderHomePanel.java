@@ -260,7 +260,7 @@ public class ReaderHomePanel extends JPanel {
                             }
                         }
                     );
-                } else {
+                } else if (action == SimpleModalBorder.CANCEL_OPTION || action == SimpleModalBorder.CLOSE_OPTION) {
                     controller.close();
                 }
             }

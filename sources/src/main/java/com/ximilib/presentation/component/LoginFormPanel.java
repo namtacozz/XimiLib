@@ -279,7 +279,7 @@ public class LoginFormPanel extends JPanel {
         registerRow.add(lblNoAcc);
         registerRow.add(lblRegisterNow);
 
-        JLabel lblFooter = new JLabel("© 2026 XimiLib • Trường ĐHBK Đà Nẵng", SwingConstants.CENTER);
+        JLabel lblFooter = new JLabel("© 2026 XimiLib • Thư viện làng Xì Mi", SwingConstants.CENTER);
         lblFooter.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         lblFooter.setForeground(UITheme.TEXT_MUTED);
         lblFooter.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -567,9 +567,14 @@ public class LoginFormPanel extends JPanel {
             } else {
                 setFormInteractive(true);
                 btnLogin.setText("ĐĂNG NHẬP");
-                showInlineError(result.getErrorMessage());
-                txtPassword.setText("");
+                String errorMsg = result.getErrorMessage();
+                if (result.getFailedAttempts() > 0 && result.getFailedAttempts() < 5) {
+                    int remaining = 5 - result.getFailedAttempts();
+                    errorMsg += " (Sai " + result.getFailedAttempts() + "/5 lần, còn " + remaining + " lần)";
+                }
+                showInlineError(errorMsg);
                 txtPassword.requestFocusInWindow();
+                txtPassword.selectAll();
             }
         }
     }

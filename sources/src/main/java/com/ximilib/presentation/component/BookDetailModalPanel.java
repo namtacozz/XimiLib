@@ -502,7 +502,7 @@ public class BookDetailModalPanel extends JPanel {
             return "Kiệt tác viễn tưởng về hành tinh sa mạc Arrakis, cuộc tranh giành hương dược và số phận của Paul Atreides.";
         } else {
             return "Tác phẩm tiêu biểu thuộc danh mục " + (book.getCategoryName() != null ? book.getCategoryName() : "Thư viện")
-                 + ", phục vụ bạn đọc tra cứu tại Thư viện ĐHBK Đà Nẵng.";
+                 + ", phục vụ bạn đọc tra cứu tại Thư viện làng Xì Mi.";
         }
     }
 
@@ -536,7 +536,7 @@ public class BookDetailModalPanel extends JPanel {
                  + "Sách hướng dẫn cách viết mã nguồn sạch, dễ đọc, dễ kiểm thử và có khả năng mở rộng lâu dài; áp dụng thuần thục các nguyên lý SOLID, mẫu thiết kế hướng đối tượng và kỹ thuật tối ưu hóa kiến trúc ứng dụng.";
         } else {
             return "Tác phẩm tiêu biểu thuộc danh mục " + cat + " của tác giả " + author + ".\n\n"
-                 + "Sách được tuyển chọn và đưa vào phục vụ học tập, tra cứu và nghiên cứu chuyên sâu tại Thư viện ĐHBK Đà Nẵng. Nội dung cung cấp nền tảng lý luận vững chắc, kết hợp với các ví dụ thực tiễn sinh động, giúp bạn đọc mở rộng thế giới quan và nâng cao kiến thức chuyên môn.";
+                 + "Sách được tuyển chọn và đưa vào phục vụ học tập, tra cứu và nghiên cứu chuyên sâu tại Thư viện làng Xì Mi. Nội dung cung cấp nền tảng lý luận vững chắc, kết hợp với các ví dụ thực tiễn sinh động, giúp bạn đọc mở rộng thế giới quan và nâng cao kiến thức chuyên môn.";
         }
     }
 

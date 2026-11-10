@@ -87,7 +87,7 @@ public class FeedbackManagementView extends JPanel {
             )
         ));
 
-        JLabel lblDesc = new JLabel("Mọi ý kiến đóng góp của bạn đọc giúp Thư viện ĐHBK nâng cao chất lượng phục vụ:");
+        JLabel lblDesc = new JLabel("Mọi ý kiến đóng góp của bạn đọc giúp Thư viện làng Xì Mi nâng cao chất lượng phục vụ:");
         lblDesc.setFont(UITheme.FONT_REGULAR);
         lblDesc.setForeground(UITheme.TEXT_MUTED);
         panel.add(lblDesc);

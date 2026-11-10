@@ -51,7 +51,7 @@ public class SidebarPanel extends JPanel {
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblTitle.setForeground(UITheme.TEXT_MAIN);
 
-        JLabel lblSub = new JLabel("Thư viện ĐHBK Đà Nẵng");
+        JLabel lblSub = new JLabel("Thư viện làng Xì Mi");
         lblSub.setFont(UITheme.FONT_BADGE);
         lblSub.setForeground(UITheme.TEXT_MUTED);
 

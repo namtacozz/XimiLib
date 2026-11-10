@@ -100,7 +100,7 @@ public class DigitalCardPopupPanel extends GlassPaneChild {
         lblNumber.setForeground(UITheme.TEXT_MAIN);
         lblNumber.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel lblName = new JLabel(memberName + " • ĐHBK Đà Nẵng");
+        JLabel lblName = new JLabel(memberName + " • Thư viện làng Xì Mi");
         lblName.setFont(UITheme.FONT_SMALL);
         lblName.setForeground(UITheme.TEXT_MUTED);
         lblName.setAlignmentX(Component.CENTER_ALIGNMENT);

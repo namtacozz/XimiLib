@@ -1,7 +1,7 @@
 # XimiLib — Hệ Thống Quản Lý Thư Viện (Library Management System)
 
-> **Đồ án PBL3:** Hệ thống Quản lý Thư viện Desktop đa nền tảng (Windows / macOS / Linux)  
-> **Khoa Công nghệ Thông tin — Trường Đại học Bách Khoa, Đại học Đà Nẵng**  
+> **Thư viện làng Xì Mi:** Hệ thống Quản lý Thư viện Desktop đa nền tảng (Windows / macOS / Linux)  
+> **Đơn vị vận hành: Thư viện làng Xì Mi**  
 > **Phiên bản:** `1.1.0` | **Nền tảng:** `Java 25 LTS (Swing FlatLaf)` + `MySQL 8.0+` (JDBC thuần `DriverManager`)
 
 ---

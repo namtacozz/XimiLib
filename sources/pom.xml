@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
 
     <name>XimiLib - Hệ Thống Quản Lý Thư Viện</name>
-    <description>Hệ thống Quản lý Thư viện Java Desktop 3 tầng - Đồ án PBL Trường ĐHBK Đà Nẵng</description>
+    <description>Hệ thống Quản lý Thư viện Java Desktop 3 tầng - Thư viện làng Xì Mi</description>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

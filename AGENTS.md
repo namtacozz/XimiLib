@@ -12,7 +12,7 @@ Quy ước nhãn: [TBD] = chưa chốt, cần xác nhận | [ASSUMPTION] = đề
 > Đọc file này đầu tiên. Chi tiết nằm trong `docs/`; file này chỉ giữ quy tắc cốt lõi và con trỏ.
 
 ## 1. Tổng quan
-- **XimiLib**: ứng dụng desktop quản lý thư viện, đồ án PBL – Trường ĐH Bách Khoa, ĐH Đà Nẵng.
+- **XimiLib**: ứng dụng desktop quản lý thư viện cá nhân – Thư viện làng Xì Mi.
 - **Stack**: Java 25 LTS, Swing + FlatLaf (`flatlaf`, `flatlaf-extras`, `miglayout-swing`), DJ-Raven Suite (`modal-dialog`, `swing-glasspane-popup`, `swing-datetime-picker`), MySQL 8.0+ tập trung (JDBC thuần `DriverManager`), BCrypt (`jbcrypt`), JUnit 5.
 - **Danh mục thư viện đã duyệt (Whitelist)**: `flatlaf`, `flatlaf-extras`, `miglayout-swing`, `modal-dialog`, `swing-glasspane-popup`, `swing-datetime-picker`, `jbcrypt`, `mysql-connector-j`, `org.apache.poi:poi-ooxml` (phiên bản `5.2.5` - chỉ dùng cho xuất báo cáo Excel định dạng `.xlsx`).
 - **Kiến trúc**: Clean Architecture (`presentation → application → domain ← infrastructure`), Pure DI tại Composition Root, Repository Pattern, Observer kết hợp quét DB định kỳ để đồng bộ nhiều máy.

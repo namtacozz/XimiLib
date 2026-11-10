@@ -9,25 +9,31 @@ public class LoginResult {
     private final String errorCode;
     private final String errorMessage;
     private final long remainingLockMinutes;
+    private final int failedAttempts;
 
-    private LoginResult(boolean success, User user, String errorCode, String errorMessage, long remainingLockMinutes) {
+    private LoginResult(boolean success, User user, String errorCode, String errorMessage, long remainingLockMinutes, int failedAttempts) {
         this.success = success;
         this.user = user;
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
         this.remainingLockMinutes = remainingLockMinutes;
+        this.failedAttempts = failedAttempts;
     }
 
     public static LoginResult success(User user) {
-        return new LoginResult(true, user, null, null, 0);
+        return new LoginResult(true, user, null, null, 0, 0);
     }
 
     public static LoginResult fail(String errorCode, String errorMessage) {
-        return new LoginResult(false, null, errorCode, errorMessage, 0);
+        return new LoginResult(false, null, errorCode, errorMessage, 0, 0);
+    }
+
+    public static LoginResult fail(String errorCode, String errorMessage, int failedAttempts) {
+        return new LoginResult(false, null, errorCode, errorMessage, 0, failedAttempts);
     }
 
     public static LoginResult locked(long remainingLockMinutes, String message) {
-        return new LoginResult(false, null, "AUTH_002", message, remainingLockMinutes);
+        return new LoginResult(false, null, "AUTH_002", message, remainingLockMinutes, 5);
     }
 
     public boolean isSuccess() {
@@ -48,5 +54,9 @@ public class LoginResult {
 
     public long getRemainingLockMinutes() {
         return remainingLockMinutes;
+    }
+
+    public int getFailedAttempts() {
+        return failedAttempts;
     }
 }

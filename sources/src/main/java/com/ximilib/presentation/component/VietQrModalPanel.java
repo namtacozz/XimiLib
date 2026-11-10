@@ -25,8 +25,8 @@ public class VietQrModalPanel extends JPanel {
     private final Runnable onSuccessCallback;
 
     private static final String BANK_ID = "MB";
-    private static final String ACCOUNT_NO = "0905123456";
-    private static final String ACCOUNT_NAME = "THU VIEN DHBK DA NANG";
+    private static final String ACCOUNT_NO = "99924052005";
+    private static final String ACCOUNT_NAME = "LE VO THANH NAM";
     private static final String SEPAY_API_KEY = "TPVNCPL47LCUO5GLMHD6YXWYVOWQTX81Z9BBGSKA2N0XGYQYVZRIRIEURDOI3AUE";
 
     private JLabel qrImageLabel;
@@ -94,7 +94,7 @@ public class VietQrModalPanel extends JPanel {
         detailsPanel.setOpaque(false);
         detailsPanel.setBorder(BorderFactory.createEmptyBorder(6, 4, 6, 4));
 
-        detailsPanel.add(createRow("Ngân hàng:", "MB Bank - Ngân hàng Quân Đội"));
+        detailsPanel.add(createRow("Ngân hàng:", "MB Bank (MBVit)"));
         detailsPanel.add(createRow("Số tài khoản:", ACCOUNT_NO + " (" + ACCOUNT_NAME + ")"));
         detailsPanel.add(createRow("Nội dung CK:", "XML" + fineTicketId));
         detailsPanel.add(createRow("Cổng SePay:", "Napas247 Tự Động"));
@@ -182,10 +182,22 @@ public class VietQrModalPanel extends JPanel {
 
                     URL url = URI.create(qrUrl).toURL();
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    conn.setConnectTimeout(1500);
-                    conn.setReadTimeout(1500);
-                    conn.setRequestProperty("User-Agent", "XimiLib/1.0");
+                    conn.setInstanceFollowRedirects(true);
+                    conn.setConnectTimeout(4000);
+                    conn.setReadTimeout(4000);
+                    conn.setRequestProperty("User-Agent", "Mozilla/5.0");
                     conn.setRequestProperty("Authorization", "Apikey " + SEPAY_API_KEY);
+
+                    int responseCode = conn.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_MOVED_PERM || responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {
+                        String newUrl = conn.getHeaderField("Location");
+                        if (newUrl != null && !newUrl.isBlank()) {
+                            conn = (HttpURLConnection) URI.create(newUrl).toURL().openConnection();
+                            conn.setConnectTimeout(4000);
+                            conn.setReadTimeout(4000);
+                            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+                        }
+                    }
 
                     BufferedImage img = ImageIO.read(conn.getInputStream());
                     if (img != null) {

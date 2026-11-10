@@ -40,7 +40,7 @@ public class HelpGuideModalPanel extends JPanel {
         lblTitle.setFont(UITheme.FONT_TITLE_LARGE);
         lblTitle.setForeground(UITheme.PRIMARY);
 
-        JLabel lblSub = new JLabel("Quy định mượn trả và dịch vụ thư viện – ĐHBK Đà Nẵng");
+        JLabel lblSub = new JLabel("Quy định mượn trả và dịch vụ Thư viện làng Xì Mi");
         lblSub.setFont(UITheme.FONT_REGULAR);
         lblSub.setForeground(UITheme.TEXT_MUTED);
 
@@ -87,8 +87,8 @@ public class HelpGuideModalPanel extends JPanel {
                 </ul>
 
                 <h4 style='color:#DB2777; margin-bottom:4px;'>5. Hỗ Trợ & Liên Hệ</h4>
-                <p>📍 Địa chỉ: 54 Nguyễn Lương Bằng, Hòa Khánh Bắc, Liên Chiểu, Đà Nẵng.<br>
-                ☎️ Hotline hỗ trợ: <b>0236 3842 323</b> | 📧 Email: <b>thuvien@dut.udn.vn</b></p>
+                <p>📍 Địa chỉ: Thôn Xì Mi, Xã Tri Thức, Huyện Bình Yên.<br>
+                ☎️ Hotline hỗ trợ: <b>0999 240 520</b> | 📧 Email: <b>thuvienlangximi@gmail.com</b></p>
             </body>
             </html>
         """);

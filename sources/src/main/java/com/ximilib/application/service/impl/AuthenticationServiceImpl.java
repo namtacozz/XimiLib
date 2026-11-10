@@ -135,7 +135,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 try {
                     repo.updateFailedAttempts(user.getId(), attempts, null);
                 } catch (Exception ignored) {}
-                return LoginResult.fail("AUTH_001", "Tên đăng nhập hoặc mật khẩu không chính xác.");
+                return LoginResult.fail("AUTH_001", "Tên đăng nhập hoặc mật khẩu không chính xác.", attempts);
             }
         }
 
