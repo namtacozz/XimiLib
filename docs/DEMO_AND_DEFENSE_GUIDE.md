@@ -67,7 +67,7 @@ flowchart LR
   - Mở `ReportsDashboardView`, xem các biểu đồ phân tích mượn trả và top sách.
   - Bấm **Xuất Excel**, mở file `.xlsx` định dạng Apache POI vừa xuất ra màn hình.
 - **Lời kết:**
-  > *"Toàn bộ hệ thống được xây dựng trên nền tảng Clean Architecture kết hợp 121 bài kiểm thử tự động JUnit 5 bao phủ toàn bộ nghiệp vụ và kiểm tra phong cách mã nguồn. Em xin kết thúc phần demo và sẵn sàng nhận câu hỏi từ quý thầy cô."*
+  > *"Toàn bộ hệ thống được xây dựng trên nền tảng Clean Architecture với các quy tắc nghiệp vụ chặt chẽ, tối giản và được kiểm thử tự động bằng JUnit 5. Em xin kết thúc phần demo và sẵn sàng nhận câu hỏi từ quý thầy cô."*
 
 ---
 
@@ -93,4 +93,4 @@ flowchart LR
 | **9** | **Tại sao lưu trữ tiền tệ dùng `BigDecimal` mà không dùng `double` hay `float`?** | `double`/`float` biểu diễn dấu phẩy động nhị phân nên bị sai số làm tròn số học (ví dụ: `0.1 + 0.2 != 0.3`). Trong nghiệp vụ tài chính, bắt buộc dùng `BigDecimal` (Java) kết hợp `DECIMAL(12,2)` (MySQL) để đảm bảo độ chính xác tuyệt đối từng đồng. | `docs\DATABASE_SCHEMA.md`<br>`sources\src\main\java\com\ximilib\domain\model\LibraryPolicy.java` |
 | **10** | **Làm thế nào để các tác vụ nặng (truy vấn DB, đối soát QR, xuất Excel) không làm đơ giao diện Swing?** | Tuân thủ nghiêm ngặt quy tắc luồng Swing: Toàn bộ tác vụ I/O, Database, mạng được đưa ra luồng nền xử lý (`SwingWorker` hoặc `ExecutorService`). Sau khi hoàn tất, kết quả mới được chuyển ngược lại luồng giao diện **EDT (`SwingUtilities.invokeLater`)** để cập nhật UI. | `sources\src\main\java\com\ximilib\presentation\util\UiModalHelper.java` |
 | **11** | **Bảo mật và chống tấn công trong hệ thống được xử lý ra sao?** | - **Mật khẩu:** Băm một chiều bằng **BCrypt** với muối ngẫu nhiên.<br>- **Dữ liệu nhạy cảm:** Số CCCD mã hóa đối xứng **AES-256**.<br>- **SQL Injection:** 100% sử dụng **`PreparedStatement`** với tham số `?`.<br>- **Kiểm toán:** Mọi hành vi sửa đổi dữ liệu quan trọng đều được ghi vết vào bảng `auditlog`. | `sources\src\main\java\com\ximilib\application\service\impl\AuthenticationServiceImpl.java`<br>`sources\src\main\java\com\ximilib\infrastructure\persistence\impl\UserRepositoryImpl.java` |
-| **12** | **Làm sao chứng minh hệ thống chạy ổn định và không phát sinh lỗi tiềm ẩn?** | Nhóm đã thiết kế bộ **121 bài kiểm thử tự động (JUnit 5)** gồm cả Unit Test kiểm tra các biên công thức nghiệp vụ, quy tắc kiến trúc (`StyleRuleTest`) và Integration Test chạy trực tiếp trên cơ sở dữ liệu MySQL thật. | `sources\src\test\java\com\ximilib\` |
+| **12** | **Làm sao chứng minh hệ thống chạy ổn định và không phát sinh lỗi tiềm ẩn?** | Nhóm tập trung thiết kế các bài **Unit Test tự động (JUnit 5)** tối giản, độc lập và chạy in-memory để kiểm tra nghiêm ngặt toàn bộ các công thức nghiệp vụ cốt lõi: tính tiền phạt trễ hạn theo ngày, bồi thường mất sách 200%, hạn mức mượn 3 cuốn, và kiểm soát an toàn bảo mật tài khoản. | `sources\src\test\java\com\ximilib\` |

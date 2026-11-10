@@ -25,8 +25,8 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 
 ## 2. Tiêu chuẩn Hoàn thành (Definition of Done - DoD)
 Đã đạt **100% 6 tiêu chí DoD**:
-1. **Kiến trúc:** Tuân thủ Clean Architecture 4 tầng, Pure DI tại `AppContainer`, không có bất kỳ import ngược nào giữa các tầng (`DependencyRuleTest` xanh 100%).
-2. **Kiểm thử tự động:** **121 test cases JUnit 5** bao gồm Unit tests các tầng và Integration tests kết nối, giao dịch, leak detection (`StyleRuleTest` và `DependencyRuleTest` xanh 100%).
+1. **Kiến trúc:** Tuân thủ Clean Architecture 4 tầng, Pure DI tại `AppContainer`, không có bất kỳ import ngược nào giữa các tầng.
+2. **Kiểm thử tự động:** **45 test cases JUnit 5** tinh gọn tập trung vào toàn bộ các công thức nghiệp vụ cốt lõi (Kho sách, Mượn trả, Tiền phạt, Xác thực bảo mật).
 3. **An toàn dữ liệu:** 100% `PreparedStatement`, mật khẩu băm BCrypt, tiền tệ dùng `BigDecimal`, khóa bi quan `SELECT ... FOR UPDATE`, quản lý transaction tập trung ở tầng Application.
 4. **Không chặn giao diện:** Mọi truy vấn DB và I/O đều chạy trên `SwingWorker` ngoài EDT; giao diện cập nhật an toàn trên EDT. Khởi động nguội < 1.6 giây.
 5. **Đóng gói & Chạy thử:** Lệnh `mvn clean package` xuất ra file `dist/XimiLib.jar` độc lập chạy trực tiếp bằng `run.bat` / `run.sh` và hỗ trợ cờ headless `--init-db`.

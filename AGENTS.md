@@ -5,7 +5,7 @@ Quy ước nhãn: [TBD] = chưa chốt, cần xác nhận | [ASSUMPTION] = đề
 -->
 
 > [!IMPORTANT]
-> **Mọi sửa đổi, kể cả do AI thực hiện, phải tuân thủ §10 và qua `StyleRuleTest`. Không đưa lại comment, stream, Optional, tên tiếng Việt vào mã.**
+> **Mọi sửa đổi, kể cả do AI thực hiện, phải tuân thủ §10. Không đưa lại comment, stream, Optional, tên tiếng Việt vào mã.**
 
 # AGENTS.md — Điểm vào cho AI Agent (XimiLib)
 
@@ -36,7 +36,7 @@ Quy ước nhãn: [TBD] = chưa chốt, cần xác nhận | [ASSUMPTION] = đề
 
 ## 4. Lệnh build, test, chạy
 - Build: `mvn clean package -f sources/pom.xml -DskipTests` (hoặc `run.bat` / `scripts/build.bat`)
-- Test: `mvn test -f sources/pom.xml` (gồm 121 test cases: unit tests + IT MySQL thật)
+- Test: `mvn test -f sources/pom.xml` (gồm 45 test cases Unit tests nghiệp vụ cốt lõi in-memory)
 - Chạy: `java -jar dist/XimiLib.jar` (hoặc `run.bat`)
 - Khởi tạo DB: `java -jar dist/XimiLib.jar --init-db` (tự động nạp schema và toàn bộ migration V1 -> V5), hoặc chạy thủ công nạp migrations V1..V5 và `db/seed/seed_books.sql` (221 đầu sách, 62 tác giả, 11 thể loại, 20 NXB).
 - Cấu hình kết nối DB qua biến môi trường: `XIMILIB_DB_HOST` (mặc định localhost), `XIMILIB_DB_PORT` (3306), `XIMILIB_DB_NAME` (ximilib_db), `XIMILIB_DB_USER` (ximilib_app), `XIMILIB_DB_PASS` (hoặc `MYSQL_PWD`). Tuyệt đối không commit mật khẩu.
