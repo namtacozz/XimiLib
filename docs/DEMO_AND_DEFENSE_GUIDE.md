@@ -94,3 +94,20 @@ flowchart LR
 | **10** | **Làm thế nào để các tác vụ nặng (truy vấn DB, đối soát QR, xuất Excel) không làm đơ giao diện Swing?** | Tuân thủ nghiêm ngặt quy tắc luồng Swing: Toàn bộ tác vụ I/O, Database, mạng được đưa ra luồng nền xử lý (`SwingWorker` hoặc `ExecutorService`). Sau khi hoàn tất, kết quả mới được chuyển ngược lại luồng giao diện **EDT (`SwingUtilities.invokeLater`)** để cập nhật UI. | `sources\src\main\java\com\ximilib\presentation\util\UiModalHelper.java` |
 | **11** | **Bảo mật và chống tấn công trong hệ thống được xử lý ra sao?** | - **Mật khẩu:** Băm một chiều bằng **BCrypt** với muối ngẫu nhiên.<br>- **Dữ liệu nhạy cảm:** Số CCCD mã hóa đối xứng **AES-256**.<br>- **SQL Injection:** 100% sử dụng **`PreparedStatement`** với tham số `?`.<br>- **Kiểm toán:** Mọi hành vi sửa đổi dữ liệu quan trọng đều được ghi vết vào bảng `auditlog`. | `sources\src\main\java\com\ximilib\application\service\impl\AuthenticationServiceImpl.java`<br>`sources\src\main\java\com\ximilib\infrastructure\persistence\impl\UserRepositoryImpl.java` |
 | **12** | **Làm sao chứng minh hệ thống chạy ổn định và không phát sinh lỗi tiềm ẩn?** | Nhóm tập trung thiết kế các bài **Unit Test tự động (JUnit 5)** tối giản, độc lập và chạy in-memory để kiểm tra nghiêm ngặt toàn bộ các công thức nghiệp vụ cốt lõi: tính tiền phạt trễ hạn theo ngày, bồi thường mất sách 200%, hạn mức mượn 3 cuốn, và kiểm soát an toàn bảo mật tài khoản. | `sources\src\test\java\com\ximilib\` |
+| **13** | **Tại sao không dùng Spring Boot mà tự viết Pure Dependency Injection (`AppContainer`)?** | XimiLib là ứng dụng Desktop Client. Spring Boot có độ trễ lớn khi khởi động (quét classpath, reflection, tốn RAM). Tự viết Pure DI qua `AppContainer` (Singleton Composition Root) giúp ứng dụng khởi động tức thì dưới 1 giây, tránh xung đột vòng đời với luồng Swing EDT và dễ viết Unit Test độc lập. | `sources\src\main\java\com\ximilib\infrastructure\config\AppContainer.java` |
+| **14** | **Tác vụ kiểm tra phiếu mượn quá hạn hàng ngày hoạt động thế nào?** | Ứng dụng dùng `BackgroundJobManager` chạy luồng daemon qua `ScheduledExecutorService`. Định kỳ mỗi 1 giờ, hệ thống quét bảng `phieumuon`: các phiếu đang ở trạng thái mượn (`Trangthai = 1`) mà `Hantranhan < NOW()` sẽ tự động chuyển sang quá hạn (`Trangthai = 3`). | `sources\src\main\java\com\ximilib\infrastructure\jobs\BackgroundJobManager.java` |
+
+---
+
+# PHẦN 3: BẢNG TRA CỨU NHANH 8 CHỨC NĂNG NGHIỆP VỤ CỐT LÕI
+
+| STT | Nghiệp Vụ | Màn Hình (View) | Service Xử Lý | Bảng CSDL Chính | Quy Tắc Liên Quan |
+|:---:|---|---|---|---|---|
+| **1** | **Đăng nhập & Khóa TK** | `LoginFormPanel` | `AuthenticationService` | `nguoidung` | BR-01, DEV-02, R-08 |
+| **2** | **Đăng ký độc giả** | `RegisterForm` | `AuthenticationService` | `nguoidung`, `thethuvien` | BR-10, BR-11, YC-02 |
+| **3** | **Tra cứu kho sách** | `BookCatalogView` | `BookCatalogService` | `sach`, `theloai`, `tacgia` | UC 3.2.4, BR-13 |
+| **4** | **Bàn lưu hành mượn sách** | `CirculationDeskView` | `CirculationService` | `phieumuon`, `cuonsach` | BR-02..BR-05, R-05 |
+| **5** | **Trả sách & Phạt trễ** | `ReturnAndCompensationView` | `CirculationService` | `phieumuon`, `phieuphat` | BR-06, BR-07 |
+| **6** | **Báo mất & Bồi thường 2 bước** | `ReturnAndCompensationView` | `CirculationService` | `phieumuon`, `phieuphat`, `cuonsach` | BR-08, R-10, UC 3.2.9 |
+| **7** | **Thanh toán VietQR Napas247** | `VietQrModalPanel` | `PaymentService` / `CirculationService` | `thanhtoan`, `phieuphat` | F-05, YC-06 |
+| **8** | **Thống kê & Xuất Excel POI** | `ReportsDashboardView` | `DashboardService` / `ReportExporter` | 23 bảng CSDL | F-12, YC-07, DEV-05 |

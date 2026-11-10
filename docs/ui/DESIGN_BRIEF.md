@@ -1,6 +1,6 @@
 # BẢN ĐẶC TẢ HỆ THỐNG THIẾT KẾ XIMILIB (DESIGN BRIEF)
 
-> Tài liệu thiết kế giao diện đồ họa XimiLib theo chuẩn Benji Taylor (`stageshow`) kết hợp FlatLaf.
+> Tài liệu thiết kế giao diện đồ họa XimiLib theo phong cách FlatLaf hiện đại kết hợp bảng màu pastel thanh lịch.
 > Mục tiêu: Tinh gọn, thẩm mỹ pastel hiện đại, trực quan, phân cấp thị giác rõ ràng, hoàn toàn miễn nhiễm với lỗi font Unicode và đạt chuẩn tiếp cận WCAG 2.2 AA.
 
 ---

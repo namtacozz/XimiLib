@@ -1,5 +1,5 @@
 # ========================================================
-# Git Ignore: XimiLib (Enterprise Java 17 + MySQL Desktop)
+# Git Ignore: XimiLib (Java Desktop Application)
 # ========================================================
 
 # Compiled class files & build artifacts
@@ -7,7 +7,7 @@
 target/
 sources/target/
 
-# Package Files (except release dist JAR if tracked)
+# Package Files
 *.war
 *.nar
 *.ear
@@ -20,22 +20,19 @@ sources/dependency-reduced-pom.xml
 
 # Runtime logs
 *.log
-logs/*
-!logs/.gitkeep
+logs/
 sources/logs/
 
 # Sensitive configurations
 config/db.properties
 
-# Database backups (preserve folder structure)
-# Temporary development & backup folders
+# Database backups & Temporary development folders
 backups/
 import-report/
 tools/
 *.bak
 *.orig
 *.tmp
-
 
 # IDE & Editor specific files
 .vscode/.project
@@ -54,11 +51,5 @@ Thumbs.db
 .DS_Store
 desktop.ini
 $RECYCLE.BIN/
-
-
-# Heavy 3D assets (>100MB exceeds GitHub limits)
-assets/3dmodels/
-*.glb
-*.blend
 
 ~$*.docx

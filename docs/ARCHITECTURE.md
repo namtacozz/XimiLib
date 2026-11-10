@@ -1,4 +1,4 @@
-# Version: 1.3 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: ../AGENTS.md, DATABASE_SCHEMA.md, BUSINESS_RULES.md, PROJECT_STATUS.md, TRACEABILITY.md
+# Version: 1.3 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: DATABASE_SCHEMA.md, BUSINESS_RULES.md, PROJECT_STATUS.md, TRACEABILITY.md, CODING_STYLE.md
 
 # ARCHITECTURE.md — Kiến trúc Hệ thống XimiLib (Clean Architecture)
 
@@ -378,7 +378,7 @@ public interface PaymentGateway {
 - **Biến & Thuộc tính (Variable/Field):** Đặt theo `camelCase` mô tả rõ mục đích (`bookTitle`, `overdueDays`, `finePerDay`, `readerCardId`). Biến boolean bắt đầu bằng `is/has/can`.
 - **Hằng số (Constants):** Đặt theo `UPPER_SNAKE_CASE` khai báo tập trung một nơi (`MAX_BORROW_COUNT`, `BORROW_DAYS`, `FINE_PER_DAY`).
 - **Database Mapping:** Giữ nguyên tên bảng/cột MySQL trong câu SQL; ánh xạ sang định danh tiếng Anh ở Java (`Masach` -> `bookId`, `Maphieumuon` -> `loanId`, `Tienphat` -> `fineAmount`, `Tensach` -> `title`). Chuỗi SQL đặt trong hằng số tên rõ nghĩa.
-- **Chuỗi hiển thị UI:** 100% chuỗi tiếng Việt có dấu đưa vào lớp `UiText`. Mọi mã màu đưa vào `UITheme`. Chi tiết xem `docs/CODING_STYLE.md` và `AGENTS.md` §10.
+- **Chuỗi hiển thị UI:** 100% chuỗi tiếng Việt có dấu đưa vào lớp `UiText`. Mọi mã màu đưa vào `UITheme`. Chi tiết xem `docs/CODING_STYLE.md`.
 
 ### 7.2 Quản lý Ngoại lệ (Exception Handling Matrix)
 Sử dụng kiến trúc Custom Unchecked Exceptions kế thừa từ `XimiException`:

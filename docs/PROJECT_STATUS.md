@@ -1,4 +1,4 @@
-# Version: 1.5 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: ../AGENTS.md, ARCHITECTURE.md, DATABASE_SCHEMA.md, BUSINESS_RULES.md, VAN_DAP.md, TRACEABILITY.md
+# Version: 1.5 | Last updated: 2026-11-04 | Related files: ARCHITECTURE.md, DATABASE_SCHEMA.md, BUSINESS_RULES.md, DEMO_AND_DEFENSE_GUIDE.md, TRACEABILITY.md
 
 # PROJECT_STATUS.md — Trạng thái Dự án & Lộ trình Phát triển XimiLib
 
@@ -30,246 +30,29 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 3. **An toàn dữ liệu:** 100% `PreparedStatement`, mật khẩu băm BCrypt, tiền tệ dùng `BigDecimal`, khóa bi quan `SELECT ... FOR UPDATE`, quản lý transaction tập trung ở tầng Application.
 4. **Không chặn giao diện:** Mọi truy vấn DB và I/O đều chạy trên `SwingWorker` ngoài EDT; giao diện cập nhật an toàn trên EDT. Khởi động nguội < 1.6 giây.
 5. **Đóng gói & Chạy thử:** Lệnh `mvn clean package` xuất ra file `dist/XimiLib.jar` độc lập chạy trực tiếp bằng `run.bat` / `run.sh` và hỗ trợ cờ headless `--init-db`.
-6. **Tài liệu:** Đầy đủ bộ tài liệu SSOT trong `/docs` (`AGENTS.md`, `ARCHITECTURE.md`, `DATABASE_SCHEMA.md`, `BUSINESS_RULES.md`, `PROJECT_STATUS.md`, `VAN_DAP.md`, `TRACEABILITY.md`, `VIVA_GUIDE.md`).
+6. **Tài liệu:** Đầy đủ bộ tài liệu SSOT trong `/docs` (`ARCHITECTURE.md`, `DATABASE_SCHEMA.md`, `BUSINESS_RULES.md`, `PROJECT_STATUS.md`, `DEMO_AND_DEFENSE_GUIDE.md`, `TRACEABILITY.md`, `CODING_STYLE.md`).
 
 ---
 
-## 3. Nhật ký Thay đổi Dự án (Changelog)
+## 3. Các Mốc Hoàn Thành Dự Án (Project Milestones)
 
-### [Sprint 26 — Tối Ưu Bàn Lưu Hành, Giao Sách Đặt Trước Online & Khắc Phục Xuất Báo Cáo Excel POI] - 2026-11-10
-#### Fixed & Enhanced (Circulation Desk, Online Order Delivery & POI Exporter)
-- **Giao sách đặt trước online (`StaffHomePanel`, `CirculationDeskView`, `MainDashboardFrame`)**:
-  * Khi thủ thư ấn "Giao sách" từ danh sách "Chờ nhận sách (Online)" trên trang chủ, hệ thống điều hướng sang tab Bàn lưu hành kèm theo mã phiếu mượn `ticketId`.
-  * `CirculationDeskView` tự động nạp thẻ bạn đọc (`txtReaderCard`), kiểm tra thông tin thẻ, nạp hình thức mượn và toàn bộ đầu sách/bản sao đã đặt trước vào bảng Sách chuẩn bị mượn kèm trạng thái "● Đã đặt trước".
-  * Nút xác nhận chuyển sang trạng thái "XÁC NHẬN GIAO SÁCH", cho phép thủ thư kích hoạt phiếu mượn sang `DANG_MUON` (`Trangthai = 1`), cập nhật thời điểm mượn thực tế và hạn trả tương ứng mà không phải điền tay lại.
-- **Khắc phục lỗi đè giao diện "1 cuốn" và nút xóa (`CirculationDeskView`)**:
-  * Tái cấu trúc thanh tiêu đề `topHeader` của thẻ "Sách Chuẩn Bị Mượn" sang `BoxLayout(X_AXIS)` với `Box.createHorizontalGlue()`.
-  * Rút gọn văn bản các nút hành động thành `Xóa cuốn` và `Xóa tất cả`, điều chỉnh độ rộng card bên trái sang `380px`, triệt tiêu hoàn toàn hiện tượng badge đè lấn lên các nút thao tác khi cửa sổ ở độ phân giải 960x600.
-  * Tùy biến renderer cột tình trạng trong giỏ sách hiển thị đúng trạng thái bản sao (Khả dụng / Đã đặt trước).
-- **Khắc phục lỗi xuất báo cáo Excel POI (`ReportsDashboardView`, `ExcelReportExporter`)**:
-  * Tích hợp `WorkbookUtil.createSafeSheetName` và tiền xử lý thay thế ký tự cấm `/`, `\`, `?`, `*`, `[`, `]`, `:` trong tên sheet của Apache POI thành dấu `-`.
-  * Đổi tên hiển thị loại báo cáo `"1. Thống kê lượt mượn/trả"` thành `"1. Thống kê lượt mượn - trả"` và `"3. Sách hỏng/mất cần thanh lý"` thành `"3. Sách hỏng - mất cần thanh lý"`.
+Dự án được xây dựng và hoàn thiện qua 4 cột mốc chính bám sát tiến độ học tập:
 
-### [Runtime Upgrade — Java 25 LTS] - 2026-11-04
-#### Changed
-- Nâng runtime và mức biên dịch Maven của XimiLib lên Java 25 LTS.
-- Đồng bộ script thiết lập và tài liệu dự án với Java 25 LTS.
+### Cột mốc 1: Khảo sát & Thiết kế Cơ sở Dữ liệu (Hoàn thành)
+- Phân tích yêu cầu bài toán quản lý thư viện, chuẩn hóa 23 bảng CSDL MySQL đạt chuẩn BCNF / 3NF.
+- Xây dựng các tệp kịch bản nạp schema và seed dữ liệu mẫu phong phú (221 đầu sách, 663 bản sao vật lý, 62 tác giả, 11 thể loại).
 
-### [Sprint 25 — Tối Ưu Bàn Lưu Hành, Khắc Phục Lỗi JTable Editor Thẻ Độc Giả, Hoàn Thiện Modal Size & Humanizer] - 2026-11-04
-#### Fixed & Enhanced (Core UI/UX, Component Architecture & Humanizer)
-- **Quản lý Thẻ & Bạn đọc (`PatronManagementView`)**:
-  * Phân tách triệt để `PatronActionRenderer` và `PatronActionEditor` thành hai class độc lập, triệt tiêu lỗi chia sẻ state trong single-cell editor khiến click thao tác (Khóa/Mở, Sửa) bị gán nhầm vào đối tượng cuối danh sách (`Lý Thế Vinh`).
-  * Chuẩn hóa logic icon Khóa/Mở thẻ: Mặc định khi thẻ hoạt động là **icon mở khóa** (`unlock`, màu xanh lá trên nền `#ECFDF5`); khi bị khóa chuyển sang **icon khóa** (`lock`, màu đỏ trên nền `#FEF2F2`) kèm nhãn `Bị khóa` nổi bật.
-  * Tăng kích thước icon hành động lên 16px sắc nét trong ô nút 32x32px.
-  * Cố định popup chỉnh sửa độc giả: sửa điều kiện callback SimpleModalBorder chỉ đóng khi người dùng chủ động nhấn nút Hủy hoặc Đóng, loại bỏ hoàn toàn hiện tượng popup biến mất chớp nhoáng khi mở.
-  * Mở rộng kích thước form chỉnh sửa độc giả lên `420x260px`, hiển thị trạng thái thẻ với màu sắc ngữ nghĩa trực quan.
-- **Hệ thống In-App Modal Overlay (`UiModalHelper`)**:
-  * Mở rộng khoảng đệm chiều cao trong `showCustomModal` lên `content.height + 150` và chiều rộng `+ 56`, đảm bảo toàn bộ header, content, insets và 2 nút bấm thao tác (`Ok`, `Cancel`) luôn hiển thị trọn vẹn, không bao giờ bị mép dưới của popup cắt cụt.
-- **Bàn lưu hành & Xử lý trả (`CirculationDeskView`, `ReturnAndCompensationView`)**:
-  * Loại bỏ hoàn toàn nhãn `(Desk)` bên cạnh Bàn lưu hành trên toàn bộ tiêu đề, nhãn tab, điều hướng và trang chủ nhân viên (`StaffHomePanel`).
-  * Bố cục 2 nút chọn hình thức mượn (Mang về nhà / Tại chỗ) thành 2 nút vuông cùng hàng chia đều 50/50 diện tích, không đè lấp chữ.
-  * Tích hợp bộ đệm thời gian (debounce timer 200ms) cho thanh tìm kiếm bạn đọc, loại bỏ tình trạng tạo nhiều luồng truy vấn đè nhau (race condition).
-  * Nâng cấp thuật toán sắp xếp gợi ý tìm kiếm theo độ khớp chính xác (`ORDER BY CASE WHEN LOWER(u.Hoten) = ? THEN 1 ...`), đưa bạn đọc khớp chính xác (như `ND004 - Trần Văn An`) lên vị trí số 1.
-  * Tăng giới hạn số lượng bạn đọc hiển thị trong dropdown gợi ý từ 5 lên 10 kết quả.
-- **Kho Sách & Chi tiết Sách (`BookDetailModalPanel`, `BookCatalogView`)**:
-  * Bổ sung liên kết tương tác cho `Thể loại` (`↗`): cho phép bấm vào thể loại để tự động lọc nhanh toàn bộ sách cùng chuyên mục trong Kho Sách, đồng bộ với tác giả và vị trí kệ sách.
-  * Cố định phân trang dạng lưới của Kho Sách thành 5 trang x 50 sách/trang, lược bỏ phần chọn cách chia phức tạp.
-  * Cố định popup thông báo đăng nhập cho Khách: khi người dùng ở vai trò Khách bấm mượn hoặc đặt trước sách, hệ thống hiển thị modal cảnh báo cố định (chặn click nền) và chỉ đóng khi người dùng chủ động bấm Đóng/Xác nhận.
-- **Văn phong Tự nhiên (Humanizer Writing)**:
-  * Viết lại ngắn gọn, tự nhiên và nhã nhặn toàn bộ các câu thông báo xác nhận và thông báo hệ thống, loại bỏ triệt để các công thức kỹ thuật và thuật ngữ lập trình rườm rà (như trong hộp thoại xác nhận báo mất sách).
-- **Kiểm thử & Đóng gói**:
-  * Đạt 121/121 test cases JUnit 5 pass 100% (`StyleRuleTest` và `DependencyRuleTest` xanh).
-  * Tái đóng gói file thực thi độc lập `dist/XimiLib.jar` (~35MB) sẵn sàng vận hành.
+### Cột mốc 2: Hiện thực Kiến trúc Clean Architecture & Nghiệp vụ Lõi (Hoàn thành)
+- Thiết lập phân tầng `Domain -> Application -> Infrastructure -> Presentation` và Pure Dependency Injection tại `AppContainer`.
+- Triển khai toàn bộ quy tắc nghiệp vụ cốt lõi: Mượn tối đa 3 cuốn/14 ngày, phạt trễ hạn 2.000đ/ngày, quy trình bồi thường mất sách 200%, mã hóa mật khẩu BCrypt và cơ chế khóa tài khoản khi nhập sai 5 lần.
+- Áp dụng khóa bi quan `SELECT ... FOR UPDATE` trong Transaction để chống tranh chấp mượn trùng sách đồng thời.
 
-### [Sprint 24 — Cải Tiến Toàn Diện Trải Nghiệm Người Dùng (Guest, Admin, Thủ Thư, Độc Giả)] - 2026-11-04
-#### Feat & UI/UX Overhaul (4 Roles)
-- **Khách (Guest)**:
-  * Kho Sách: Đổi tên tab "Khám phá sách" -> "Kho Sách" toàn hệ thống, tự động chuyển vào Kho Sách khi đăng nhập khách.
-  * Banner lời mời: Gỡ bỏ 2 nút đăng nhập/đăng ký trùng lặp, thay ký tự tofu "✕" bằng icon vector SVG `IconFactory.createCloseIcon`.
-  * Bố cục lưới sách: Chuyển dạng lưới dọc nhiều dòng tự động xuống hàng theo kích thước màn hình, khóa trượt ngang.
-  * Nút chuyển chế độ xem (lưới/danh sách): Thu gọn viền bo, chỉ giữ icon và neo sát lề phải.
-  * Điều hướng & Thông báo: Loại bỏ Hộp thư góp ý khỏi menu Khách theo SRS; chuẩn hóa thông báo yêu cầu đăng nhập ngắn gọn qua `UiModalHelper.showMessage`.
-- **Quản trị viên (Admin)**:
-  * Trang chủ nhân viên: Khắc phục lỗi giật/đè hình bìa sách mới trên carousel ngang.
-  * Quản lý bạn đọc (`PatronManagementView`): Bỏ cột "Mã ĐG" và "Số Thẻ TV"; chuyển đổi các nút thao tác thành nút icon vector SVG kèm tooltip (Khóa/Mở, Gia hạn, Chỉnh sửa); thêm modal chỉnh sửa chi tiết hồ sơ độc giả và kích hoạt/vô hiệu hóa tài khoản.
-  * Báo cáo & Thống kê (`ReportsDashboardView`): Thay thế toàn bộ nút tác vụ chữ bằng nút icon SVG kèm tooltip (Làm mới, Cập nhật trạng thái, Xuất Excel, In báo cáo).
-  * Quản trị hệ thống (`UserRoleManagementView`): Bỏ cột "Mã ND", chuyển cột "Vai trò" ra cột đầu tiên, làm sạch nhãn vai trò ("Quản trị viên", "Thủ thư", "Độc giả"); đổi các nút sang icon SVG (Phân quyền, Khóa/Mở, Đổi mật khẩu).
-- **Thủ thư (Librarian)**:
-  * Thùng rác sách (`TrashAndRestoreView`): Bỏ cột "Mã sách", chuyển các nút Làm mới và Khôi phục thành nút icon SVG kèm tooltip.
-  * Bàn lưu hành quầy (`CirculationDeskView`): Mở rộng không gian thao tác (420px), thu gọn header các bước 1, 2, 3; Bước 1 tìm bạn đọc có dropdown auto-suggest, thẻ bạn đọc tinh gọn chỉ hiện tên, số thẻ, trạng thái hợp lệ; Bước 2 chuyển hình thức mượn sang 2 toggle buttons (Mang về | Tại chỗ); Bước 3 nút Thêm hỗ trợ tìm kiếm cả tên sách lẫn mã vạch.
-  * Xử lý trả sách & bồi hoàn (`ReturnAndCompensationView`): Quy trình 2 cột trực quan: Chọn độc giả -> Chọn sách trả -> Xác nhận tình trạng; thông tin phiếu mượn hiển thị bên phải; khối tài chính chỉ hiện khi phát sinh phạt/mất/hỏng; nút "XÁC NHẬN" cố định góc phải dưới; tích hợp thanh toán VietQR Napas247 khóa SePay API.
-- **Độc giả (Reader)**:
-  * Trang chủ độc giả (`ReaderHomePanel`): Khắc phục lỗi ảnh bìa 218px đè tràn viền thẻ mượn; bổ sung nút "Trả sách" ở góc phải thẻ mượn chuyển thẳng đến "Phiếu mượn của tôi"; banner cảnh báo nợ phạt điều hướng chính xác.
-  * Chi tiết đầu sách (`BookDetailModalPanel`): Căn nút "Đăng Ký Mượn Sách" sang phải; khắc phục kéo dãn thẻ bình luận ngắn; hỗ trợ bấm vào tên tác giả hoặc vị trí kệ/chuyên ngành để tự động lọc Kho Sách.
-  * Đăng ký mượn online (`ReaderBorrowRegistrationView`): Danh sách cuốn sách chỉ hiển thị mã vạch, bỏ dấu ngoặc thừa; hình thức mượn chuyển sang 2 toggle buttons (Về nhà | Tại chỗ); đổi tên "Sách của tôi" -> "Phiếu mượn của tôi".
-  * Hồ sơ cá nhân (`UserProfileModalPanel`): Căn nút "Cập nhật mật khẩu" sang bên trái.
-- **Kiểm thử & Đóng gói**:
-  * 121/121 test cases JUnit 5 (Unit + Integration + Architecture) xanh 100%.
-  * `StyleRuleTest` đạt chuẩn phong cách sinh viên low-code (chuỗi tiếng Việt UI trong định mức).
-  * Đóng gói bản phát hành `dist/XimiLib.jar` thành công.
+### Cột mốc 3: Thiết kế Giao diện FlatLaf & Tích hợp Tính năng Mở rộng (Hoàn thành)
+- Hoàn thiện giao diện đồ họa phong cách FlatLaf Pastel hiện đại, kết hợp bộ thư viện DJ-Raven Suite (`modal-dialog`, `swing-datetime-picker`, `swing-glasspane-popup`).
+- Tích hợp cổng thanh toán trực tuyến VietQR Napas247 tự động sinh mã QR đối soát qua SePay.
+- Hiện thực báo cáo thống kê chuyên sâu và kết xuất file Excel định dạng `.xlsx` qua Apache POI.
 
-### [Sprint 23 — Chuẩn Hóa Phong Cách Sinh Viên Low-Code, Bộ Component & Cẩm Nang Vấn Đáp] - 2026-11-04
-#### Feat & Enhanced (Architecture, Style & Viva Readiness)
-- **Thiết lập Bộ Luật A - D & Phong cách Sinh viên Low-Code**:
-  * Ban hành `docs/CODING_STYLE.md`, cập nhật `AGENTS.md` §10 và `ARCHITECTURE.md` §7.1. Định danh 100% tiếng Anh, hàm `PascalCase` trực quan, cấu trúc phẳng không stream/Optional phức tạp.
-  * Xóa sạch 100% (26/26 file) `package-info.java` gây nhiễu mã nguồn.
-  * Loại bỏ toàn bộ từ khóa `var` và các hàm `stream()` thừa thãi tại các tầng Presentation và Infrastructure, chuyển sang vòng lặp `for-each` cơ bản dễ debug từng dòng.
-- **Hệ thống Kiểm thử Phong cách Tự động `StyleRuleTest`**:
-  * Bổ sung 8 test cases quét toàn diện mã nguồn: kiểm tra comment, package-info, stream/optional/var, định danh tiếng Việt, mã hex hard-code, dialog thuần OS và chuỗi tiếng Việt.
-  * Hạn mức ngoại lệ baseline được kiểm soát tự động qua `docs/style_exceptions.txt`.
-- **Bộ Thành phần Giao diện Dùng lại (Reusable Low-Code Components)**:
-  * Xây dựng 8 component chuẩn: `PrimaryButton`, `SecondaryButton`, `TextInputField`, `PasswordInputField`, `StatusBadge`, `SectionCard`, `PageHeader`, `FormErrorLabel` kết hợp `EmptyStatePanel`.
-  * Ban hành Bản đặc tả thiết kế chuẩn `docs/ui/DESIGN_BRIEF.md` (hệ thống 8px spacing, bảng màu pastel pink WCAG AA, bo góc 8/12/999px).
-- **Tập trung hóa Chuỗi Giao diện `UiText`**:
-  * Khởi tạo `sources/src/main/java/com/ximilib/presentation/util/UiText.java` tập trung mọi nhãn, tiêu đề, placeholder, thông báo lỗi và chuỗi nguyên văn chuẩn SRS (loại bỏ từ sáo rỗng AI, bỏ emoji trang trí, xưng hô thống nhất "bạn").
-- **Cẩm nang Vấn đáp Đồ án PBL `docs/VIVA_GUIDE.md`**:
-  * Biên soạn tài liệu chi tiết 8 luồng nghiệp vụ cốt lõi (Đăng nhập, Đăng ký, Tra cứu, Mượn sách, Trả sách & Phạt, Báo mất & Bồi thường, Thanh toán VietQR, Thống kê & Xuất Excel).
-  * Đối chiếu 4 tầng (View -> Service -> Repository -> SQL) kèm 24 câu hỏi vấn đáp thường gặp và câu trả lời mẫu cho sinh viên bảo vệ trước hội đồng.
-- **Tổng số test cases đạt: 121 tests JUnit 5 xanh 100%** (`DependencyRuleTest` và `StyleRuleTest` xanh tuyệt đối).
-
-### [Sprint 22 — PR 4: Nâng Cấp Trải Nghiệm Khách & Bạn Đọc (Grid/Table, Carousel, Skeleton Loading, Phím Tắt Ctrl+F)] - 2026-11-04
-#### Feat & Enhanced (UI/UX)
-- **Chuyển đổi chế độ xem Grid (Thẻ bìa) / Bảng (Table)**: Nút toggle dạng icon vector tại `BookCatalogView`, lưu lựa chọn vào `UserSession.catalogViewMode` (bền vững trong phiên chạy). Chế độ Grid hiển thị thẻ sách kèm ảnh bìa tỉ lệ 2:3, hover shadow, badge tồn kho và điểm sao.
-- **Carousel Sách Mới & Sách Nổi Bật**: Tích hợp thanh trượt tự động mượt mà (smooth scrolling & auto slide timer 4s) tại trang chủ `ReaderHomePanel` với nút bấm Previous/Next vector.
-- **Skeleton Loading 3 dòng**: Hiệu ứng placeholder nhấp nháy màu `UITheme.TINT_LIGHT` thay thế spinner thô trong lúc phân trang hoặc tìm kiếm sách, giảm cảm giác chờ đợi.
-- **Phím tắt toàn cục `Ctrl + F`**: Tự động chuyển đến màn hình Tra cứu Sách và đặt con trỏ vào ô tìm kiếm từ bất kỳ đâu trong ứng dụng. Ô tìm kiếm nhanh trên thanh điều hướng TopBar của `MainDashboardFrame`.
-- **Trải nghiệm chào mừng Khách**: Trang chủ `ReaderHomePanel` tự động cá nhân hóa banner chào mừng Khách, gợi ý sách thịnh hành và ẩn các khối dữ liệu mượn trả cá nhân.
-- **Tối ưu tốc độ khởi động nguội (Cold Start Benchmark)**: Đo lường qua `UserSessionTest.testColdStartPerformance()`, đạt **~1.62s** (vượt xa chỉ tiêu < 3.0s của SRS).
-- **Đầy đủ 112 test cases JUnit 5 xanh 100%**.
-
-### [Sprint 21 — PR 3: Trải Nghiệm Đăng Nhập & Tối Ưu Màn Hình Khách Viếng Thăm] - 2026-11-04
-#### Feat & Enhanced (UI/UX)
-- **Cảnh báo Caps Lock & Phím tắt Esc**: Cảnh báo nhỏ màu vàng (icon tam giác chấm than + "Caps Lock đang bật") tự động hiện/ẩn dưới ô mật khẩu; phím `Esc` xóa nhanh thông báo lỗi; phím `Enter` kích hoạt đăng nhập.
-- **Đếm ngược thời gian thực khi khóa tài khoản (BR-01)**: Khi người dùng nhập sai quá 5 lần, ứng dụng tự động kích hoạt Swing Timer đếm ngược định dạng `mm:ss` (cập nhật mỗi giây), tạm khóa các trường nhập và tự phục hồi khi hết thời gian khóa tạm.
-- **Banner mời đăng nhập / đăng ký cho Khách**: Màn hình `BookCatalogView` tự động hiển thị banner mỏng màu `UITheme.TINT_LIGHT` với thông điệp chào mừng và nút bấm điều hướng "Đăng Ký", "Đăng Nhập" kèm nút đóng `✕`.
-- **Nút phụ "Đăng Ký" trên Header**: Khách viếng thăm có thêm nút "Đăng Ký" dạng pill viền hồng nổi bật cạnh nút "Đăng Nhập" trên TopBar của `MainDashboardFrame`.
-- **Hệ thống Badges tồn kho đa trạng thái (Chống rào cản mù màu)**:
-  * Xanh lá: `Còn sách (X/Y)` khi $X > 1$.
-  * Vàng cảnh báo: `Còn 1 cuốn (1/Y)` khi $X = 1$.
-  * Đỏ nhạt: `Tạm hết (0/Y)` khi $X = 0$.
-- **Nút "Đặt Trước Sách" khi hết bản sao**: Màn hình chi tiết `BookDetailModalPanel` chuyển nút từ "Đăng Ký Mượn Sách" sang "Đặt Trước Sách (Khi có lại)" khi kho hết sách; điều hướng người dùng khách sang form đăng nhập/đăng ký nếu chưa có tài khoản.
-- **Đầy đủ 110 test cases JUnit 5 xanh 100%**.
-
-### [Sprint 20 — PR 2: Cải Tiến Form Đăng Ký & Xác Thực Trực Tuyến Thời Gian Thực] - 2026-11-04
-#### Feat & Enhanced (UI/UX)
-- **`PasswordPolicyChecklist` thời gian thực**: Component hiển thị 4 tiêu chí bảo mật mật khẩu (tối thiểu 8 ký tự, ít nhất 1 chữ hoa, ít nhất 1 chữ số, ít nhất 1 ký tự đặc biệt) với icon tick xanh khi đạt và chấm xám khi chưa đạt. Tự động ẩn khi trống và hiện mượt mà khi gõ.
-- **Tái cấu trúc 3 nhóm bố cục (Layout Groups)**: Phân tách rõ ràng 3 nhóm: "1. Thông tin cá nhân", "2. Thông tin liên hệ", "3. Tài khoản & Bảo mật" với các cặp trường song song (Ngày sinh // CCCD, Email // SĐT, Mật khẩu // Nhập lại mật khẩu).
-- **Ngày sinh bắt buộc qua lịch**: Bỏ ngày sinh mặc định (01/01/2004), yêu cầu người dùng chọn trực tiếp qua `DatePicker`, placeholder `dd/MM/yyyy`.
-- **Xác thực inline (Inline Field Validation)**: Kiểm tra định dạng khi rời ô (Focus Lost) và khi bấm Submit (outline đỏ `FlatClientProperties.OUTLINE_ERROR`), tự động xóa viền đỏ và thông báo lỗi ngay khi người dùng gõ lại.
-- **Trạng thái gửi an toàn**: Khi submit form, gọi `setFormInteractive(false)` khóa toàn bộ trường nhập, nút chuyển thành `"Đang đăng ký..."`, ngăn chặn submit trùng lặp; tự động hiển thị toast thành công và đóng form sau 1.2s.
-- **Kiểm thử tự động**: Thêm `PasswordPolicyChecklistTest` (2 tests mới), tổng số test cases đạt **110 tests xanh 100%**.
-
-### [Sprint 19 — PR 1: Khắc Phục Lỗi Hiển Thị & Hành Vi Sai Giao Diện Đăng Nhập, Đăng Ký, Khách] - 2026-11-04
-#### Fixed & Enhanced (UI/UX)
-- **`DividerLabel` thuần Graphics2D**: Thay thế chuỗi có ký tự gạch Unicode (`─── hoặc ───`) gây lỗi ô vuông (tofu glyph) trên Windows bằng component `DividerLabel` tự vẽ hai vạch kẻ `UITheme.CARD_BORDER` và chữ "hoặc" `UITheme.TEXT_MUTED`.
-- **`VectorCheckBoxIcon` & Focus Ring**: Vẽ rõ 2 trạng thái cho checkbox "Ghi nhớ đăng nhập" (viền bo góc khi chưa chọn, nền primary bo góc kèm dấu tick vector trắng khi đã chọn), hỗ trợ focus ring khi duyệt phím Tab và rollover effect.
-- **Tự động ẩn banner lỗi**: Lắng nghe `DocumentListener` trên cả ô tài khoản và mật khẩu, tự động ẩn banner lỗi đỏ ngay khi người dùng bắt đầu gõ lại hoặc khi bấm đăng nhập.
-- **Khớp DEV-02 & Đổi nhãn thương hiệu**: Cập nhật nhãn và placeholder ô đăng nhập thành `"Tên đăng nhập, email hoặc số điện thoại"`; đổi huy hiệu `"Library OS"` thành `"Quản lý Thư viện"`.
-- **Avatar Khách dạng vector**: Thay chữ `"T"` (sinh từ họ tên mặc định "Khách Viếng Thăm") bằng icon người vẽ vector `IconFactory.createUserIcon()` cho người dùng vai trò Khách.
-- **Ẩn cột Checkbox theo quyền**: Ẩn cột chọn checkbox (cột 0) trên bảng kho sách `BookCatalogView` đối với người dùng vai trò Khách và Độc giả; chỉ hiển thị cho Admin và Thủ thư.
-- **Đăng ký (`RegisterForm`)**: Sửa placeholder CCCD thành `"9 hoặc 12 chữ số"`, bổ sung kiểm tra định dạng đúng 9 hoặc 12 số nguyên, áp dụng icon cửa sổ đồng bộ logo thương hiệu (`AppLogo.applyWindowIcons()`).
-- **Kiểm thử giao diện**: Bổ sung `DividerLabelAndCheckBoxIconTest` (2 tests mới), toàn bộ bộ test đạt **108 test cases xanh 100%**.
-
-### [Sprint 18 — Đồng Bộ Toàn Diện Tài Liệu, Schema V5, Nguồn Mã & Quy Tắc Nghiệp Vụ SRS] - 2026-11-04
-#### Added & Updated
-- **Thực thi toàn bộ Use Cases SRS (UC 3.2.1 đến UC 3.2.9) và DEV-01..DEV-10**:
-  * **UC 3.2.1 (Đăng nhập)**: Hỗ trợ đăng nhập linh hoạt bằng Tên đăng nhập, Email hoặc Số điện thoại (DEV-02); thông báo tài khoản bị khóa đúng nguyên văn `"Tài khoản của bạn đã bị khóa. Vui lòng liên hệ thủ thư"`; chuẩn hóa thông báo sai mật khẩu/tài khoản chống liệt kê.
-  * **UC 3.2.2 (Đăng ký bạn đọc)**: Chuẩn hóa 7 trường thông tin (Họ tên, Ngày sinh qua DatePicker, CCCD, Địa chỉ, Email, SĐT, Mật khẩu); ràng buộc mật khẩu $\ge 8$ ký tự chữ hoa/số/ký tự đặc biệt (BR-10); kiểm tra CCCD 9 hoặc 12 chữ số (BR-11); thông báo trùng lặp chuẩn `"Số CMND/CCCD hoặc Email đã được đăng ký trên hệ thống"`.
-  * **UC 3.2.3 (Quản lý sách)**: Sinh mã sách tự động `MSxxxx` (BR-13); số lượng sách nhập kho $\ge 1$ (BR-12); chặn xóa sách đang có người mượn với thông báo chuẩn `"Không thể xóa đầu sách đang có độc giả mượn"` (BR-09); soft-delete `IsDeleted = TRUE`.
-  * **UC 3.2.4 (Tra cứu sách)**: Tận dụng index tìm kiếm đa trường `idx_sach_search`; trạng thái rỗng hiển thị đúng thông điệp chuẩn `"Không tìm thấy cuốn sách nào khớp với từ khóa của bạn"` và hướng dẫn độc giả.
-  * **UC 3.2.5 (Đặt mượn trực tuyến)**: Phân định mượn về nhà (14 ngày) và tại chỗ (17:00 trong ngày); chặn quá hạn `"Bạn có sách quá hạn chưa hoàn trả. Vui lòng trả sách trước khi mượn tiếp"`; chặn quá hạn mức 3 cuốn `"Bạn đã đạt giới hạn mượn tối đa 3 cuốn sách mang về"`; chặn thẻ hết hạn `"Thẻ thư viện của bạn đã hết hạn sử dụng. Vui lòng liên hệ thủ thư để gia hạn"`; thông báo thành công nhận sách 24h.
-  * **UC 3.2.6 (Bàn lưu hành quầy)**: Quét thẻ độc giả/CCCD $\rightarrow$ quét mã vạch $\rightarrow$ lập phiếu `DANG_MUON`; trả sách kiểm tra quá hạn và hư hại.
-  * **UC 3.2.7 (Báo cáo & Kiểm toán)**: Ghi log kiểm toán song song file `logs/audit.log` và CSDL bảng `auditlog` (DEV-04); hỗ trợ In báo cáo trực tiếp / Print to PDF qua Java Print API (DEV-05); thông báo rỗng chuẩn `"Không có phát sinh giao dịch trong mốc thời gian đã chọn"`.
-  * **UC 3.2.8 (Cộng đồng & Nhận xét)**: Khi khách vãng lai gửi bình luận, hiển thị in-app modal prompt `"Vui lòng đăng nhập để gửi bình luận"` kèm nút điều hướng đến trang Đăng nhập.
-  * **UC 3.2.9 (Báo mất & Bồi hoàn)**: Chuẩn hóa FSM 2 bước (`CHO_XU_LY_BOI_THUONG` $\rightarrow$ thanh toán $\rightarrow$ `DA_MAT`); công thức bồi thường $200\% \times \text{giá bìa} + 20.000\text{đ} + \text{phạt trễ}$; ghi nhận `thanhtoan.magiaodich` duy nhất.
-  * **YC-10 & YC-13**: Cung cấp `SystemSettingsPort.getInt()` / `getBigDecimal()` đọc cấu hình động từ `cauhinh` (DEV-06); vòng lặp tự động kết nối lại (auto-reconnect 3 lần backoff) trong `DatabaseConnectionManager`; tác vụ bảo trì nền `BackgroundJobManager` định kỳ quét quá hạn và duy trì thư mục sao lưu CSDL (DEV-07).
-  * **Bộ kiểm thử toàn diện**: Nâng tổng số test cases lên **106 tests** (100% PASS, 0 failure, 0 error).
-
-- **Đồng bộ hóa Tài liệu Đặc tả (SSOT SRS)**:
-  * Lập [docs/TRACEABILITY.md](file:///f:/AppMaking/XimiLib/docs/TRACEABILITY.md) làm ma trận truy vết chuẩn xác cho toàn bộ 14 yêu cầu YC-01..YC-14, Use Case 3.2.1..3.2.9 và Sổ đăng ký sai lệch DEV-01..DEV-10.
-  * Cập nhật `DATABASE_SCHEMA.md` lên 24 bảng (thêm `binhluan`, `gopy`, `cauhinh`, `auditlog`), chuẩn hóa 7 trạng thái FSM của phiếu mượn và hình thức `TAI_CHO` / `VE_NHA`.
-  * Chuẩn hóa `BUSINESS_RULES.md`: FSM 2 bước cho Báo mất sách (`CHO_XU_LY_BOI_THUONG` -> `DA_MAT`), bổ sung BR-10..BR-14 (mật khẩu 8 ký tự, CCCD 9/12 số, SL nhập >= 1, quét quá hạn 00:00).
-  * Chuẩn hóa `ARCHITECTURE.md`: sửa mẫu `BookRepositoryImpl` khớp schema thật, viết lại §7.3 theo `TransactionCoordinator`/`TransactionManager`, bổ sung cây package các Query Ports mới và cơ chế so khớp regex SePay.
-
-### [Sprint 17 — Hoàn thiện Kiến trúc Kết nối JDBC thuần (DriverManager), Transaction Coordinator, Quản lý Kệ/Khu vực, Biểu đồ Xu hướng & Xuất Báo cáo Excel POI] - 2026-11-01
-#### Added
-- **Task T02 (Kết nối JDBC thuần DriverManager & Quản lý Cấu hình DB)**:
-  * Khởi tạo `DatabaseConnectionManager` với `java.sql.DriverManager` trực tiếp (không pool, không shutdown hook, không double-checked locking). URL nạp UTF-8 và múi giờ Asia/Ho_Chi_Minh.
-  * `DatabaseConfig`: Ưu tiên nạp biến môi trường `XIMILIB_DB_*`, sau đó đọc từ `config/db.properties`. Cung cấp file mẫu `config/db.properties.example` và thông báo lỗi tiếng Việt tường minh khi thiếu thông tin kết nối. Loại bỏ 100% mật khẩu cứng mặc định.
-  * Cấu hình khóa AES (`SecurityUtil.DEFAULT_AES_KEY`) qua biến `XIMILIB_AES_KEY` hoặc `security.aes.key`, không fallback chuỗi cứng.
-  * `TransactionManager`: Đóng gói cơ chế thực thi giao dịch an toàn với `TransactionCallback` và `VoidTransactionCallback`.
-  * `DatabaseInitializer`: Tự động nạp schema và thực thi chuỗi migration V1 -> V2 -> V3 -> V4 khi khởi tạo; hỗ trợ cờ dòng lệnh headless `--init-db` trong `Main.java` tiện lợi cho môi trường CI/CD và máy dev mới.
-  * `DBConnectionLeakIT`: Kiểm thử tích hợp xác nhận 23 bảng, 221 cuốn sách và đảm bảo giải phóng connection 100% sau N=100 lần truy vấn (kiểm tra `Threads_connected`).
-- **Task T03 (Quản lý Khu vực & Kệ sách - Storage Subsystem)**:
-  * Domain: Mô hình `Zone`, `Shelf`, ngoại lệ miền `BookException`, `CopyException`, repository interfaces `ZoneRepository`, `ShelfRepository`.
-  * Application: Cung cấp `ZoneDto`, `ShelfDto`, `StorageQueryPort`, `StorageService`, `StorageServiceImpl` với các kiểm tra nghiệp vụ chặt chẽ (chặn xóa khu vực nếu còn kệ, chặn xóa kệ nếu còn cuốn sách).
-  * Infrastructure: Hiện thực `ZoneRepositoryImpl`, `ShelfRepositoryImpl` qua JDBC PreparedStatement và đăng ký DI tại `AppContainer`.
-  * Tests: Bộ unit tests `StorageServiceTest` (8 tests) và IT `StorageRepositoryIT`.
-- **Task T01 (Phân định Ranh giới Transaction Boundary)**:
-  * Định nghĩa `TransactionContext` (Domain marker interface) và `TransactionCoordinator` (Application port), triển khai `JdbcTransactionCoordinator` tại Infrastructure persistence connection.
-  * Loại bỏ hoàn toàn `setAutoCommit`, `commit`, `rollback` khỏi các Repository (`CirculationRepositoryImpl`, `BookRepositoryImpl`, `UserRepositoryImpl`). Service chịu trách nhiệm điều phối transaction theo đúng Clean Architecture.
-  * Bổ sung kiểm thử ca biên phạt `FineCalculationServiceTest` (ngày trễ = 0, trễ qua nửa đêm 00:00:01, giá lẻ làm tròn `HALF_UP`) và IT tranh chấp mượn đồng thời `CirculationConcurrencyIT`.
-- **Task T03 (Dashboard Charts & Xuất Báo cáo Excel POI)**:
-  * **Migration V4 (`db/migrations/V4__report_and_search_indexes.sql`)**: Thiết lập 4 chỉ mục hot queries: `idx_cuonsach_status_book`, `idx_phieumuon_overdue`, `idx_phieumuon_date`, `idx_thanhtoan_date`.
-  * **Application Port `ReportExporter` & DTO `DailyMetric`**: Hỗ trợ trích xuất số liệu xu hướng mượn và doanh thu phạt theo thời gian (`getBorrowAndFineTrend`).
-  * **`ExcelReportExporter`**: Sử dụng thư viện `org.apache.poi:poi-ooxml:5.2.5` xuất báo cáo ra file Excel `.xlsx` chuẩn giao diện chuyên nghiệp (header nền màu thương hiệu, định dạng số tiền VND và ngày tháng, tự động căn chỉnh độ rộng cột).
-  * **`TrendChartPanel`**: Vẽ biểu đồ kết hợp trực tiếp bằng Java2D phẳng bo góc (cột thể hiện lượt mượn sách, đường cam hổ phách thể hiện xu hướng tiền phạt) tích hợp trên `ReportsDashboardView` với nút "Xuất Excel (.xlsx)" chạy ngoài EDT bằng `SwingWorker`.
-  * Tests: `ExcelReportExporterTest` (2 tests POI kiểm tra định dạng và dữ liệu đọc lại), `ReportTrendAggregationTest` (1 test).
-
-### [Sprint 16 — Hoàn thiện Bố cục Responsive Dashboard, Tối ưu Tốc độ Tải Bìa & Khắc phục Lỗi Giao diện] - 2026-10-27
-#### Added
-- `db/seed/seed_demo_loans.sql`: Script nạp dữ liệu mượn trả thật (phiếu quá hạn, phiếu đến hạn hôm nay, phiếu mượn nhiều cuốn, và 2 phiếu chờ nhận sách trực tuyến) giúp giao diện vận hành trực quan và sinh động.
-- Nút "+ Thêm Sách Mới" nổi bật trên thanh tiêu đề `BookCatalogView`, mở modal tạo sách mới `BookFormModalPanel` (chỉ hiển thị cho Quản trị viên và Thủ thư).
-- Cơ chế đệm ảnh bìa thu nhỏ trong bộ nhớ (`ConcurrentHashMap<String, BufferedImage> THUMBNAIL_CACHE`) tại `BookCoverTile` và `COVER_CACHE` tại `ReaderBorrowRegistrationView`, giảm 100% việc decode ảnh lặp lại từ đĩa, tốc độ hiển thị đạt 0ms và giải phóng bộ nhớ ảnh gốc ngay lập tức.
-#### Fixed
-- **Trạng thái Thẻ bạn đọc (`thethuvien.Trangthai`)**: Khắc phục lỗi hiển thị "Bị khóa" do ánh xạ chuỗi so với số nguyên CSDL (`1` = Hoạt động, `0` = Khóa). Bổ sung `StatusBadgeRenderer` với màu xanh (Hoạt động), vàng cam (Hết hạn), đỏ (Bị khóa).
-- **Thẻ Quản trị hệ thống & Phím phân quyền**: Bỏ bẫy nested JScrollPane khiến tiêu đề bị cuộn mất khi bảng nhận tiêu điểm. Tách rõ `BorderLayout.NORTH` (Tiêu đề, Breadcrumb, 2 nút hành động, 4 thẻ KPI) và `BorderLayout.CENTER` (Bảng cuộn độc lập). Mở rộng độ rộng cột Thao tác lên 260px (min 250px) để 3 nút "Phân quyền", "Khóa/Mở", "Đặt lại MK" nằm trên một hàng không bị tràn.
-- **Thùng rác & Khôi phục (`TrashAndRestoreView`)**: Tích hợp `AncestorListener` và đăng ký lắng nghe sự kiện `BookStockChangedEvent` (phát sinh khi xóa/khôi phục sách tại `BookCatalogServiceImpl`), giúp Thùng rác tự động cập nhật ngay lập tức khi chuyển tab hoặc sau khi thao tác xóa sách.
-- **Bố cục Responsive thẻ Dashboard**: Cải tiến `StaffHomePanel` với tỷ lệ co giãn linh hoạt (`setAutoResizeMode(AUTO_RESIZE_ALL_COLUMNS)`), bọc dải sách mới nhập trong `JScrollPane` cuộn ngang mượt mà, cắt tỉa văn bản dài với tooltip và thêm lề cho nút "Xem tất cả >" ở `SectionHeader`.
-- **Logo ứng dụng hiển thị sắc nét, đúng màu hồng pastel**: Khắc phục lỗi file logo cũ chỉ chứa mặt nạ màu trắng thuần (white-on-white tàng hình trên nền form trắng). Đã tổng hợp đồ họa màu gốc từ `assets/Logo.svg` kèm kênh alpha trong suốt (RGBA 32-bit), tạo đầy đủ bộ icon đa kích thước (`logo.png`, `logo.svg`, `logo_16..512.png`) và nạp trực tiếp qua `AppLogo.getIcon()`.
-- **Tối giản BrandPanel màn Đăng nhập**: Lược bỏ cơ chế slideshow đa ảnh, timer chuyển cảnh và nút điều hướng; cố định hiển thị 1 hình ảnh chất lượng cao duy nhất `plushy-woman-work.jpg` kèm gradient phủ đạt chuẩn WCAG >= 4.5:1 và thông điệp thương hiệu tinh tế.
-
-### [Sprint 15 — Tích hợp Bộ tài nguyên Hình ảnh Logo & Minh họa] - 2026-10-27
-#### Added
-- `com.ximilib.presentation.util.AppLogo`: Cung cấp logo vector sắc nét từ `images/logo/logo.svg` và bộ icon PNG đa kích thước (16, 24, 32, 48, 64, 128, 256) cho Titlebar và Taskbar OS. Tự động đệm (cache) bộ nhớ.
-- `com.ximilib.domain.model.ImageSlideshow`: Domain model quản lý trạng thái trình chiếu ảnh màn Đăng nhập (Next, Prev, GoTo, Auto-timer 5s, Hover Pause) hoàn toàn độc lập với Swing.
-- `com.ximilib.presentation.component.EmptyStatePanel`: Khối giao diện chuẩn hóa hiển thị trạng thái rỗng kèm minh họa vector FlatSVG sắc nét và nút kêu gọi hành động (CTA).
-- `com.ximilib.presentation.util.Illustrations`: Bộ hằng số đường dẫn minh họa vector chuẩn (11 file SVG chuẩn hóa).
-#### Changed
-- `BrandPanel`: Tích hợp slideshow 2 ảnh 3D thư viện Pixar chuẩn (`girl-reading-book.jpg`, `plushy-woman-work.jpg`), chuyển cảnh cross-fade 60 FPS, overlay gradient WCAG >= 4.5:1, nút điều hướng `<` `>` và phím mũi tên.
-- `SidebarPanel`, `LoginFormPanel`, `DigitalCardPopupPanel`: Thay thế toàn bộ mã vẽ logo thủ công bằng `AppLogo.getIcon()`.
-- `MainDashboardFrame`, `LoginForm`: Gán bộ ảnh icon cửa sổ ứng dụng qua `AppLogo.applyWindowIcons()`.
-- `BookCatalogView`, `TrashAndRestoreView`, `NotificationPopupPanel`, `ReaderHomePanel`, `StaffHomePanel`, `HelpGuideModalPanel`: Tích hợp hình ảnh minh họa vector và trạng thái rỗng `EmptyStatePanel`.
-
-### [Sprint 14 — Tái thiết kế Trang chủ, Header và Sidebar chuẩn Dashboard Vận hành] - 2026-10-27
-#### Added
-- **Trang chủ Vận hành Thủ thư / Quản trị viên (`StaffHomePanel`)**:
-  * Thay thế toàn bộ banner tĩnh và dữ liệu mẫu bằng dashboard vận hành trực tiếp từ MySQL.
-  * 4 thẻ KPI chỉ số thực (`sach`, `cuonsach`, `nguoidung`, `phieumuon`), loại bỏ nhãn xu hướng ảo.
-  * Bảng "Cần xử lý hôm nay" phân loại hạn trả thuần domain (`LoanDueClassification`): Quá hạn (đỏ), Hạn hôm nay (vàng), Còn hạn (xanh), kèm nút "Gia hạn" và "Nhận trả sách" tại quầy.
-  * Danh sách "Chờ nhận tại quầy" và lưới 6 sách mới nhập bìa 2:3 (`BookCoverTile`).
-  * Chip giờ mở cửa tự động kiểm tra đóng cửa lúc 17:00 theo quy định SRS.
-- **Trang chủ Độc giả phong cách Libby / Goodreads (`ReaderHomePanel`)**:
-  * Lời chào cá nhân hóa, mã thẻ và trạng thái thẻ thư viện.
-  * Banner cảnh báo nợ phạt / quá hạn nổi bật kèm nút điều hướng nộp phạt trực tuyến.
-  * Danh sách sách đang mượn với bìa 2:3, hạn trả và nút gia hạn trực tuyến (+7 ngày) theo quy định BR-03.
-  * Lưới sách mới nhập có thể bấm xem chi tiết hoặc đăng ký mượn ngay.
-- **Header & Sidebar Tối giản Hiện đại**:
-  * Sidebar thu gọn tối đa 6-7 mục tùy vai trò, loại bỏ hoàn toàn thanh cuộn ở độ phân giải 768px.
-  * Phân nhóm tiểu màn hình bằng thanh chuyển tab phẳng `TabBar` (`TabbedViewPanel`).
-  * Chuông thông báo động (`NotificationPopupPanel`) phản ánh số lượng thông báo chưa đọc từ MySQL.
-  * Header hành động theo vai trò: "+ Lập phiếu mượn" cho Thủ thư/Admin, "Thẻ Thư Viện" cho Độc giả.
-
-### [Sprint 13 — Hoàn thiện Trọn bộ Tính năng Đặc tả & Phân quyền RBAC] - 2026-10-27
-#### Added
-- **YC-10 (Quản lý Tài khoản & Phân quyền RBAC)**: Màn hình `UserRoleManagementView` dành riêng cho Admin.
-- **YC-05 (Độc giả Đặt mượn sách qua App & Đặt trước khi hết sách)**: `ReaderBorrowRegistrationView`, tích hợp đặt chỗ `datcho`.
-- **YC-09 (Báo mất sách & Đền bù Online)**: Tích hợp nút Báo mất, tính đền bù 200% theo BR-08, popup VietQR `VietQrModalPanel`.
-
-### [Sprint 12 — Tinh chỉnh Layout, Hiệu ứng Chuyển cảnh 60 FPS, Khóa Tương tác & Nâng cấp Bàn Desk] - 2026-10-26
-#### Added & Refined
-- **Tinh chỉnh Bố cục Form Đăng ký (`RegisterForm`)**: GridBagLayout 2 cột, placeholder gợi ý định dạng.
-- **Nâng cấp Animation 60 FPS Panel Nhận Diện (`BrandPanel`)**: Carousel mượt mà, đường cong nội suy Cubic Ease-Out.
-- **Khóa Tương tác Chống Spam Khi Đăng Nhập (`LoginFormPanel`)**: `setFormInteractive(false)`.
-- **Thiết kế Nút Đóng Vector 'X' Chống Lỗi Font (`UserProfileModalPanel` & `NotificationPopupPanel`)**.
-- **Bàn Lưu Hành Quầy Đầy Đủ Tính Năng (`CirculationDeskView`)**: Quét mã vạch, đếm "X / 3 cuốn", kiểm tra thẻ.
+### Cột mốc 4: Tinh gọn Hệ thống, Tối ưu Trải nghiệm & Hoàn thiện Đồ án (Hoàn thành)
+- Tối ưu luồng giao sách đặt trước online: tự động nạp thẻ bạn đọc và sách đặt trước tại Bàn lưu hành.
+- Tinh giản bộ kiểm thử tự động về 4 lớp Unit Test nghiệp vụ cốt lõi (45 tests in-memory), loại bỏ toàn bộ các bài test phức tạp không phù hợp với phạm vi đồ án sinh viên.
+- Đóng gói file thực thi độc lập `dist/XimiLib.jar` và hoàn thiện cẩm nang hướng dẫn demo, vấn đáp bảo vệ đồ án.

@@ -1,4 +1,4 @@
-# Version: 1.2 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: ../AGENTS.md, ARCHITECTURE.md, DATABASE_SCHEMA.md, PROJECT_STATUS.md, TRACEABILITY.md
+# Version: 1.2 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: ARCHITECTURE.md, DATABASE_SCHEMA.md, PROJECT_STATUS.md, TRACEABILITY.md, CODING_STYLE.md
 
 # BUSINESS_RULES.md — Quy tắc Nghiệp vụ & Máy Trạng thái XimiLib
 

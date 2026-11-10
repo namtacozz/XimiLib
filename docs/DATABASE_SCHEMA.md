@@ -1,4 +1,4 @@
-# Version: 1.2 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: ../AGENTS.md, ARCHITECTURE.md, BUSINESS_RULES.md, PROJECT_STATUS.md, TRACEABILITY.md
+# Version: 1.2 | Last updated: 2026-11-04 | Owner: Architecture Team | Related files: ARCHITECTURE.md, BUSINESS_RULES.md, PROJECT_STATUS.md, TRACEABILITY.md, CODING_STYLE.md
 
 # DATABASE_SCHEMA.md — Đặc tả Cơ sở Dữ liệu XimiLib (MySQL 8.0+)
 
