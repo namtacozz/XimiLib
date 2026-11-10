@@ -57,6 +57,10 @@ public interface CirculationRepository {
 
     void updateTicketStatus(String ticketId, int status);
 
+    default void activatePendingLoan(String ticketId, LocalDateTime borrowDate, LocalDateTime dueDate) {
+        updateTicketStatus(ticketId, 1);
+    }
+
     void markCopyLost(String copyId);
 
     void payFineAndCloseLoss(String fineId, String paymentMethod);

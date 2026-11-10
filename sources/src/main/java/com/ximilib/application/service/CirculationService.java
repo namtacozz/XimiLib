@@ -25,6 +25,8 @@ public interface CirculationService {
 
     void reserveBook(String userId, String bookId);
 
+    BorrowTicketDto deliverPendingLoan(String ticketId);
+
     List<BorrowTicketDto> getReaderLoans(String userId);
 
     List<BorrowTicketDto> getAllLoans(String keyword, Integer status);

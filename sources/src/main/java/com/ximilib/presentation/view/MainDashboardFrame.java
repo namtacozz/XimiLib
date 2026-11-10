@@ -38,6 +38,7 @@ public class MainDashboardFrame extends JFrame {
     private TabbedViewPanel bookTabbedView;
     private TabbedViewPanel circulationTabbedView;
     private TabbedViewPanel adminTabbedView;
+    private CirculationDeskView deskView;
     private ReaderHomePanel readerHomePanel;
     private StaffHomePanel staffHomePanel;
     private SearchField txtSearchTop;
@@ -129,6 +130,14 @@ public class MainDashboardFrame extends JFrame {
             if (bookTabbedView != null) bookTabbedView.selectTab(2);
             cardLayout.show(centerContainer, "KHO_SACH");
             sidebarPanel.setActiveRoute("Kho Sách");
+        } else if (r.startsWith("Bàn lưu hành (Desk):") || r.startsWith("Bàn lưu hành:") || r.startsWith("DESK:")) {
+            String ticketId = r.substring(r.indexOf(':') + 1).trim();
+            if (circulationTabbedView != null) circulationTabbedView.selectTab(0);
+            cardLayout.show(centerContainer, "MUON_TRA");
+            sidebarPanel.setActiveRoute("Mượn – Trả");
+            if (deskView != null && !ticketId.isEmpty()) {
+                deskView.loadPendingOnlineTicket(ticketId);
+            }
         } else if ("Mượn – Trả".equalsIgnoreCase(r) || "Bàn lưu hành".equalsIgnoreCase(r) || "Bàn lưu hành (Desk)".equalsIgnoreCase(r) || "DESK".equalsIgnoreCase(r)) {
             if (circulationTabbedView != null) circulationTabbedView.selectTab(0);
             cardLayout.show(centerContainer, "MUON_TRA");
@@ -219,7 +228,7 @@ public class MainDashboardFrame extends JFrame {
         }
 
         if (!isReader && !isGuest) {
-            CirculationDeskView deskView = new CirculationDeskView(AppContainer.getInstance().getCirculationService());
+            deskView = new CirculationDeskView(AppContainer.getInstance().getCirculationService());
             ReturnAndCompensationView returnView = new ReturnAndCompensationView(AppContainer.getInstance().getCirculationService());
             circulationTabbedView = new TabbedViewPanel(
                 List.of("Bàn lưu hành", "Xử lý trả & Bồi hoàn"),

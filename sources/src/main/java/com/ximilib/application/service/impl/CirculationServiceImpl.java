@@ -311,6 +311,40 @@ public class CirculationServiceImpl implements CirculationService {
     }
 
     @Override
+    public BorrowTicketDto deliverPendingLoan(String ticketId) {
+        if (ticketId == null || ticketId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã phiếu mượn không hợp lệ.");
+        }
+        CirculationRepository repo = getRepo();
+        List<BorrowTicketDto> tickets = (circulationQueryPort != null)
+            ? circulationQueryPort.findTickets(ticketId.trim(), null)
+            : Collections.emptyList();
+        if (tickets == null || tickets.isEmpty()) {
+            throw new IllegalArgumentException("Không tìm thấy phiếu mượn có mã: " + ticketId);
+        }
+        BorrowTicketDto ticket = tickets.get(0);
+        if (ticket.getStatus() != 0) {
+            throw new IllegalStateException("Phiếu mượn không ở trạng thái Chờ nhận sách (24h)!");
+        }
+
+        LocalDateTime borrowDate = LocalDateTime.now();
+        LocalDateTime dueDate;
+        if (ticket.getLoanType() == LoanType.VE_NHA) {
+            dueDate = borrowDate.plusDays(LibraryPolicy.LOAN_DAYS_HOME).with(LocalTime.of(23, 59, 59));
+        } else {
+            dueDate = borrowDate.with(LocalTime.of(17, 0, 0));
+        }
+
+        repo.activatePendingLoan(ticketId, borrowDate, dueDate);
+        DomainEventPublisher.publish(new BookStockChangedEvent("LOAN", "LOAN_DELIVERED"));
+
+        ticket.setStatus(1);
+        ticket.setBorrowDate(borrowDate);
+        ticket.setDueDate(dueDate);
+        return ticket;
+    }
+
+    @Override
     public List<BorrowTicketDto> getReaderLoans(String userId) {
         if (circulationQueryPort != null) {
             return circulationQueryPort.findTicketsByReader(userId);

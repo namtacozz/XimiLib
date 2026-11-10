@@ -50,6 +50,8 @@ public class CirculationDeskView extends JPanel {
     private JLabel lblDueDateSummary;
     private JLabel lblReaderSummary;
 
+    private String activePendingTicketId;
+    private JButton btnConfirm;
     private JLabel lblCartCountBadge;
     private JButton btnRemoveSelected;
     private JButton btnClearAll;
@@ -113,7 +115,7 @@ public class CirculationDeskView extends JPanel {
 
     private JPanel createLeftFormCard() {
         JPanel card = createBaseCard();
-        card.setPreferredSize(new Dimension(420, 0));
+        card.setPreferredSize(new Dimension(380, 0));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
         JLabel lblCardTitle = new JLabel("Thông Tin Phiếu Mượn");
@@ -304,7 +306,7 @@ public class CirculationDeskView extends JPanel {
         summaryBox.add(counterRow);
         summaryBox.add(Box.createVerticalStrut(12));
 
-        JButton btnConfirm = UITheme.createPillButton(" XÁC NHẬN CHO MƯỢN", UITheme.PRIMARY, Color.WHITE);
+        btnConfirm = UITheme.createPillButton(" XÁC NHẬN CHO MƯỢN", UITheme.PRIMARY, Color.WHITE);
         btnConfirm.setIcon(createCheckIcon(16, Color.WHITE));
         btnConfirm.setFont(UITheme.FONT_BOLD);
         btnConfirm.setPreferredSize(new Dimension(310, 44));
@@ -496,15 +498,14 @@ public class CirculationDeskView extends JPanel {
         JPanel card = createBaseCard();
         card.setLayout(new BorderLayout(0, 14));
 
-        JPanel topHeader = new JPanel(new BorderLayout(8, 0));
+        JPanel topHeader = new JPanel();
+        topHeader.setLayout(new BoxLayout(topHeader, BoxLayout.X_AXIS));
         topHeader.setOpaque(false);
-
-        JPanel titleWithBadge = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
-        titleWithBadge.setOpaque(false);
 
         JLabel lblCartTitle = new JLabel("Sách Chuẩn Bị Mượn");
         lblCartTitle.setFont(UITheme.FONT_TITLE);
         lblCartTitle.setForeground(UITheme.TEXT_MAIN);
+        lblCartTitle.setAlignmentY(Component.CENTER_ALIGNMENT);
 
         lblCartCountBadge = new JLabel(" 0 cuốn ");
         lblCartCountBadge.setFont(UITheme.FONT_BADGE);
@@ -512,19 +513,15 @@ public class CirculationDeskView extends JPanel {
         lblCartCountBadge.setBackground(UITheme.TINT);
         lblCartCountBadge.setForeground(UITheme.ON_TINT);
         lblCartCountBadge.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
+        lblCartCountBadge.setAlignmentY(Component.CENTER_ALIGNMENT);
 
-        titleWithBadge.add(lblCartTitle);
-        titleWithBadge.add(lblCartCountBadge);
-
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        actions.setOpaque(false);
-
-        btnRemoveSelected = UITheme.createPillButton("Xóa cuốn đã chọn", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
+        btnRemoveSelected = UITheme.createPillButton("Xóa cuốn", UITheme.DANGER_BG, UITheme.DANGER_TEXT);
         btnRemoveSelected.setIcon(createTrashIcon(14, UITheme.DANGER_TEXT));
         btnRemoveSelected.setFont(UITheme.FONT_SMALL);
         btnRemoveSelected.setVisible(false);
         btnRemoveSelected.setEnabled(false);
         btnRemoveSelected.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnRemoveSelected.setAlignmentY(Component.CENTER_ALIGNMENT);
         btnRemoveSelected.addActionListener(e -> removeSelectedBook());
 
         btnClearAll = UITheme.createPillButton("Xóa tất cả", UITheme.TINT_LIGHT, UITheme.TEXT_MAIN);
@@ -533,13 +530,17 @@ public class CirculationDeskView extends JPanel {
         btnClearAll.setVisible(false);
         btnClearAll.setEnabled(false);
         btnClearAll.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnClearAll.setAlignmentY(Component.CENTER_ALIGNMENT);
         btnClearAll.addActionListener(e -> clearCart());
 
-        actions.add(btnRemoveSelected);
-        actions.add(btnClearAll);
+        topHeader.add(lblCartTitle);
+        topHeader.add(Box.createHorizontalStrut(8));
+        topHeader.add(lblCartCountBadge);
+        topHeader.add(Box.createHorizontalGlue());
+        topHeader.add(btnRemoveSelected);
+        topHeader.add(Box.createHorizontalStrut(6));
+        topHeader.add(btnClearAll);
 
-        topHeader.add(titleWithBadge, BorderLayout.WEST);
-        topHeader.add(actions, BorderLayout.EAST);
         card.add(topHeader, BorderLayout.NORTH);
 
         rightCardLayout = new CardLayout();
@@ -587,7 +588,8 @@ public class CirculationDeskView extends JPanel {
                 lbl.setHorizontalAlignment(SwingConstants.CENTER);
                 lbl.setFont(UITheme.FONT_SMALL);
                 lbl.setForeground(UITheme.SUCCESS_TEXT);
-                lbl.setText("● Khả dụng");
+                String valStr = (value != null) ? value.toString() : "● Khả dụng";
+                lbl.setText(valStr.startsWith("●") ? valStr : "● " + valStr);
                 return lbl;
             }
         });
@@ -1089,7 +1091,89 @@ public class CirculationDeskView extends JPanel {
         }
     }
 
+    public void loadPendingOnlineTicket(String ticketId) {
+        if (ticketId == null || ticketId.trim().isEmpty()) {
+            return;
+        }
+        SwingWorker<BorrowTicketDto, Void> worker = new SwingWorker<>() {
+            @Override
+            protected BorrowTicketDto doInBackground() {
+                List<BorrowTicketDto> list = circulationService.getAllLoans(ticketId.trim(), null);
+                if (list != null && !list.isEmpty()) {
+                    return list.get(0);
+                }
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    BorrowTicketDto ticket = get();
+                    if (ticket == null) {
+                        UiModalHelper.showToastError(CirculationDeskView.this, "Không tìm thấy phiếu mượn: " + ticketId);
+                        return;
+                    }
+                    populatePendingTicketData(ticket);
+                } catch (Exception ex) {
+                    UiModalHelper.showToastError(CirculationDeskView.this, "Lỗi nạp phiếu mượn: " + ex.getMessage());
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    private void populatePendingTicketData(BorrowTicketDto ticket) {
+        resetForm();
+        activePendingTicketId = ticket.getTicketId();
+        if (ticket.getCardNumber() != null && !ticket.getCardNumber().isBlank()) {
+            txtReaderCard.setText(ticket.getCardNumber());
+        } else if (ticket.getUserId() != null) {
+            txtReaderCard.setText(ticket.getUserId());
+        }
+        checkReaderCard();
+
+        if (ticket.getLoanType() == LoanType.VE_NHA) {
+            if (btnMangVe != null) btnMangVe.setSelected(true);
+            if (btnTaiCho != null) btnTaiCho.setSelected(false);
+        } else {
+            if (btnTaiCho != null) btnTaiCho.setSelected(true);
+            if (btnMangVe != null) btnMangVe.setSelected(false);
+        }
+
+        String copyBarcodes = ticket.getCopyBarcode();
+        if (copyBarcodes != null && !copyBarcodes.isBlank()) {
+            String[] barcodes = copyBarcodes.split("[;,]");
+            for (String rawBc : barcodes) {
+                String bc = rawBc.trim();
+                if (!bc.isEmpty()) {
+                    BookCopyInfo copy = circulationService.getCopyInfo(bc);
+                    if (copy != null) {
+                        cartBarcodes.add(copy.copyId());
+                        int stt = cartBarcodes.size();
+                        cartTableModel.addRow(new Object[]{
+                            stt,
+                            copy.copyId(),
+                            copy.bookTitle(),
+                            (copy.shelfLocation() != null ? copy.shelfLocation() : "Chưa xếp kệ"),
+                            "● Đã đặt trước"
+                        });
+                    }
+                }
+            }
+        }
+
+        updateCartViewState();
+        if (btnConfirm != null) {
+            btnConfirm.setText(" XÁC NHẬN GIAO SÁCH");
+        }
+        UiModalHelper.showToastInfo(this, "Đã nạp phiếu chờ nhận: " + ticket.getTicketId());
+    }
+
     private void resetForm() {
+        activePendingTicketId = null;
+        if (btnConfirm != null) {
+            btnConfirm.setText(" XÁC NHẬN CHO MƯỢN");
+        }
         currentCard = null;
         txtReaderCard.setText("");
         txtBarcode.setText("");
@@ -1129,6 +1213,40 @@ public class CirculationDeskView extends JPanel {
             return;
         }
 
+        final String pendingId = activePendingTicketId;
+        if (pendingId != null && !pendingId.isBlank()) {
+            deliverPendingTicketAsync(pendingId);
+            return;
+        }
+
+        createNewLoanTicketAsync();
+    }
+
+    private void deliverPendingTicketAsync(String pendingId) {
+        SwingWorker<BorrowTicketDto, Void> worker = new SwingWorker<>() {
+            @Override
+            protected BorrowTicketDto doInBackground() {
+                return circulationService.deliverPendingLoan(pendingId);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    BorrowTicketDto ticket = get();
+                    SwingUtilities.invokeLater(() -> {
+                        UiModalHelper.showToastSuccess(CirculationDeskView.this, "Giao sách thành công! Đã kích hoạt phiếu: " + ticket.getTicketId());
+                        resetForm();
+                    });
+                } catch (Exception ex) {
+                    Throwable cause = (ex.getCause() != null) ? ex.getCause() : ex;
+                    SwingUtilities.invokeLater(() -> UiModalHelper.showToastError(CirculationDeskView.this, cause.getMessage()));
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    private void createNewLoanTicketAsync() {
         LoanType lt = (btnMangVe != null && btnMangVe.isSelected()) ? LoanType.VE_NHA : LoanType.TAI_CHO;
 
         SwingWorker<BorrowTicketDto, Void> worker = new SwingWorker<>() {

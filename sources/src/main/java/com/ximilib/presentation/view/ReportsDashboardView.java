@@ -128,9 +128,9 @@ public class ReportsDashboardView extends JPanel {
         lblSelect.setForeground(UITheme.TEXT_MAIN);
 
         cmbReportType = new JComboBox<>(new String[]{
-            "1. Thống kê lượt mượn/trả",
+            "1. Thống kê lượt mượn - trả",
             "2. Độc giả quá hạn & nợ phạt",
-            "3. Sách hỏng/mất cần thanh lý",
+            "3. Sách hỏng - mất cần thanh lý",
             "4. Top 10 đầu sách mượn nhiều nhất"
         });
         cmbReportType.setFont(UITheme.FONT_REGULAR);
@@ -407,8 +407,11 @@ public class ReportsDashboardView extends JPanel {
             }
 
             String title = (String) cmbReportType.getSelectedItem();
-            if (title != null && title.length() > 30) {
-                title = title.substring(0, 30);
+            if (title != null) {
+                title = title.replace('/', '-').replace('\\', '-').replace('?', '-').replace('*', '-').replace('[', '(').replace(']', ')').replace(':', '-');
+                if (title.length() > 30) {
+                    title = title.substring(0, 30);
+                }
             }
             final String sheetTitle = (title != null && !title.isBlank()) ? title : "BaoCao";
 

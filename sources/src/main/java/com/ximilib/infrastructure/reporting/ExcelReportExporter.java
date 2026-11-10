@@ -2,6 +2,7 @@ package com.ximilib.infrastructure.reporting;
 
 import com.ximilib.application.port.ReportExporter;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.WorkbookUtil;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.IOException;
@@ -20,7 +21,8 @@ public class ExcelReportExporter implements ReportExporter {
     @Override
     public void exportToExcel(OutputStream outputStream, String sheetTitle, String[] headers, List<Object[]> rows) throws IOException {
         try (Workbook workbook = new XSSFWorkbook()) {
-            String safeTitle = (sheetTitle != null && !sheetTitle.isBlank()) ? sheetTitle : "Báo cáo";
+            String sanitized = (sheetTitle != null && !sheetTitle.isBlank()) ? sheetTitle.replace('/', '-') : "BaoCao";
+            String safeTitle = WorkbookUtil.createSafeSheetName(sanitized);
             Sheet sheet = workbook.createSheet(safeTitle);
 
             CellStyle headerStyle = createHeaderStyle(workbook);

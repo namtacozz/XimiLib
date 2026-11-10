@@ -715,7 +715,7 @@ public class StaffHomePanel extends JPanel {
         btnDeliver.setMinimumSize(new Dimension(88, 26));
         btnDeliver.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnDeliver.setMargin(new Insets(2, 8, 2, 8));
-        btnDeliver.addActionListener(e -> navigate("Bàn lưu hành (Desk)"));
+        btnDeliver.addActionListener(e -> navigate("Bàn lưu hành (Desk):" + item.ticketId()));
         pnlButton.add(btnDeliver);
 
         card.add(pnlAvatar, BorderLayout.WEST);

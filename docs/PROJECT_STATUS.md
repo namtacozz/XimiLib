@@ -36,6 +36,20 @@ Dự án phân cấp tính năng theo chuẩn độ ưu tiên MoSCoW (Must / Sho
 
 ## 3. Nhật ký Thay đổi Dự án (Changelog)
 
+### [Sprint 26 — Tối Ưu Bàn Lưu Hành, Giao Sách Đặt Trước Online & Khắc Phục Xuất Báo Cáo Excel POI] - 2026-11-10
+#### Fixed & Enhanced (Circulation Desk, Online Order Delivery & POI Exporter)
+- **Giao sách đặt trước online (`StaffHomePanel`, `CirculationDeskView`, `MainDashboardFrame`)**:
+  * Khi thủ thư ấn "Giao sách" từ danh sách "Chờ nhận sách (Online)" trên trang chủ, hệ thống điều hướng sang tab Bàn lưu hành kèm theo mã phiếu mượn `ticketId`.
+  * `CirculationDeskView` tự động nạp thẻ bạn đọc (`txtReaderCard`), kiểm tra thông tin thẻ, nạp hình thức mượn và toàn bộ đầu sách/bản sao đã đặt trước vào bảng Sách chuẩn bị mượn kèm trạng thái "● Đã đặt trước".
+  * Nút xác nhận chuyển sang trạng thái "XÁC NHẬN GIAO SÁCH", cho phép thủ thư kích hoạt phiếu mượn sang `DANG_MUON` (`Trangthai = 1`), cập nhật thời điểm mượn thực tế và hạn trả tương ứng mà không phải điền tay lại.
+- **Khắc phục lỗi đè giao diện "1 cuốn" và nút xóa (`CirculationDeskView`)**:
+  * Tái cấu trúc thanh tiêu đề `topHeader` của thẻ "Sách Chuẩn Bị Mượn" sang `BoxLayout(X_AXIS)` với `Box.createHorizontalGlue()`.
+  * Rút gọn văn bản các nút hành động thành `Xóa cuốn` và `Xóa tất cả`, điều chỉnh độ rộng card bên trái sang `380px`, triệt tiêu hoàn toàn hiện tượng badge đè lấn lên các nút thao tác khi cửa sổ ở độ phân giải 960x600.
+  * Tùy biến renderer cột tình trạng trong giỏ sách hiển thị đúng trạng thái bản sao (Khả dụng / Đã đặt trước).
+- **Khắc phục lỗi xuất báo cáo Excel POI (`ReportsDashboardView`, `ExcelReportExporter`)**:
+  * Tích hợp `WorkbookUtil.createSafeSheetName` và tiền xử lý thay thế ký tự cấm `/`, `\`, `?`, `*`, `[`, `]`, `:` trong tên sheet của Apache POI thành dấu `-`.
+  * Đổi tên hiển thị loại báo cáo `"1. Thống kê lượt mượn/trả"` thành `"1. Thống kê lượt mượn - trả"` và `"3. Sách hỏng/mất cần thanh lý"` thành `"3. Sách hỏng - mất cần thanh lý"`.
+
 ### [Runtime Upgrade — Java 25 LTS] - 2026-11-04
 #### Changed
 - Nâng runtime và mức biên dịch Maven của XimiLib lên Java 25 LTS.

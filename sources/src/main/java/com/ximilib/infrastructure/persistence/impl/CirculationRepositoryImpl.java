@@ -514,6 +514,20 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
     }
 
     @Override
+    public void activatePendingLoan(String ticketId, LocalDateTime borrowDate, LocalDateTime dueDate) {
+        String sql = "UPDATE phieumuon SET Trangthai = 1, Ngaymuon = ?, Hantranhan = ? WHERE Maphieumuon = ?";
+        try (Connection conn = connectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTimestamp(1, Timestamp.valueOf(borrowDate));
+            ps.setTimestamp(2, Timestamp.valueOf(dueDate));
+            ps.setString(3, ticketId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi kích hoạt phiếu mượn: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public void markCopyLost(String copyId) {
         String sql = "UPDATE cuonsach SET Trangthaisach = 'HONG_MAT' WHERE Macuonsach = ?";
         try (Connection conn = connectionManager.getConnection();
