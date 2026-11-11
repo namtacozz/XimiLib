@@ -131,6 +131,20 @@
                 </configuration>
             </plugin>
 
+            <!-- Maven Jar Plugin to set Main-Class -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.ximilib.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
             <!-- Maven Shade Plugin to create standalone executable Fat JAR in dist/ -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
