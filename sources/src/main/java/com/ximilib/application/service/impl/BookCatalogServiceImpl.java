@@ -3,7 +3,6 @@ package com.ximilib.application.service.impl;
 import com.ximilib.application.dto.BookSearchCriteria;
 import com.ximilib.application.dto.BookSummaryDto;
 import com.ximilib.application.dto.PagedResult;
-import com.ximilib.application.port.BookQueryPort;
 import com.ximilib.application.service.BookCatalogService;
 import com.ximilib.domain.event.BookStockChangedEvent;
 import com.ximilib.domain.event.DomainEventPublisher;
@@ -18,23 +17,15 @@ import java.util.Objects;
 public class BookCatalogServiceImpl implements BookCatalogService {
 
     private final BookRepository bookRepository;
-    private final BookQueryPort bookQueryPort;
 
     public BookCatalogServiceImpl(BookRepository bookRepository) {
-        this(bookRepository, (bookRepository instanceof BookQueryPort bqp) ? bqp : null);
+        this.bookRepository = Objects.requireNonNull(bookRepository, "bookRepository không được null");
     }
 
-    public BookCatalogServiceImpl(BookRepository bookRepository, BookQueryPort bookQueryPort) {
-        this.bookRepository = Objects.requireNonNull(bookRepository, "bookRepository không được null");
-        this.bookQueryPort = (bookQueryPort != null) ? bookQueryPort : ((bookRepository instanceof BookQueryPort bqp) ? bqp : null);
-    }
 
     @Override
     public PagedResult<BookSummaryDto> searchBooks(BookSearchCriteria criteria, int page, int pageSize) {
-        if (bookQueryPort != null) {
-            return bookQueryPort.searchBooks(criteria, page, pageSize);
-        }
-        return new PagedResult<>(Collections.emptyList(), 0, page, pageSize);
+        return bookRepository.searchBooks(criteria, page, pageSize);
     }
 
     @Override
@@ -91,10 +82,7 @@ public class BookCatalogServiceImpl implements BookCatalogService {
 
     @Override
     public List<BookSummaryDto> getDeletedBooks() {
-        if (bookQueryPort != null) {
-            return bookQueryPort.getDeletedBooks();
-        }
-        return Collections.emptyList();
+        return bookRepository.getDeletedBooks();
     }
 
     @Override

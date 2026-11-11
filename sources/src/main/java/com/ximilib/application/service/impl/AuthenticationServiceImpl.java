@@ -3,7 +3,6 @@ package com.ximilib.application.service.impl;
 import com.ximilib.application.dto.LoginResult;
 import com.ximilib.application.dto.RegisterRequestDto;
 import com.ximilib.application.port.PasswordHasher;
-import com.ximilib.application.port.UserQueryPort;
 import com.ximilib.application.service.AuthenticationService;
 import com.ximilib.domain.model.LibraryPolicy;
 import com.ximilib.domain.repository.UserRepository;
@@ -31,18 +30,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     private final UserRepository userRepository;
-    private final UserQueryPort userQueryPort;
     private final PasswordHasher passwordHasher;
 
     public AuthenticationServiceImpl(UserRepository userRepository, PasswordHasher passwordHasher) {
-        this(userRepository, (userRepository instanceof UserQueryPort uqp) ? uqp : null, passwordHasher);
-    }
-
-    public AuthenticationServiceImpl(UserRepository userRepository, UserQueryPort userQueryPort, PasswordHasher passwordHasher) {
         this.userRepository = Objects.requireNonNull(userRepository, "userRepository không được null");
-        this.userQueryPort = (userQueryPort != null) ? userQueryPort : ((userRepository instanceof UserQueryPort uqp) ? uqp : null);
         this.passwordHasher = Objects.requireNonNull(passwordHasher, "passwordHasher không được null");
     }
+
 
     private UserRepository getRepo() {
         return userRepository;
@@ -237,10 +231,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public List<com.ximilib.application.dto.PatronDto> searchPatrons(String keyword) {
-        if (userQueryPort != null) {
-            return userQueryPort.searchPatrons(keyword);
-        }
-        return List.of();
+        return userRepository.searchPatrons(keyword);
     }
 
     @Override
@@ -255,10 +246,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public List<com.ximilib.application.dto.UserAccountDto> getAllUsers(String keyword, String roleCode) {
-        if (userQueryPort != null) {
-            return userQueryPort.getAllUsers(keyword, roleCode);
-        }
-        return List.of();
+        return userRepository.getAllUsers(keyword, roleCode);
     }
 
     @Override

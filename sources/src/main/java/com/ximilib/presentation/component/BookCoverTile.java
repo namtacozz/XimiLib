@@ -285,81 +285,10 @@ public class BookCoverTile extends JPanel {
             return;
         }
 
-        BufferedImage cached = THUMBNAIL_CACHE.get(path);
-        if (cached != null) {
-            this.loadedCover = cached;
+        UITheme.loadCoverImageAsync(path, COVER_WIDTH * 2, COVER_HEIGHT * 2, img -> {
+            this.loadedCover = img;
             repaint();
-            return;
-        }
-
-        SwingWorker<BufferedImage, Void> worker = new SwingWorker<>() {
-            @Override
-            protected BufferedImage doInBackground() {
-                try {
-                    BufferedImage raw = null;
-
-                    String fileName = new File(path).getName();
-                    URL url = getClass().getResource("/assets/covers/" + fileName);
-                    if (url == null) {
-                        url = getClass().getResource(path.startsWith("/") ? path : "/" + path);
-                    }
-                    if (url != null) {
-                        raw = ImageIO.read(url);
-                    }
-
-                    if (raw == null) {
-                        File f = new File(path);
-                        if (f.exists()) {
-                            raw = ImageIO.read(f);
-                        }
-                    }
-
-                    if (raw == null) {
-                        File fRes = new File("sources/src/main/resources/assets/covers/" + fileName);
-                        if (fRes.exists()) {
-                            raw = ImageIO.read(fRes);
-                        }
-                    }
-
-                    if (raw == null) {
-                        File fRes2 = new File("src/main/resources/assets/covers/" + fileName);
-                        if (fRes2.exists()) {
-                            raw = ImageIO.read(fRes2);
-                        }
-                    }
-
-                    if (raw != null) {
-
-                        BufferedImage thumb = new BufferedImage(COVER_WIDTH * 2, COVER_HEIGHT * 2, BufferedImage.TYPE_INT_RGB);
-                        Graphics2D g2 = thumb.createGraphics();
-                        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-                        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                        g2.drawImage(raw, 0, 0, COVER_WIDTH * 2, COVER_HEIGHT * 2, null);
-                        g2.dispose();
-                        raw.flush();
-
-                        THUMBNAIL_CACHE.put(path, thumb);
-                        return thumb;
-                    }
-                } catch (Exception ignored) {
-                }
-                return null;
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    BufferedImage img = get();
-                    if (img != null) {
-                        loadedCover = img;
-                        repaint();
-                    }
-                } catch (Exception ignored) {
-                }
-            }
-        };
-        worker.execute();
+        });
     }
 
     private String escapeHtml(String text) {

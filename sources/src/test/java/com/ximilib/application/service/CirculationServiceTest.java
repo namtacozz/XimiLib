@@ -3,7 +3,6 @@ package com.ximilib.application.service;
 import com.ximilib.application.dto.BorrowTicketDto;
 import com.ximilib.application.dto.CompensationResultDto;
 import com.ximilib.application.dto.ReturnResultDto;
-import com.ximilib.application.port.CirculationQueryPort;
 import com.ximilib.application.service.impl.CirculationServiceImpl;
 import com.ximilib.domain.model.LoanTicketStatus;
 import com.ximilib.domain.model.LoanType;
@@ -168,7 +167,7 @@ class CirculationServiceTest {
         assertEquals(new BigDecimal("0.00"), calc.getTotalAmount());
     }
 
-    private static class StubCirculationRepository implements CirculationRepository, CirculationQueryPort {
+    private static class StubCirculationRepository implements CirculationRepository {
         private boolean hasUnpaidFine = false;
         private int activeHomeLoansCount = 0;
         private boolean hasOverdueLoans = false;

@@ -22,11 +22,7 @@ sources/src/main/java/com/ximilib/
 │   ├── dto/                                # Data Transfer Objects (Request/Response giữa Presentation & Application)
 │   │                                       # [ĐẶT]: Request/Response POJO/Records; [CẤM]: Entity domain trực tiếp
 │   └── port/                               # Interfaces cổng kết nối dịch vụ ngoại vi & Query Ports
-│       ├── BookQueryPort.java              # Cổng truy vấn thông tin sách và phân trang
-│       ├── CirculationQueryPort.java       # Cổng truy vấn phiếu mượn, nợ phạt và thống kê lưu thông
-│       ├── UserQueryPort.java              # Cổng truy vấn tài khoản người dùng và bạn đọc
 │       ├── DashboardQueryPort.java         # Cổng trích xuất KPI và chỉ số tổng quan
-│       ├── StorageQueryPort.java           # Cổng truy vấn phân khu, kệ sách và vị trí lưu trữ
 │       ├── ReportPort.java                 # Cổng xuất dữ liệu báo cáo thống kê
 │       ├── ReportExporter.java             # Cổng xuất file Excel (.xlsx POI)
 │       ├── FeedbackPort.java               # Cổng xử lý hộp thư góp ý bạn đọc

@@ -3,14 +3,13 @@ package com.ximilib.infrastructure.persistence.impl;
 import com.ximilib.application.dto.BookSearchCriteria;
 import com.ximilib.application.dto.BookSummaryDto;
 import com.ximilib.application.dto.PagedResult;
-import com.ximilib.application.port.BookQueryPort;
 import com.ximilib.domain.repository.BookRepository;
 import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
 import java.awt.Color;
 import java.sql.*;
 import java.util.*;
 
-public class BookRepositoryImpl implements BookRepository, BookQueryPort {
+public class BookRepositoryImpl extends BaseJdbcRepository implements BookRepository {
 
     private static final Color[] PALETTE = {
         new Color(79, 70, 229),
@@ -27,10 +26,8 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
         new Color(217, 119, 6)
     };
 
-    private final DatabaseConnectionManager connectionManager;
-
     public BookRepositoryImpl(DatabaseConnectionManager connectionManager) {
-        this.connectionManager = (connectionManager != null) ? connectionManager : new DatabaseConnectionManager();
+        super(connectionManager);
     }
 
     @Override
@@ -235,17 +232,7 @@ public class BookRepositoryImpl implements BookRepository, BookQueryPort {
 
     @Override
     public int countTotalBooks() {
-        String sql = "SELECT COUNT(*) FROM sach WHERE IsDeleted = FALSE";
-        try (Connection conn = connectionManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Lỗi đếm tổng số sách từ MySQL: " + e.getMessage(), e);
-        }
-        return 0;
+        return queryInt("SELECT COUNT(*) FROM sach WHERE IsDeleted = FALSE");
     }
 
     @Override

@@ -1,8 +1,11 @@
 package com.ximilib.domain.repository;
 
+import com.ximilib.application.dto.PatronDto;
+import com.ximilib.application.dto.UserAccountDto;
 import com.ximilib.domain.model.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,4 +50,12 @@ public interface UserRepository {
     void updateUserStatus(String userId, int status);
 
     void resetPassword(String userId, String hashedPassword);
+
+    default List<PatronDto> searchPatrons(String keyword) {
+        return Collections.emptyList();
+    }
+
+    default List<UserAccountDto> getAllUsers(String keyword, String roleCode) {
+        return Collections.emptyList();
+    }
 }

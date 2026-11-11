@@ -3,7 +3,6 @@ package com.ximilib.application.service;
 import com.ximilib.application.dto.LoginResult;
 import com.ximilib.application.dto.RegisterRequestDto;
 import com.ximilib.application.port.PasswordHasher;
-import com.ximilib.application.port.UserQueryPort;
 import com.ximilib.application.service.impl.AuthenticationServiceImpl;
 import com.ximilib.domain.repository.UserRepository;
 import com.ximilib.infrastructure.security.SecurityUtil;
@@ -300,7 +299,7 @@ class AuthenticationServiceTest {
         assertTrue(passwordHasher.matches("123456", hStaff), "Hash của sinhvien phải khớp với 123456");
     }
 
-    private static class StubUserRepository implements UserRepository, UserQueryPort {
+    private static class StubUserRepository implements UserRepository {
         private final Map<String, User> userMap = new HashMap<>();
 
         public StubUserRepository(PasswordHasher hasher) {

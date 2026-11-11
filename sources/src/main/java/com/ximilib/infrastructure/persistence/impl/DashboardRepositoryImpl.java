@@ -4,7 +4,6 @@ import com.ximilib.application.dto.ReaderDashboardDto;
 import com.ximilib.application.dto.StaffDashboardDto;
 import com.ximilib.application.port.DashboardQueryPort;
 import com.ximilib.domain.model.LoanDueClassification;
-import com.ximilib.domain.repository.DashboardRepository;
 import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
 
 import java.math.BigDecimal;
@@ -19,51 +18,23 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DashboardRepositoryImpl implements DashboardRepository, DashboardQueryPort {
-
-    private final DatabaseConnectionManager connectionManager;
+public class DashboardRepositoryImpl extends BaseJdbcRepository implements DashboardQueryPort {
 
     public DashboardRepositoryImpl(DatabaseConnectionManager connectionManager) {
-        this.connectionManager = connectionManager;
+        super(connectionManager);
     }
 
     @Override
     public StaffDashboardDto.StaffKpiSummary getStaffKpiSummary() {
-        int totalTitles = 0;
-        int availableCopies = 0;
-        int activeBorrowCopies = 0;
-        int activeReaders = 0;
-        int overdueLoans = 0;
-
-        String sqlTitles = "SELECT COUNT(*) FROM sach WHERE IsDeleted = FALSE";
-        String sqlAvailable = "SELECT COUNT(*) FROM cuonsach WHERE Trangthaisach = 'KHA_DUNG'";
-        String sqlActiveCopies = "SELECT COUNT(c.Macuonsach) FROM chitietphieumuon c JOIN phieumuon p ON c.Maphieumuon = p.Maphieumuon WHERE p.Trangthai IN (1, 3)";
-        String sqlReaders = "SELECT COUNT(*) FROM nguoidung WHERE Mavaitro = 'READER' AND Trangthai = 1";
-        String sqlOverdue = "SELECT COUNT(DISTINCT p.Maphieumuon) FROM phieumuon p WHERE p.Trangthai = 3 OR (p.Trangthai = 1 AND p.Ngaytra < CURRENT_DATE())";
-
-        try (Connection conn = connectionManager.getConnection()) {
-            totalTitles = querySingleInt(conn, sqlTitles);
-            availableCopies = querySingleInt(conn, sqlAvailable);
-            activeBorrowCopies = querySingleInt(conn, sqlActiveCopies);
-            activeReaders = querySingleInt(conn, sqlReaders);
-            overdueLoans = querySingleInt(conn, sqlOverdue);
-        } catch (SQLException e) {
-            throw new RuntimeException("Lỗi khi truy vấn số liệu KPI Trang chủ: " + e.getMessage(), e);
-        }
+        int totalTitles = queryInt("SELECT COUNT(*) FROM sach WHERE IsDeleted = FALSE");
+        int availableCopies = queryInt("SELECT COUNT(*) FROM cuonsach WHERE Trangthaisach = 'KHA_DUNG'");
+        int activeBorrowCopies = queryInt("SELECT COUNT(c.Macuonsach) FROM chitietphieumuon c JOIN phieumuon p ON c.Maphieumuon = p.Maphieumuon WHERE p.Trangthai IN (1, 3)");
+        int activeReaders = queryInt("SELECT COUNT(*) FROM nguoidung WHERE Mavaitro = 'READER' AND Trangthai = 1");
+        int overdueLoans = queryInt("SELECT COUNT(DISTINCT p.Maphieumuon) FROM phieumuon p WHERE p.Trangthai = 3 OR (p.Trangthai = 1 AND p.Ngaytra < CURRENT_DATE())");
 
         return new StaffDashboardDto.StaffKpiSummary(
             totalTitles, availableCopies, activeBorrowCopies, activeReaders, overdueLoans
         );
-    }
-
-    private int querySingleInt(Connection conn, String sql) throws SQLException {
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        }
-        return 0;
     }
 
     @Override
@@ -204,19 +175,7 @@ public class DashboardRepositoryImpl implements DashboardRepository, DashboardQu
 
     @Override
     public int countUnreadNotifications(String userId) {
-        String sql = "SELECT COUNT(*) FROM thongbao WHERE ID = ? AND Dadoc = 0";
-        try (Connection conn = connectionManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, userId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
-        } catch (SQLException e) {
-            return 0;
-        }
-        return 0;
+        return queryInt("SELECT COUNT(*) FROM thongbao WHERE ID = ? AND Dadoc = 0", userId);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.ximilib.infrastructure.persistence.impl;
 
 import com.ximilib.application.dto.BorrowTicketDto;
-import com.ximilib.application.port.CirculationQueryPort;
+import com.ximilib.domain.model.BookCopyStatus;
 import com.ximilib.domain.model.LoanType;
 import com.ximilib.domain.repository.CirculationRepository;
 import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
@@ -13,12 +13,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
-public class CirculationRepositoryImpl implements CirculationRepository, CirculationQueryPort {
-
-    private final DatabaseConnectionManager connectionManager;
+public class CirculationRepositoryImpl extends BaseJdbcRepository implements CirculationRepository {
 
     public CirculationRepositoryImpl(DatabaseConnectionManager connectionManager) {
-        this.connectionManager = (connectionManager != null) ? connectionManager : new DatabaseConnectionManager();
+        super(connectionManager);
     }
 
     @Override
@@ -231,7 +229,7 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
             INSERT INTO chitietphieumuon (Machitiet, Maphieumuon, Macuonsach, Tinhtrangkhimuon)
             VALUES (?, ?, ?, 'Mới 100%')
         """;
-        String updateCopySql = "UPDATE cuonsach SET Trangthaisach = 'DANG_MUON' WHERE Macuonsach = ?";
+        String updateCopySql = "UPDATE cuonsach SET Trangthaisach = '" + BookCopyStatus.DANG_MUON.name() + "' WHERE Macuonsach = ?";
 
         Connection conn = ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection();
         try {
@@ -240,7 +238,7 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
                 try (PreparedStatement lockPs = conn.prepareStatement("SELECT Trangthaisach FROM cuonsach WHERE Macuonsach = ? FOR UPDATE")) {
                     lockPs.setString(1, cid);
                     try (ResultSet rs = lockPs.executeQuery()) {
-                        if (!rs.next() || !"KHA_DUNG".equalsIgnoreCase(rs.getString("Trangthaisach"))) {
+                        if (!rs.next() || !BookCopyStatus.KHA_DUNG.name().equalsIgnoreCase(rs.getString("Trangthaisach"))) {
                             throw new IllegalStateException("Cuốn sách " + cid + " không còn ở trạng thái khả dụng để mượn!");
                         }
                     }
@@ -401,7 +399,7 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
             SET Ngaytra = ?, Tinhtrangkhitra = ?, Tienphat = ?
             WHERE Machitiet = ?
         """;
-        String updateCopySql = "UPDATE cuonsach SET Trangthaisach = 'KHA_DUNG' WHERE Macuonsach = ?";
+        String updateCopySql = "UPDATE cuonsach SET Trangthaisach = '" + BookCopyStatus.KHA_DUNG.name() + "' WHERE Macuonsach = ?";
 
         Connection conn = ((com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext) tx).getConnection();
         try {
@@ -529,7 +527,7 @@ public class CirculationRepositoryImpl implements CirculationRepository, Circula
 
     @Override
     public void markCopyLost(String copyId) {
-        String sql = "UPDATE cuonsach SET Trangthaisach = 'HONG_MAT' WHERE Macuonsach = ?";
+        String sql = "UPDATE cuonsach SET Trangthaisach = '" + BookCopyStatus.HONG_MAT.name() + "' WHERE Macuonsach = ?";
         try (Connection conn = connectionManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, copyId);

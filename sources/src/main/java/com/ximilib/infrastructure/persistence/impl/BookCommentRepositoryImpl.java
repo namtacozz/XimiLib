@@ -16,14 +16,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class BookCommentRepositoryImpl implements BookCommentPort {
+public class BookCommentRepositoryImpl extends BaseJdbcRepository implements BookCommentPort {
 
-    private final DatabaseConnectionManager connectionManager;
     private static final Map<String, List<BookCommentItem>> MEMORY_CACHE = new ConcurrentHashMap<>();
     private static volatile boolean tableVerified = false;
 
     public BookCommentRepositoryImpl(DatabaseConnectionManager connectionManager) {
-        this.connectionManager = connectionManager;
+        super(connectionManager);
     }
 
     private void ensureTableExists(Connection conn) {

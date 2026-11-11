@@ -166,4 +166,80 @@ public class UITheme {
             return new Insets(radius / 2, radius / 2, radius / 2, radius / 2);
         }
     }
+
+    private static final java.util.Map<String, java.awt.image.BufferedImage> COVER_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public static java.awt.image.BufferedImage loadCoverImage(String path, int targetW, int targetH) {
+        if (path == null || path.isBlank()) return null;
+        String cacheKey = path + "@" + targetW + "x" + targetH;
+        java.awt.image.BufferedImage cached = COVER_CACHE.get(cacheKey);
+        if (cached != null) return cached;
+
+        try {
+            java.awt.image.BufferedImage raw = null;
+            String fileName = new java.io.File(path).getName();
+            java.net.URL url = UITheme.class.getResource("/assets/covers/" + fileName);
+            if (url == null) {
+                url = UITheme.class.getResource(path.startsWith("/") ? path : "/" + path);
+            }
+            if (url != null) {
+                raw = javax.imageio.ImageIO.read(url);
+            }
+            if (raw == null) {
+                java.io.File f = new java.io.File(path);
+                if (f.exists()) raw = javax.imageio.ImageIO.read(f);
+            }
+            if (raw == null) {
+                java.io.File fRes = new java.io.File("sources/src/main/resources/assets/covers/" + fileName);
+                if (fRes.exists()) raw = javax.imageio.ImageIO.read(fRes);
+            }
+            if (raw == null) {
+                java.io.File fRes2 = new java.io.File("src/main/resources/assets/covers/" + fileName);
+                if (fRes2.exists()) raw = javax.imageio.ImageIO.read(fRes2);
+            }
+
+            if (raw != null) {
+                int w = (targetW > 0) ? targetW : raw.getWidth();
+                int h = (targetH > 0) ? targetH : raw.getHeight();
+                java.awt.image.BufferedImage thumb = new java.awt.image.BufferedImage(w, h, java.awt.image.BufferedImage.TYPE_INT_RGB);
+                Graphics2D g2 = thumb.createGraphics();
+                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.drawImage(raw, 0, 0, w, h, null);
+                g2.dispose();
+                raw.flush();
+                COVER_CACHE.put(cacheKey, thumb);
+                return thumb;
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    public static void loadCoverImageAsync(String path, int targetW, int targetH, java.util.function.Consumer<java.awt.image.BufferedImage> onLoaded) {
+        if (path == null || path.isBlank()) return;
+        String cacheKey = path + "@" + targetW + "x" + targetH;
+        java.awt.image.BufferedImage cached = COVER_CACHE.get(cacheKey);
+        if (cached != null) {
+            if (onLoaded != null) onLoaded.accept(cached);
+            return;
+        }
+
+        new SwingWorker<java.awt.image.BufferedImage, Void>() {
+            @Override
+            protected java.awt.image.BufferedImage doInBackground() {
+                return loadCoverImage(path, targetW, targetH);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    java.awt.image.BufferedImage img = get();
+                    if (img != null && onLoaded != null) {
+                        onLoaded.accept(img);
+                    }
+                } catch (Exception ignored) {}
+            }
+        }.execute();
+    }
 }

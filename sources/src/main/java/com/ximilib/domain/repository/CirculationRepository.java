@@ -92,4 +92,12 @@ public interface CirculationRepository {
     }
 
     String generateNextFineId();
+
+    default List<com.ximilib.application.dto.BorrowTicketDto> findTickets(String keyword, Integer statusFilter) {
+        return java.util.Collections.emptyList();
+    }
+
+    default List<com.ximilib.application.dto.BorrowTicketDto> findTicketsByReader(String userId) {
+        return java.util.Collections.emptyList();
+    }
 }

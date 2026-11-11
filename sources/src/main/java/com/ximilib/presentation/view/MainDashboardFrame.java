@@ -1,6 +1,6 @@
 package com.ximilib.presentation.view;
 
-import com.ximilib.presentation.component.DigitalCardDialog;
+import com.ximilib.presentation.component.DigitalCardPopupPanel;
 import com.ximilib.presentation.component.SearchField;
 import com.ximilib.presentation.component.SidebarPanel;
 import com.ximilib.presentation.util.IconFactory;
@@ -425,7 +425,7 @@ public class MainDashboardFrame extends JFrame {
             JButton btnDigitalCard = UITheme.createPillButton("Thẻ Thư Viện", UITheme.TINT, UITheme.ON_TINT);
             btnDigitalCard.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 12f));
             btnDigitalCard.addActionListener(e -> {
-                DigitalCardDialog.show(this, currentUser.getId(), currentUser.getFullName());
+                DigitalCardPopupPanel.show(currentUser.getId(), currentUser.getFullName());
             });
             actionsPanel.add(btnDigitalCard);
         }

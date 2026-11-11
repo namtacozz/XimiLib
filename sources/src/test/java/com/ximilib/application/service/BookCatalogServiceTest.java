@@ -3,7 +3,6 @@ package com.ximilib.application.service;
 import com.ximilib.application.dto.BookSearchCriteria;
 import com.ximilib.application.dto.BookSummaryDto;
 import com.ximilib.application.dto.PagedResult;
-import com.ximilib.application.port.BookQueryPort;
 import com.ximilib.application.service.impl.BookCatalogServiceImpl;
 import com.ximilib.domain.exception.BookInUseException;
 import com.ximilib.domain.repository.BookRepository;
@@ -147,7 +146,7 @@ class BookCatalogServiceTest {
         assertEquals("Công nghệ thông tin", categories.get(4));
     }
 
-    private static class StubBookRepository implements BookRepository, BookQueryPort {
+    private static class StubBookRepository implements BookRepository {
         private final List<BookSummaryDto> books = new ArrayList<>();
         private final Map<Integer, String> categories = new LinkedHashMap<>();
 

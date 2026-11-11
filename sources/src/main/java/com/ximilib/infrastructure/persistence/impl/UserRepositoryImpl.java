@@ -2,7 +2,6 @@ package com.ximilib.infrastructure.persistence.impl;
 
 import com.ximilib.application.dto.PatronDto;
 import com.ximilib.application.dto.UserAccountDto;
-import com.ximilib.application.port.UserQueryPort;
 import com.ximilib.domain.repository.UserRepository;
 import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
 import com.ximilib.domain.model.User;
@@ -14,12 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class UserRepositoryImpl implements UserRepository, UserQueryPort {
-
-    private final DatabaseConnectionManager connectionManager;
+public class UserRepositoryImpl extends BaseJdbcRepository implements UserRepository {
 
     public UserRepositoryImpl(DatabaseConnectionManager connectionManager) {
-        this.connectionManager = (connectionManager != null) ? connectionManager : new DatabaseConnectionManager();
+        super(connectionManager);
     }
 
     @Override
@@ -230,17 +227,7 @@ public class UserRepositoryImpl implements UserRepository, UserQueryPort {
     }
 
     private boolean checkExists(String sql, String... params) {
-        try (Connection conn = connectionManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            for (int i = 0; i < params.length; i++) {
-                ps.setString(i + 1, params[i]);
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            return false;
-        }
+        return queryExists(sql, (Object[]) params);
     }
 
     private User mapResultSetToUser(ResultSet rs) throws SQLException {

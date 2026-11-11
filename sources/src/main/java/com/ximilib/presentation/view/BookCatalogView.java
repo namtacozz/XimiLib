@@ -482,7 +482,7 @@ public class BookCatalogView extends JPanel {
         bookTable.getColumnModel().getColumn(2).setCellRenderer(new DefaultTextRenderer(SwingConstants.LEFT, UITheme.TEXT_MAIN, tableModel, selectedBookIds));
 
         bookTable.getColumnModel().getColumn(3).setPreferredWidth(95);
-        bookTable.getColumnModel().getColumn(3).setCellRenderer(new BookCodeRenderer(tableModel, selectedBookIds));
+        bookTable.getColumnModel().getColumn(3).setCellRenderer(new DefaultTextRenderer(SwingConstants.LEFT, UITheme.TEXT_MUTED, new Font("Segoe UI", Font.BOLD, 12), tableModel, selectedBookIds));
 
         bookTable.getColumnModel().getColumn(4).setPreferredWidth(140);
         bookTable.getColumnModel().getColumn(4).setCellRenderer(new DefaultTextRenderer(SwingConstants.LEFT, UITheme.TEXT_MUTED, tableModel, selectedBookIds));

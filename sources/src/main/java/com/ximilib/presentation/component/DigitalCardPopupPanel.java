@@ -22,6 +22,10 @@ public class DigitalCardPopupPanel extends GlassPaneChild {
         initUI();
     }
 
+    public static void show(String cardId, String memberName) {
+        UiModalHelper.showQuickPopup(new DigitalCardPopupPanel(cardId, memberName));
+    }
+
     private void initUI() {
         JPanel cardContainer = new JPanel() {
             @Override

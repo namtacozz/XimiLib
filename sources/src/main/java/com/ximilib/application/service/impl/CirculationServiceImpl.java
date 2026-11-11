@@ -3,7 +3,6 @@ package com.ximilib.application.service.impl;
 import com.ximilib.application.dto.BorrowTicketDto;
 import com.ximilib.application.dto.CompensationResultDto;
 import com.ximilib.application.dto.ReturnResultDto;
-import com.ximilib.application.port.CirculationQueryPort;
 import com.ximilib.application.service.CirculationService;
 import com.ximilib.domain.event.BookStockChangedEvent;
 import com.ximilib.domain.event.DomainEventPublisher;
@@ -26,34 +25,24 @@ import java.util.Objects;
 public class CirculationServiceImpl implements CirculationService {
 
     private final CirculationRepository circulationRepository;
-    private final CirculationQueryPort circulationQueryPort;
     private final FineCalculationService fineCalculationService;
     private final com.ximilib.application.port.TransactionCoordinator transactionCoordinator;
 
     public CirculationServiceImpl(CirculationRepository repository) {
-        this(repository, (repository instanceof CirculationQueryPort cqp) ? cqp : null, new FineCalculationService(), null);
-    }
-
-    public CirculationServiceImpl(CirculationRepository repository, CirculationQueryPort queryPort) {
-        this(repository, queryPort, new FineCalculationService(), null);
+        this(repository, new FineCalculationService(), null);
     }
 
     public CirculationServiceImpl(CirculationRepository repository, FineCalculationService fineCalculationService) {
-        this(repository, (repository instanceof CirculationQueryPort cqp) ? cqp : null, fineCalculationService, null);
+        this(repository, fineCalculationService, null);
     }
 
-    public CirculationServiceImpl(CirculationRepository repository, CirculationQueryPort queryPort, FineCalculationService fineCalculationService) {
-        this(repository, queryPort, fineCalculationService, null);
-    }
-
-    public CirculationServiceImpl(CirculationRepository repository, CirculationQueryPort queryPort,
-                                  FineCalculationService fineCalculationService,
+    public CirculationServiceImpl(CirculationRepository repository, FineCalculationService fineCalculationService,
                                   com.ximilib.application.port.TransactionCoordinator transactionCoordinator) {
         this.circulationRepository = Objects.requireNonNull(repository, "circulationRepository không được null");
-        this.circulationQueryPort = (queryPort != null) ? queryPort : ((repository instanceof CirculationQueryPort cqp) ? cqp : null);
         this.fineCalculationService = (fineCalculationService != null) ? fineCalculationService : new FineCalculationService();
         this.transactionCoordinator = transactionCoordinator;
     }
+
 
     private CirculationRepository getRepo() {
         return circulationRepository;
@@ -278,9 +267,7 @@ public class CirculationServiceImpl implements CirculationService {
             throw new IllegalStateException("Mỗi phiếu mượn chỉ được gia hạn tối đa 1 lần (Quy tắc BR-03).");
         }
 
-        List<BorrowTicketDto> tickets = (circulationQueryPort != null)
-            ? circulationQueryPort.findTickets(borrowTicketId.trim(), null)
-            : Collections.emptyList();
+        List<BorrowTicketDto> tickets = getRepo().findTickets(borrowTicketId.trim(), null);
         if (tickets.isEmpty()) {
             throw new IllegalArgumentException("Không tìm thấy phiếu mượn: " + borrowTicketId);
         }
@@ -316,9 +303,7 @@ public class CirculationServiceImpl implements CirculationService {
             throw new IllegalArgumentException("Mã phiếu mượn không hợp lệ.");
         }
         CirculationRepository repo = getRepo();
-        List<BorrowTicketDto> tickets = (circulationQueryPort != null)
-            ? circulationQueryPort.findTickets(ticketId.trim(), null)
-            : Collections.emptyList();
+        List<BorrowTicketDto> tickets = getRepo().findTickets(ticketId.trim(), null);
         if (tickets == null || tickets.isEmpty()) {
             throw new IllegalArgumentException("Không tìm thấy phiếu mượn có mã: " + ticketId);
         }
@@ -346,18 +331,12 @@ public class CirculationServiceImpl implements CirculationService {
 
     @Override
     public List<BorrowTicketDto> getReaderLoans(String userId) {
-        if (circulationQueryPort != null) {
-            return circulationQueryPort.findTicketsByReader(userId);
-        }
-        return Collections.emptyList();
+        return getRepo().findTicketsByReader(userId);
     }
 
     @Override
     public List<BorrowTicketDto> getAllLoans(String keyword, Integer status) {
-        if (circulationQueryPort != null) {
-            return circulationQueryPort.findTickets(keyword, status);
-        }
-        return Collections.emptyList();
+        return getRepo().findTickets(keyword, status);
     }
 
     @Override

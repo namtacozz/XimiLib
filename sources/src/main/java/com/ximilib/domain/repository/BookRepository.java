@@ -1,5 +1,9 @@
 package com.ximilib.domain.repository;
 
+import com.ximilib.application.dto.BookSearchCriteria;
+import com.ximilib.application.dto.BookSummaryDto;
+import com.ximilib.application.dto.PagedResult;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -32,4 +36,12 @@ public interface BookRepository {
     void updateCategory(int id, String name, String desc);
 
     void deleteCategory(int id);
+
+    default PagedResult<BookSummaryDto> searchBooks(BookSearchCriteria criteria, int page, int pageSize) {
+        return new PagedResult<>(Collections.emptyList(), 0, page, pageSize);
+    }
+
+    default List<BookSummaryDto> getDeletedBooks() {
+        return Collections.emptyList();
+    }
 }

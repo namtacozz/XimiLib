@@ -326,53 +326,6 @@ public class ReportsDashboardView extends JPanel {
         }.execute();
     }
 
-    private void exportToCsv() {
-        if (reportTable.getRowCount() == 0) {
-            UiModalHelper.showToastWarning(this, "Không có phát sinh giao dịch trong mốc thời gian đã chọn");
-            return;
-        }
-
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Lưu file báo cáo Excel CSV");
-        fileChooser.setSelectedFile(new File("BaoCao_" + System.currentTimeMillis() + ".csv"));
-
-        int result = fileChooser.showSaveDialog(this);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            try (FileOutputStream fos = new FileOutputStream(file);
-                 OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
-                 PrintWriter pw = new PrintWriter(osw)) {
-
-                fos.write(0xEF);
-                fos.write(0xBB);
-                fos.write(0xBF);
-
-                for (int i = 0; i < reportTable.getColumnCount(); i++) {
-                    pw.print("\"" + reportTable.getColumnName(i) + "\"");
-                    if (i < reportTable.getColumnCount() - 1) pw.print(",");
-                }
-                pw.println();
-
-                for (int r = 0; r < reportTable.getRowCount(); r++) {
-                    for (int c = 0; c < reportTable.getColumnCount(); c++) {
-                        Object val = reportTable.getValueAt(r, c);
-                        String strVal = (val != null) ? val.toString().replace("\"", "\"\"") : "";
-                        pw.print("\"" + strVal + "\"");
-                        if (c < reportTable.getColumnCount() - 1) pw.print(",");
-                    }
-                    pw.println();
-                }
-
-                String currentUserId = UserSession.getCurrentUser() != null ? UserSession.getCurrentUser().getId() : "ADMIN";
-                AuditLogger.log(currentUserId, "EXPORT_REPORT", "Xuất file báo cáo: " + file.getName());
-
-                UiModalHelper.showToastSuccess(this, "Xuất báo cáo thành công: " + file.getName());
-            } catch (Exception e) {
-                UiModalHelper.showToastError(this, "Lỗi khi xuất file: " + e.getMessage());
-            }
-        }
-    }
-
     private void exportToXlsx() {
         if (reportTable.getRowCount() == 0) {
             UiModalHelper.showToastWarning(this, "Không có phát sinh giao dịch trong mốc thời gian đã chọn");
