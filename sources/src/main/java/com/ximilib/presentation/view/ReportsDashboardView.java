@@ -273,7 +273,7 @@ public class ReportsDashboardView extends JPanel {
     }
 
     private JPanel createFilterContainer() {
-        JPanel container = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 8)) {
+        JPanel container = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 5)) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -288,7 +288,7 @@ public class ReportsDashboardView extends JPanel {
             }
         };
         container.setOpaque(false);
-        container.setBorder(new EmptyBorder(4, 10, 4, 10));
+        container.setBorder(new EmptyBorder(3, 10, 3, 10));
         return container;
     }
 
@@ -302,21 +302,19 @@ public class ReportsDashboardView extends JPanel {
     private JPanel createLoanFilterPanel() {
         JPanel p = createFilterContainer();
 
-        JLabel lblTag = new JLabel("Bộ lọc nâng cao:");
+        JLabel lblTag = new JLabel("Bộ lọc:");
         lblTag.setFont(UITheme.FONT_BOLD);
         lblTag.setForeground(UITheme.PRIMARY);
         p.add(lblTag);
 
         // 1. Bạn đọc / Mã phiếu
-        p.add(createFieldLabel("Bạn đọc / Phiếu:"));
-        txtLoanReaderSearch = new SearchField("Tên độc giả hoặc mã phiếu...");
-        txtLoanReaderSearch.setPreferredSize(new Dimension(190, 32));
+        txtLoanReaderSearch = new SearchField("Bạn đọc, mã phiếu...");
+        txtLoanReaderSearch.setPreferredSize(new Dimension(175, 32));
         bindDebounce(txtLoanReaderSearch);
         p.add(txtLoanReaderSearch);
 
         // 2. Hình thức
-        p.add(createFieldLabel("Hình thức:"));
-        cmbLoanType = new JComboBox<>(new String[]{"Tất cả hình thức", "Đọc tại chỗ", "Mượn về nhà"});
+        cmbLoanType = new JComboBox<>(new String[]{"Hình thức: Tất cả", "Đọc tại chỗ", "Mượn về nhà"});
         cmbLoanType.setFont(UITheme.FONT_REGULAR);
         cmbLoanType.setPreferredSize(new Dimension(135, 32));
         cmbLoanType.putClientProperty(FlatClientProperties.STYLE, "arc: 8;");
@@ -324,9 +322,8 @@ public class ReportsDashboardView extends JPanel {
         p.add(cmbLoanType);
 
         // 3. Trạng thái
-        p.add(createFieldLabel("Trạng thái:"));
         cmbLoanStatus = new JComboBox<>(new String[]{
-            "Tất cả trạng thái",
+            "Trạng thái: Tất cả",
             "Chờ duyệt (0)",
             "Đang mượn (1)",
             "Đã trả (2)",
@@ -336,17 +333,16 @@ public class ReportsDashboardView extends JPanel {
             "Đã hủy (6)"
         });
         cmbLoanStatus.setFont(UITheme.FONT_REGULAR);
-        cmbLoanStatus.setPreferredSize(new Dimension(150, 32));
+        cmbLoanStatus.setPreferredSize(new Dimension(145, 32));
         cmbLoanStatus.putClientProperty(FlatClientProperties.STYLE, "arc: 8;");
         cmbLoanStatus.addActionListener(e -> loadReportDataAsync());
         p.add(cmbLoanStatus);
 
         // 4. Ngày mượn (Khoảng ngày)
-        p.add(createFieldLabel("Ngày mượn:"));
         txtLoanDateRange = new JFormattedTextField();
         txtLoanDateRange.setFont(UITheme.FONT_REGULAR);
-        txtLoanDateRange.setPreferredSize(new Dimension(170, 32));
-        txtLoanDateRange.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Từ ngày - Đến ngày");
+        txtLoanDateRange.setPreferredSize(new Dimension(165, 32));
+        txtLoanDateRange.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Khoảng ngày mượn...");
         txtLoanDateRange.putClientProperty(FlatClientProperties.STYLE, "arc: 8;");
         txtLoanDateRange.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
         loanRangePicker = UiModalHelper.createDatePicker(txtLoanDateRange, true);
@@ -357,10 +353,14 @@ public class ReportsDashboardView extends JPanel {
         JButton btnReset = UITheme.createPillButton("Đặt lại", UITheme.TINT, UITheme.ON_TINT);
         btnReset.setPreferredSize(new Dimension(75, 32));
         btnReset.setFont(UITheme.FONT_REGULAR);
+        btnReset.setToolTipText("Khôi phục bộ lọc mặc định");
         btnReset.addActionListener(e -> {
             txtLoanReaderSearch.setText("");
             cmbLoanType.setSelectedIndex(0);
             cmbLoanStatus.setSelectedIndex(0);
+            if (loanRangePicker != null) {
+                loanRangePicker.clearSelectedDate();
+            }
             txtLoanDateRange.setValue(null);
             txtLoanDateRange.setText("");
             loadReportDataAsync();
@@ -373,14 +373,13 @@ public class ReportsDashboardView extends JPanel {
     private JPanel createOverdueFilterPanel() {
         JPanel p = createFilterContainer();
 
-        JLabel lblTag = new JLabel("Lọc danh sách quá hạn:");
+        JLabel lblTag = new JLabel("Lọc quá hạn:");
         lblTag.setFont(UITheme.FONT_BOLD);
         lblTag.setForeground(UITheme.DANGER_TEXT);
         p.add(lblTag);
 
-        p.add(createFieldLabel("Tìm kiếm:"));
         txtOverdueSearch = new SearchField("Tên bạn đọc, mã thẻ, số ĐT, mã phiếu...");
-        txtOverdueSearch.setPreferredSize(new Dimension(320, 32));
+        txtOverdueSearch.setPreferredSize(new Dimension(300, 32));
         bindDebounce(txtOverdueSearch);
         p.add(txtOverdueSearch);
 
@@ -394,6 +393,7 @@ public class ReportsDashboardView extends JPanel {
         JButton btnReset = UITheme.createPillButton("Đặt lại", UITheme.TINT, UITheme.ON_TINT);
         btnReset.setPreferredSize(new Dimension(75, 32));
         btnReset.setFont(UITheme.FONT_REGULAR);
+        btnReset.setToolTipText("Khôi phục bộ lọc mặc định");
         btnReset.addActionListener(e -> {
             txtOverdueSearch.setText("");
             chkOnlyFine.setSelected(false);
@@ -412,22 +412,19 @@ public class ReportsDashboardView extends JPanel {
         lblTag.setForeground(new Color(217, 119, 6));
         p.add(lblTag);
 
-        p.add(createFieldLabel("Tựa sách / Mã cuốn:"));
         txtDamagedSearch = new SearchField("Mã cuốn hoặc tựa sách...");
-        txtDamagedSearch.setPreferredSize(new Dimension(220, 32));
+        txtDamagedSearch.setPreferredSize(new Dimension(210, 32));
         bindDebounce(txtDamagedSearch);
         p.add(txtDamagedSearch);
 
-        p.add(createFieldLabel("Trạng thái:"));
-        cmbDamagedStatus = new JComboBox<>(new String[]{"Tất cả (Hỏng & Mất)", "Hỏng (HONG)", "Đã mất (DA_MAT)"});
+        cmbDamagedStatus = new JComboBox<>(new String[]{"Trạng thái: Tất cả", "Hỏng (HONG)", "Đã mất (DA_MAT)"});
         cmbDamagedStatus.setFont(UITheme.FONT_REGULAR);
-        cmbDamagedStatus.setPreferredSize(new Dimension(170, 32));
+        cmbDamagedStatus.setPreferredSize(new Dimension(160, 32));
         cmbDamagedStatus.putClientProperty(FlatClientProperties.STYLE, "arc: 8;");
         cmbDamagedStatus.addActionListener(e -> loadReportDataAsync());
         p.add(cmbDamagedStatus);
 
-        p.add(createFieldLabel("Vị trí:"));
-        txtDamagedLocation = new SearchField("Khu vực, tên kệ...");
+        txtDamagedLocation = new SearchField("Khu vực, kệ sách...");
         txtDamagedLocation.setPreferredSize(new Dimension(160, 32));
         bindDebounce(txtDamagedLocation);
         p.add(txtDamagedLocation);
@@ -435,6 +432,7 @@ public class ReportsDashboardView extends JPanel {
         JButton btnReset = UITheme.createPillButton("Đặt lại", UITheme.TINT, UITheme.ON_TINT);
         btnReset.setPreferredSize(new Dimension(75, 32));
         btnReset.setFont(UITheme.FONT_REGULAR);
+        btnReset.setToolTipText("Khôi phục bộ lọc mặc định");
         btnReset.addActionListener(e -> {
             txtDamagedSearch.setText("");
             cmbDamagedStatus.setSelectedIndex(0);
@@ -449,23 +447,21 @@ public class ReportsDashboardView extends JPanel {
     private JPanel createTopBooksFilterPanel() {
         JPanel p = createFilterContainer();
 
-        JLabel lblTag = new JLabel("Lọc xếp hạng sách:");
+        JLabel lblTag = new JLabel("Lọc xếp hạng:");
         lblTag.setFont(UITheme.FONT_BOLD);
         lblTag.setForeground(new Color(16, 185, 129));
         p.add(lblTag);
 
-        p.add(createFieldLabel("Đầu sách / Mã:"));
         txtTopBookSearch = new SearchField("Tên đầu sách hoặc mã sách...");
-        txtTopBookSearch.setPreferredSize(new Dimension(260, 32));
+        txtTopBookSearch.setPreferredSize(new Dimension(250, 32));
         bindDebounce(txtTopBookSearch);
         p.add(txtTopBookSearch);
 
-        p.add(createFieldLabel("Thể loại:"));
         cmbTopCategory = new JComboBox<>();
         cmbTopCategory.setFont(UITheme.FONT_REGULAR);
-        cmbTopCategory.setPreferredSize(new Dimension(180, 32));
+        cmbTopCategory.setPreferredSize(new Dimension(175, 32));
         cmbTopCategory.putClientProperty(FlatClientProperties.STYLE, "arc: 8;");
-        cmbTopCategory.addItem("Tất cả thể loại");
+        cmbTopCategory.addItem("Thể loại: Tất cả");
 
         // Lấy danh mục thể loại từ BookCatalogService
         try {
@@ -481,6 +477,7 @@ public class ReportsDashboardView extends JPanel {
         JButton btnReset = UITheme.createPillButton("Đặt lại", UITheme.TINT, UITheme.ON_TINT);
         btnReset.setPreferredSize(new Dimension(75, 32));
         btnReset.setFont(UITheme.FONT_REGULAR);
+        btnReset.setToolTipText("Khôi phục bộ lọc mặc định");
         btnReset.addActionListener(e -> {
             txtTopBookSearch.setText("");
             cmbTopCategory.setSelectedIndex(0);
