@@ -20,6 +20,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.math.BigDecimal;
@@ -124,31 +125,28 @@ public class ReportsDashboardView extends JPanel {
         titleBox.add(lblTitle);
 
         topPanel.add(titleBox);
-        topPanel.add(Box.createVerticalStrut(16));
+        topPanel.add(Box.createVerticalStrut(12));
 
-        // 4 KPI Cards
-        JPanel kpiPanel = new JPanel(new GridLayout(1, 4, 16, 0));
-        kpiPanel.setOpaque(false);
-        kpiPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        kpiPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+        // Khối tổng quan: 1 khung chứa 4 ô số liệu nằm bên trái, Biểu đồ xu hướng thu hẹp nằm bên phải
+        JPanel upperSection = new JPanel(new BorderLayout(14, 0));
+        upperSection.setOpaque(false);
+        upperSection.setAlignmentX(Component.LEFT_ALIGNMENT);
+        upperSection.setMaximumSize(new Dimension(Integer.MAX_VALUE, 155));
+        upperSection.setPreferredSize(new Dimension(900, 155));
 
-        lblTotalBooksVal = new JLabel("...", SwingConstants.CENTER);
-        lblActiveLoansVal = new JLabel("...", SwingConstants.CENTER);
-        lblOverdueVal = new JLabel("...", SwingConstants.CENTER);
-        lblTotalFinesVal = new JLabel("...", SwingConstants.CENTER);
+        lblTotalBooksVal = new JLabel("...", SwingConstants.LEFT);
+        lblActiveLoansVal = new JLabel("...", SwingConstants.LEFT);
+        lblOverdueVal = new JLabel("...", SwingConstants.LEFT);
+        lblTotalFinesVal = new JLabel("...", SwingConstants.LEFT);
 
-        kpiPanel.add(createMiniKpiCard("Tổng đầu sách", lblTotalBooksVal, UITheme.PRIMARY));
-        kpiPanel.add(createMiniKpiCard("Đang cho mượn", lblActiveLoansVal, new Color(59, 130, 246)));
-        kpiPanel.add(createMiniKpiCard("Phiếu quá hạn", lblOverdueVal, UITheme.DANGER_TEXT));
-        kpiPanel.add(createMiniKpiCard("Tiền phạt đã thu", lblTotalFinesVal, new Color(16, 185, 129)));
-
-        topPanel.add(kpiPanel);
-        topPanel.add(Box.createVerticalStrut(14));
-
+        JPanel kpiContainer = createKpiContainer();
         trendChartPanel = new TrendChartPanel();
-        trendChartPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        topPanel.add(trendChartPanel);
-        topPanel.add(Box.createVerticalStrut(14));
+
+        upperSection.add(kpiContainer, BorderLayout.WEST);
+        upperSection.add(trendChartPanel, BorderLayout.CENTER);
+
+        topPanel.add(upperSection);
+        topPanel.add(Box.createVerticalStrut(12));
 
         // Thanh chọn loại báo cáo và các nút tác vụ xuất file
         JPanel filterBar = new JPanel(new BorderLayout(10, 0));
@@ -231,12 +229,12 @@ public class ReportsDashboardView extends JPanel {
         filterBar.add(leftFilter, BorderLayout.WEST);
         filterBar.add(rightActions, BorderLayout.EAST);
         topPanel.add(filterBar);
-        topPanel.add(Box.createVerticalStrut(10));
+        topPanel.add(Box.createVerticalStrut(8));
 
         // Khởi tạo Card Bộ lọc nâng cao
         initAdvancedFilterCards();
         topPanel.add(advancedFilterCard);
-        topPanel.add(Box.createVerticalStrut(12));
+        topPanel.add(Box.createVerticalStrut(10));
 
         add(topPanel, BorderLayout.NORTH);
 
@@ -575,25 +573,61 @@ public class ReportsDashboardView extends JPanel {
         return criteria;
     }
 
-    private JPanel createMiniKpiCard(String title, JLabel valueLabel, Color accentColor) {
-        JPanel card = new JPanel(new BorderLayout(0, 4));
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(UITheme.CARD_BORDER, 1, true),
-            BorderFactory.createEmptyBorder(12, 14, 12, 14)
-        ));
+    private JPanel createKpiContainer() {
+        JPanel container = new JPanel(new GridLayout(2, 2, 1, 1)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int w = getWidth();
+                int h = getHeight();
+
+                // Nền bo góc đồng bộ với TrendChartPanel
+                g2.setColor(UITheme.CARD_BG);
+                g2.fill(new RoundRectangle2D.Float(0, 0, w, h, 16, 16));
+
+                // Đường phân cách mờ tinh tế giữa 4 ô số liệu
+                g2.setColor(UITheme.CARD_BORDER);
+                g2.drawLine(w / 2, 14, w / 2, h - 14);
+                g2.drawLine(16, h / 2, w - 16, h / 2);
+
+                // Viền ngoài bo góc
+                g2.draw(new RoundRectangle2D.Float(0, 0, w - 1, h - 1, 16, 16));
+                g2.dispose();
+            }
+        };
+        container.setOpaque(false);
+        container.setPreferredSize(new Dimension(380, 155));
+        container.setMinimumSize(new Dimension(300, 140));
+
+        // Hàng 1: [Tổng đầu sách] [Đang cho mượn]
+        container.add(createKpiCell("Tổng đầu sách", lblTotalBooksVal, UITheme.PRIMARY));
+        container.add(createKpiCell("Đang cho mượn", lblActiveLoansVal, new Color(59, 130, 246)));
+
+        // Hàng 2: [Phiếu quá hạn] [Tiền phạt đã thu]
+        container.add(createKpiCell("Phiếu quá hạn", lblOverdueVal, UITheme.DANGER_TEXT));
+        container.add(createKpiCell("Tiền phạt đã thu", lblTotalFinesVal, new Color(16, 185, 129)));
+
+        return container;
+    }
+
+    private JPanel createKpiCell(String title, JLabel valueLabel, Color accentColor) {
+        JPanel cell = new JPanel(new BorderLayout(0, 3));
+        cell.setOpaque(false);
+        cell.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
 
         JLabel lblTitle = new JLabel(title);
         lblTitle.setFont(UITheme.FONT_SMALL);
         lblTitle.setForeground(UITheme.TEXT_MUTED);
 
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 19));
         valueLabel.setForeground(accentColor);
         valueLabel.setHorizontalAlignment(SwingConstants.LEFT);
 
-        card.add(lblTitle, BorderLayout.NORTH);
-        card.add(valueLabel, BorderLayout.CENTER);
-        return card;
+        cell.add(lblTitle, BorderLayout.NORTH);
+        cell.add(valueLabel, BorderLayout.CENTER);
+        return cell;
     }
 
     private void loadKpisAsync() {

@@ -20,8 +20,8 @@ public class TrendChartPanel extends JPanel {
 
     public TrendChartPanel() {
         setOpaque(false);
-        setPreferredSize(new Dimension(600, 220));
-        setMinimumSize(new Dimension(300, 180));
+        setPreferredSize(new Dimension(520, 160));
+        setMinimumSize(new Dimension(280, 140));
     }
 
     public void setMetrics(List<DailyMetric> data) {
@@ -47,36 +47,42 @@ public class TrendChartPanel extends JPanel {
         g2.setColor(UITheme.CARD_BORDER);
         g2.draw(new RoundRectangle2D.Float(0, 0, w - 1, h - 1, 16, 16));
 
-        int legendY = 24;
+        int legendY = 22;
+        int legendBox1X = w - 215;
+        int legendText1X = w - 200;
+        int legendBox2X = w - 115;
+        int legendText2X = w - 100;
+
         g2.setFont(UITheme.FONT_BOLD);
         g2.setColor(UITheme.PRIMARY);
-        g2.fillRect(w - 280, legendY - 10, 12, 12);
+        g2.fillRect(legendBox1X, legendY - 10, 10, 10);
         g2.setColor(UITheme.TEXT_MAIN);
-        g2.drawString("Lượt mượn", w - 262, legendY);
+        g2.drawString("Lượt mượn", legendText1X, legendY);
 
         g2.setColor(ACCENT_COLOR);
-        g2.fillRect(w - 160, legendY - 10, 12, 12);
+        g2.fillRect(legendBox2X, legendY - 10, 10, 10);
         g2.setColor(UITheme.TEXT_MAIN);
-        g2.drawString("Tiền phạt (k)", w - 142, legendY);
+        g2.drawString("Tiền phạt (k)", legendText2X, legendY);
 
-        g2.setFont(UITheme.FONT_TITLE.deriveFont(Font.BOLD, 14f));
+        g2.setFont(UITheme.FONT_TITLE.deriveFont(Font.BOLD, 13f));
         g2.setColor(UITheme.TEXT_MAIN);
-        g2.drawString("XU HƯỚNG MƯỢN SÁCH & DOANH THU PHẠT", 20, legendY);
+        String chartTitle = (w < 560) ? "XU HƯỚNG MƯỢN & PHẠT" : "XU HƯỚNG MƯỢN SÁCH & DOANH THU PHẠT";
+        g2.drawString(chartTitle, 16, legendY);
 
         if (metrics.isEmpty()) {
             g2.setFont(UITheme.FONT_REGULAR);
             g2.setColor(UITheme.TEXT_MUTED);
             String msg = "Chưa có dữ liệu thống kê trong giai đoạn này";
             FontMetrics fm = g2.getFontMetrics();
-            g2.drawString(msg, (w - fm.stringWidth(msg)) / 2, h / 2 + 10);
+            g2.drawString(msg, (w - fm.stringWidth(msg)) / 2, h / 2 + 6);
             g2.dispose();
             return;
         }
 
-        int padLeft = 45;
-        int padRight = 30;
-        int padTop = 45;
-        int padBottom = 40;
+        int padLeft = 36;
+        int padRight = 20;
+        int padTop = 38;
+        int padBottom = 28;
         int plotW = w - padLeft - padRight;
         int plotH = h - padTop - padBottom;
 
@@ -98,7 +104,7 @@ public class TrendChartPanel extends JPanel {
             float groupX = padLeft + i * groupW;
             float centerX = groupX + groupW / 2;
 
-            float barH = (float) m.borrowCount() / maxBorrow * (plotH - 20);
+            float barH = (float) m.borrowCount() / maxBorrow * (plotH - 16);
             float barX = centerX - barW / 2;
             float barY = padTop + plotH - barH;
 
