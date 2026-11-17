@@ -1,5 +1,6 @@
 package com.ximilib.infrastructure.persistence.impl;
 
+import com.ximilib.application.dto.ReportFilterCriteria;
 import com.ximilib.application.port.ReportPort;
 import com.ximilib.infrastructure.logging.AuditLogger;
 import com.ximilib.infrastructure.persistence.connection.DatabaseConnectionManager;
@@ -40,7 +41,12 @@ public class ReportRepositoryImpl extends BaseJdbcRepository implements ReportPo
 
     @Override
     public List<Object[]> getLoansReport() {
-        String sql = """
+        return getLoansReport(null);
+    }
+
+    @Override
+    public List<Object[]> getLoansReport(ReportFilterCriteria criteria) {
+        StringBuilder sql = new StringBuilder("""
             SELECT p.Maphieumuon, u.Hoten, p.Hinhthuc, p.Ngaymuon, p.Hantranhan, p.Ngaytra,
                    CASE p.Trangthai
                        WHEN 0 THEN 'Chờ duyệt'
@@ -52,63 +58,161 @@ public class ReportRepositoryImpl extends BaseJdbcRepository implements ReportPo
                        ELSE 'Hủy' END AS StatusTxt
             FROM phieumuon p
             JOIN nguoidung u ON p.ID = u.ID
-            ORDER BY p.Ngaymuon DESC LIMIT 100
-        """;
-        return queryList(sql, rs -> new Object[]{
+            WHERE 1=1
+        """);
+
+        List<Object> params = new ArrayList<>();
+        if (criteria != null) {
+            if (criteria.getReaderName() != null && !criteria.getReaderName().isBlank()) {
+                sql.append(" AND (LOWER(u.Hoten) LIKE ? OR LOWER(p.Maphieumuon) LIKE ?) ");
+                String kw = "%" + criteria.getReaderName().trim().toLowerCase() + "%";
+                params.add(kw);
+                params.add(kw);
+            }
+            if (criteria.getLoanType() != null && !criteria.getLoanType().isBlank() && !"ALL".equalsIgnoreCase(criteria.getLoanType())) {
+                sql.append(" AND p.Hinhthuc = ? ");
+                params.add(criteria.getLoanType().trim());
+            }
+            if (criteria.getFromDate() != null) {
+                sql.append(" AND DATE(p.Ngaymuon) >= ? ");
+                params.add(java.sql.Date.valueOf(criteria.getFromDate()));
+            }
+            if (criteria.getToDate() != null) {
+                sql.append(" AND DATE(p.Ngaymuon) <= ? ");
+                params.add(java.sql.Date.valueOf(criteria.getToDate()));
+            }
+            if (criteria.getStatus() != null) {
+                sql.append(" AND p.Trangthai = ? ");
+                params.add(criteria.getStatus());
+            }
+        }
+
+        sql.append(" ORDER BY p.Ngaymuon DESC LIMIT 200");
+        return queryList(sql.toString(), rs -> new Object[]{
             rs.getString(1), rs.getString(2), rs.getString(3),
             rs.getDate(4), rs.getDate(5), rs.getDate(6) != null ? rs.getDate(6) : "Chưa trả",
             rs.getString(7)
-        });
+        }, params.toArray());
     }
 
     @Override
     public List<Object[]> getOverdueReport() {
-        String sql = """
+        return getOverdueReport(null);
+    }
+
+    @Override
+    public List<Object[]> getOverdueReport(ReportFilterCriteria criteria) {
+        StringBuilder sql = new StringBuilder("""
             SELECT u.Hoten, COALESCE(t.Mathe, 'N/A'), COALESCE(u.Sdt, '-'), p.Maphieumuon, p.Hantranhan,
                    COALESCE((SELECT SUM(Sotienphat) FROM phieuphat WHERE ID = u.ID AND Trangthai = 0), 0) AS TongNo
             FROM phieumuon p
             JOIN nguoidung u ON p.ID = u.ID
             LEFT JOIN thethuvien t ON u.ID = t.ID
-            WHERE p.Trangthai = 3 OR (p.Trangthai = 1 AND p.Hantranhan < NOW())
-            ORDER BY p.Hantranhan ASC LIMIT 100
-        """;
-        return queryList(sql, rs -> new Object[]{
+            WHERE (p.Trangthai = 3 OR (p.Trangthai = 1 AND p.Hantranhan < NOW()))
+        """);
+
+        List<Object> params = new ArrayList<>();
+        if (criteria != null) {
+            if (criteria.getOverdueKeyword() != null && !criteria.getOverdueKeyword().isBlank()) {
+                sql.append(" AND (LOWER(u.Hoten) LIKE ? OR LOWER(t.Mathe) LIKE ? OR LOWER(p.Maphieumuon) LIKE ? OR u.Sdt LIKE ?) ");
+                String kw = "%" + criteria.getOverdueKeyword().trim().toLowerCase() + "%";
+                params.add(kw);
+                params.add(kw);
+                params.add(kw);
+                params.add(kw);
+            }
+            if (Boolean.TRUE.equals(criteria.getOnlyHasFine())) {
+                sql.append(" AND (SELECT COALESCE(SUM(Sotienphat), 0) FROM phieuphat WHERE ID = u.ID AND Trangthai = 0) > 0 ");
+            }
+        }
+
+        sql.append(" ORDER BY p.Hantranhan ASC LIMIT 200");
+        return queryList(sql.toString(), rs -> new Object[]{
             rs.getString(1), rs.getString(2), rs.getString(3),
             rs.getString(4), rs.getDate(5), rs.getBigDecimal(6)
-        });
+        }, params.toArray());
     }
 
     @Override
     public List<Object[]> getDamagedBooksReport() {
-        String sql = """
+        return getDamagedBooksReport(null);
+    }
+
+    @Override
+    public List<Object[]> getDamagedBooksReport(ReportFilterCriteria criteria) {
+        StringBuilder sql = new StringBuilder("""
             SELECT c.Macuonsach, s.Tensach, c.Trangthaisach, COALESCE(c.Tinhtrangsach, '-'),
                    COALESCE(k.Tenkhuvuc, '-'), COALESCE(ks.Tenkesach, '-')
             FROM cuonsach c
             JOIN sach s ON c.Masach = s.Masach
             LEFT JOIN kesach ks ON c.Makesach = ks.Makesach
             LEFT JOIN khuvuc k ON ks.Makhuvuc = k.Makhuvuc
-            WHERE c.Trangthaisach IN ('HONG', 'DA_MAT')
-            ORDER BY c.Macuonsach LIMIT 100
-        """;
-        return queryList(sql, rs -> new Object[]{
+            WHERE 1=1
+        """);
+
+        List<Object> params = new ArrayList<>();
+        if (criteria != null && criteria.getCopyStatus() != null && !criteria.getCopyStatus().isBlank() && !"ALL".equalsIgnoreCase(criteria.getCopyStatus())) {
+            sql.append(" AND c.Trangthaisach = ? ");
+            params.add(criteria.getCopyStatus().trim());
+        } else {
+            sql.append(" AND c.Trangthaisach IN ('HONG', 'DA_MAT', 'HONG_MAT') ");
+        }
+
+        if (criteria != null) {
+            if (criteria.getDamagedKeyword() != null && !criteria.getDamagedKeyword().isBlank()) {
+                sql.append(" AND (LOWER(c.Macuonsach) LIKE ? OR LOWER(s.Tensach) LIKE ?) ");
+                String kw = "%" + criteria.getDamagedKeyword().trim().toLowerCase() + "%";
+                params.add(kw);
+                params.add(kw);
+            }
+            if (criteria.getLocation() != null && !criteria.getLocation().isBlank()) {
+                sql.append(" AND (LOWER(k.Tenkhuvuc) LIKE ? OR LOWER(ks.Tenkesach) LIKE ?) ");
+                String kw = "%" + criteria.getLocation().trim().toLowerCase() + "%";
+                params.add(kw);
+                params.add(kw);
+            }
+        }
+
+        sql.append(" ORDER BY c.Macuonsach LIMIT 200");
+        return queryList(sql.toString(), rs -> new Object[]{
             rs.getString(1), rs.getString(2), rs.getString(3),
             rs.getString(4), rs.getString(5), rs.getString(6)
-        });
+        }, params.toArray());
     }
 
     @Override
     public List<Object[]> getTopBooksReport() {
-        String sql = """
+        return getTopBooksReport(null);
+    }
+
+    @Override
+    public List<Object[]> getTopBooksReport(ReportFilterCriteria criteria) {
+        StringBuilder sql = new StringBuilder("""
             SELECT s.Masach, s.Tensach, COALESCE(tl.Tentheloai, '-'), COUNT(ct.Machitiet) AS SoLuotMuon
             FROM sach s
             LEFT JOIN chitietphieumuon ct ON s.Masach = ct.Masach
             LEFT JOIN theloai tl ON s.Matheloai = tl.Matheloai
-            GROUP BY s.Masach, s.Tensach, tl.Tentheloai
-            ORDER BY SoLuotMuon DESC LIMIT 10
-        """;
-        return queryList(sql, rs -> new Object[]{
+            WHERE 1=1
+        """);
+
+        List<Object> params = new ArrayList<>();
+        if (criteria != null) {
+            if (criteria.getBookKeyword() != null && !criteria.getBookKeyword().isBlank()) {
+                sql.append(" AND (LOWER(s.Tensach) LIKE ? OR LOWER(s.Masach) LIKE ?) ");
+                String kw = "%" + criteria.getBookKeyword().trim().toLowerCase() + "%";
+                params.add(kw);
+                params.add(kw);
+            }
+            if (criteria.getCategoryName() != null && !criteria.getCategoryName().isBlank() && !"ALL".equalsIgnoreCase(criteria.getCategoryName())) {
+                sql.append(" AND LOWER(tl.Tentheloai) = ? ");
+                params.add(criteria.getCategoryName().trim().toLowerCase());
+            }
+        }
+
+        sql.append(" GROUP BY s.Masach, s.Tensach, tl.Tentheloai ORDER BY SoLuotMuon DESC LIMIT 20");
+        return queryList(sql.toString(), rs -> new Object[]{
             rs.getString(1), rs.getString(2), rs.getString(3), rs.getInt(4)
-        });
+        }, params.toArray());
     }
 
     @Override

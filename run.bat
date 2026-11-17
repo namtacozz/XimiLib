@@ -24,6 +24,11 @@ if %errorlevel% equ 0 (
     exit /b 1
 )
 
+if /i "%1"=="rebuild" (
+    echo [THONG TIN] Nhanh chong dong goi lai dist\XimiLib.jar theo yeu cau...
+    call mvn clean package -f sources\pom.xml -DskipTests
+)
+
 if not exist "dist\XimiLib.jar" (
     echo [CANH BAO] File dist\XimiLib.jar chua ton tai.
     echo Dang thuc hien build tu dong [mvn clean package -DskipTests]...

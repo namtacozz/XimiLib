@@ -1,5 +1,6 @@
 package com.ximilib.application.port;
 
+import com.ximilib.application.dto.ReportFilterCriteria;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -11,11 +12,27 @@ public interface ReportPort {
 
     List<Object[]> getLoansReport();
 
+    default List<Object[]> getLoansReport(ReportFilterCriteria criteria) {
+        return getLoansReport();
+    }
+
     List<Object[]> getOverdueReport();
+
+    default List<Object[]> getOverdueReport(ReportFilterCriteria criteria) {
+        return getOverdueReport();
+    }
 
     List<Object[]> getDamagedBooksReport();
 
+    default List<Object[]> getDamagedBooksReport(ReportFilterCriteria criteria) {
+        return getDamagedBooksReport();
+    }
+
     List<Object[]> getTopBooksReport();
+
+    default List<Object[]> getTopBooksReport(ReportFilterCriteria criteria) {
+        return getTopBooksReport();
+    }
 
     record DailyMetric(String dateLabel, int borrowCount, BigDecimal fineRevenue) {}
 

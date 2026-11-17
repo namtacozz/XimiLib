@@ -1,43 +1,76 @@
 package com.ximilib.presentation.view;
 
+import com.formdev.flatlaf.FlatClientProperties;
+import com.ximilib.application.dto.ReportFilterCriteria;
+import com.ximilib.application.port.ReportExporter;
 import com.ximilib.application.port.ReportPort;
-import com.ximilib.presentation.util.IconFactory;
-import com.ximilib.presentation.util.UITheme;
-import com.ximilib.presentation.util.UserSession;
 import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.infrastructure.logging.AuditLogger;
+import com.ximilib.presentation.component.SearchField;
+import com.ximilib.presentation.component.TrendChartPanel;
+import com.ximilib.presentation.util.IconFactory;
+import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UiModalHelper;
+import com.ximilib.presentation.util.UserSession;
+import raven.datetime.DatePicker;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Locale;
-import java.util.Vector;
 
 public class ReportsDashboardView extends JPanel {
 
     private final ReportPort reportPort;
+    private final ReportExporter reportExporter;
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
 
     private JComboBox<String> cmbReportType;
-    private final com.ximilib.application.port.ReportExporter reportExporter;
     private JTable reportTable;
     private DefaultTableModel tableModel;
     private JButton btnUpdateStatus;
-    private com.ximilib.presentation.component.TrendChartPanel trendChartPanel;
+    private TrendChartPanel trendChartPanel;
 
     private JLabel lblTotalBooksVal;
     private JLabel lblActiveLoansVal;
     private JLabel lblOverdueVal;
     private JLabel lblTotalFinesVal;
+
+    // === Bộ lọc nâng cao (Card đa dạng theo tab báo cáo) ===
+    private JPanel advancedFilterCard;
+    private CardLayout filterCardLayout;
+
+    // 1. Thống kê mượn - trả
+    private SearchField txtLoanReaderSearch;
+    private JComboBox<String> cmbLoanType;
+    private JComboBox<String> cmbLoanStatus;
+    private JFormattedTextField txtLoanDateRange;
+    private DatePicker loanRangePicker;
+
+    // 2. Độc giả quá hạn & nợ phạt
+    private SearchField txtOverdueSearch;
+    private JCheckBox chkOnlyFine;
+
+    // 3. Sách hỏng - mất
+    private SearchField txtDamagedSearch;
+    private JComboBox<String> cmbDamagedStatus;
+    private SearchField txtDamagedLocation;
+
+    // 4. Top 10 đầu sách
+    private SearchField txtTopBookSearch;
+    private JComboBox<String> cmbTopCategory;
+
+    // Debounce timer cho tìm kiếm gõ phím
+    private Timer searchDebounceTimer;
 
     public ReportsDashboardView() {
         this(AppContainer.getInstance().getReportPort(), AppContainer.getInstance().getReportExporter());
@@ -47,7 +80,7 @@ public class ReportsDashboardView extends JPanel {
         this(reportPort, AppContainer.getInstance().getReportExporter());
     }
 
-    public ReportsDashboardView(ReportPort reportPort, com.ximilib.application.port.ReportExporter reportExporter) {
+    public ReportsDashboardView(ReportPort reportPort, ReportExporter reportExporter) {
         this.reportPort = (reportPort != null) ? reportPort : AppContainer.getInstance().getReportPort();
         this.reportExporter = (reportExporter != null) ? reportExporter : AppContainer.getInstance().getReportExporter();
 
@@ -93,6 +126,7 @@ public class ReportsDashboardView extends JPanel {
         topPanel.add(titleBox);
         topPanel.add(Box.createVerticalStrut(16));
 
+        // 4 KPI Cards
         JPanel kpiPanel = new JPanel(new GridLayout(1, 4, 16, 0));
         kpiPanel.setOpaque(false);
         kpiPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -111,11 +145,12 @@ public class ReportsDashboardView extends JPanel {
         topPanel.add(kpiPanel);
         topPanel.add(Box.createVerticalStrut(14));
 
-        trendChartPanel = new com.ximilib.presentation.component.TrendChartPanel();
+        trendChartPanel = new TrendChartPanel();
         trendChartPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         topPanel.add(trendChartPanel);
         topPanel.add(Box.createVerticalStrut(14));
 
+        // Thanh chọn loại báo cáo và các nút tác vụ xuất file
         JPanel filterBar = new JPanel(new BorderLayout(10, 0));
         filterBar.setOpaque(false);
         filterBar.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -134,8 +169,13 @@ public class ReportsDashboardView extends JPanel {
             "4. Top 10 đầu sách mượn nhiều nhất"
         });
         cmbReportType.setFont(UITheme.FONT_REGULAR);
-        cmbReportType.setPreferredSize(new Dimension(230, 36));
-        cmbReportType.addActionListener(e -> loadReportDataAsync());
+        cmbReportType.setPreferredSize(new Dimension(245, 36));
+        cmbReportType.putClientProperty(FlatClientProperties.STYLE, "arc: 10; background: " + UITheme.HEX_PAGE_BG);
+        cmbReportType.addActionListener(e -> {
+            int idx = cmbReportType.getSelectedIndex();
+            filterCardLayout.show(advancedFilterCard, "TAB_" + idx);
+            loadReportDataAsync();
+        });
 
         JButton btnRefresh = new JButton(IconFactory.createRefreshIcon(UITheme.TEXT_MAIN, 16));
         btnRefresh.setPreferredSize(new Dimension(38, 36));
@@ -191,6 +231,11 @@ public class ReportsDashboardView extends JPanel {
         filterBar.add(leftFilter, BorderLayout.WEST);
         filterBar.add(rightActions, BorderLayout.EAST);
         topPanel.add(filterBar);
+        topPanel.add(Box.createVerticalStrut(10));
+
+        // Khởi tạo Card Bộ lọc nâng cao
+        initAdvancedFilterCards();
+        topPanel.add(advancedFilterCard);
         topPanel.add(Box.createVerticalStrut(12));
 
         add(topPanel, BorderLayout.NORTH);
@@ -208,6 +253,326 @@ public class ReportsDashboardView extends JPanel {
         scrollPane.setBorder(BorderFactory.createLineBorder(UITheme.CARD_BORDER, 1, true));
         scrollPane.getViewport().setBackground(Color.WHITE);
         add(scrollPane, BorderLayout.CENTER);
+    }
+
+    private void initAdvancedFilterCards() {
+        filterCardLayout = new CardLayout();
+        advancedFilterCard = new JPanel(filterCardLayout);
+        advancedFilterCard.setOpaque(false);
+        advancedFilterCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Card 0: Lọc Thống kê mượn - trả
+        advancedFilterCard.add(createLoanFilterPanel(), "TAB_0");
+
+        // Card 1: Lọc Độc giả quá hạn & nợ phạt
+        advancedFilterCard.add(createOverdueFilterPanel(), "TAB_1");
+
+        // Card 2: Lọc Sách hỏng - mất
+        advancedFilterCard.add(createDamagedFilterPanel(), "TAB_2");
+
+        // Card 3: Lọc Top 10 đầu sách
+        advancedFilterCard.add(createTopBooksFilterPanel(), "TAB_3");
+    }
+
+    private JPanel createFilterContainer() {
+        JPanel container = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 8)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Color.WHITE);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.setColor(UITheme.CARD_BORDER);
+                g2.setStroke(new BasicStroke(1.0f));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        container.setOpaque(false);
+        container.setBorder(new EmptyBorder(4, 10, 4, 10));
+        return container;
+    }
+
+    private JLabel createFieldLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(UITheme.FONT_SMALL);
+        lbl.setForeground(UITheme.TEXT_MUTED);
+        return lbl;
+    }
+
+    private JPanel createLoanFilterPanel() {
+        JPanel p = createFilterContainer();
+
+        JLabel lblTag = new JLabel("Bộ lọc nâng cao:");
+        lblTag.setFont(UITheme.FONT_BOLD);
+        lblTag.setForeground(UITheme.PRIMARY);
+        p.add(lblTag);
+
+        // 1. Bạn đọc / Mã phiếu
+        p.add(createFieldLabel("Bạn đọc / Phiếu:"));
+        txtLoanReaderSearch = new SearchField("Tên độc giả hoặc mã phiếu...");
+        txtLoanReaderSearch.setPreferredSize(new Dimension(190, 32));
+        bindDebounce(txtLoanReaderSearch);
+        p.add(txtLoanReaderSearch);
+
+        // 2. Hình thức
+        p.add(createFieldLabel("Hình thức:"));
+        cmbLoanType = new JComboBox<>(new String[]{"Tất cả hình thức", "Đọc tại chỗ", "Mượn về nhà"});
+        cmbLoanType.setFont(UITheme.FONT_REGULAR);
+        cmbLoanType.setPreferredSize(new Dimension(135, 32));
+        cmbLoanType.putClientProperty(FlatClientProperties.STYLE, "arc: 8;");
+        cmbLoanType.addActionListener(e -> loadReportDataAsync());
+        p.add(cmbLoanType);
+
+        // 3. Trạng thái
+        p.add(createFieldLabel("Trạng thái:"));
+        cmbLoanStatus = new JComboBox<>(new String[]{
+            "Tất cả trạng thái",
+            "Chờ duyệt (0)",
+            "Đang mượn (1)",
+            "Đã trả (2)",
+            "Quá hạn (3)",
+            "Chờ bồi thường (4)",
+            "Đã mất (5)",
+            "Đã hủy (6)"
+        });
+        cmbLoanStatus.setFont(UITheme.FONT_REGULAR);
+        cmbLoanStatus.setPreferredSize(new Dimension(150, 32));
+        cmbLoanStatus.putClientProperty(FlatClientProperties.STYLE, "arc: 8;");
+        cmbLoanStatus.addActionListener(e -> loadReportDataAsync());
+        p.add(cmbLoanStatus);
+
+        // 4. Ngày mượn (Khoảng ngày)
+        p.add(createFieldLabel("Ngày mượn:"));
+        txtLoanDateRange = new JFormattedTextField();
+        txtLoanDateRange.setFont(UITheme.FONT_REGULAR);
+        txtLoanDateRange.setPreferredSize(new Dimension(170, 32));
+        txtLoanDateRange.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Từ ngày - Đến ngày");
+        txtLoanDateRange.putClientProperty(FlatClientProperties.STYLE, "arc: 8;");
+        txtLoanDateRange.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
+        loanRangePicker = UiModalHelper.createDatePicker(txtLoanDateRange, true);
+        loanRangePicker.addDateSelectionListener(dateEvent -> loadReportDataAsync());
+        p.add(txtLoanDateRange);
+
+        // Nút đặt lại lọc
+        JButton btnReset = UITheme.createPillButton("Đặt lại", UITheme.TINT, UITheme.ON_TINT);
+        btnReset.setPreferredSize(new Dimension(75, 32));
+        btnReset.setFont(UITheme.FONT_REGULAR);
+        btnReset.addActionListener(e -> {
+            txtLoanReaderSearch.setText("");
+            cmbLoanType.setSelectedIndex(0);
+            cmbLoanStatus.setSelectedIndex(0);
+            txtLoanDateRange.setValue(null);
+            txtLoanDateRange.setText("");
+            loadReportDataAsync();
+        });
+        p.add(btnReset);
+
+        return p;
+    }
+
+    private JPanel createOverdueFilterPanel() {
+        JPanel p = createFilterContainer();
+
+        JLabel lblTag = new JLabel("Lọc danh sách quá hạn:");
+        lblTag.setFont(UITheme.FONT_BOLD);
+        lblTag.setForeground(UITheme.DANGER_TEXT);
+        p.add(lblTag);
+
+        p.add(createFieldLabel("Tìm kiếm:"));
+        txtOverdueSearch = new SearchField("Tên bạn đọc, mã thẻ, số ĐT, mã phiếu...");
+        txtOverdueSearch.setPreferredSize(new Dimension(320, 32));
+        bindDebounce(txtOverdueSearch);
+        p.add(txtOverdueSearch);
+
+        chkOnlyFine = new JCheckBox("Chỉ độc giả đang nợ tiền phạt > 0");
+        chkOnlyFine.setFont(UITheme.FONT_REGULAR);
+        chkOnlyFine.setForeground(UITheme.TEXT_MAIN);
+        chkOnlyFine.setOpaque(false);
+        chkOnlyFine.addActionListener(e -> loadReportDataAsync());
+        p.add(chkOnlyFine);
+
+        JButton btnReset = UITheme.createPillButton("Đặt lại", UITheme.TINT, UITheme.ON_TINT);
+        btnReset.setPreferredSize(new Dimension(75, 32));
+        btnReset.setFont(UITheme.FONT_REGULAR);
+        btnReset.addActionListener(e -> {
+            txtOverdueSearch.setText("");
+            chkOnlyFine.setSelected(false);
+            loadReportDataAsync();
+        });
+        p.add(btnReset);
+
+        return p;
+    }
+
+    private JPanel createDamagedFilterPanel() {
+        JPanel p = createFilterContainer();
+
+        JLabel lblTag = new JLabel("Lọc sách hỏng - mất:");
+        lblTag.setFont(UITheme.FONT_BOLD);
+        lblTag.setForeground(new Color(217, 119, 6));
+        p.add(lblTag);
+
+        p.add(createFieldLabel("Tựa sách / Mã cuốn:"));
+        txtDamagedSearch = new SearchField("Mã cuốn hoặc tựa sách...");
+        txtDamagedSearch.setPreferredSize(new Dimension(220, 32));
+        bindDebounce(txtDamagedSearch);
+        p.add(txtDamagedSearch);
+
+        p.add(createFieldLabel("Trạng thái:"));
+        cmbDamagedStatus = new JComboBox<>(new String[]{"Tất cả (Hỏng & Mất)", "Hỏng (HONG)", "Đã mất (DA_MAT)"});
+        cmbDamagedStatus.setFont(UITheme.FONT_REGULAR);
+        cmbDamagedStatus.setPreferredSize(new Dimension(170, 32));
+        cmbDamagedStatus.putClientProperty(FlatClientProperties.STYLE, "arc: 8;");
+        cmbDamagedStatus.addActionListener(e -> loadReportDataAsync());
+        p.add(cmbDamagedStatus);
+
+        p.add(createFieldLabel("Vị trí:"));
+        txtDamagedLocation = new SearchField("Khu vực, tên kệ...");
+        txtDamagedLocation.setPreferredSize(new Dimension(160, 32));
+        bindDebounce(txtDamagedLocation);
+        p.add(txtDamagedLocation);
+
+        JButton btnReset = UITheme.createPillButton("Đặt lại", UITheme.TINT, UITheme.ON_TINT);
+        btnReset.setPreferredSize(new Dimension(75, 32));
+        btnReset.setFont(UITheme.FONT_REGULAR);
+        btnReset.addActionListener(e -> {
+            txtDamagedSearch.setText("");
+            cmbDamagedStatus.setSelectedIndex(0);
+            txtDamagedLocation.setText("");
+            loadReportDataAsync();
+        });
+        p.add(btnReset);
+
+        return p;
+    }
+
+    private JPanel createTopBooksFilterPanel() {
+        JPanel p = createFilterContainer();
+
+        JLabel lblTag = new JLabel("Lọc xếp hạng sách:");
+        lblTag.setFont(UITheme.FONT_BOLD);
+        lblTag.setForeground(new Color(16, 185, 129));
+        p.add(lblTag);
+
+        p.add(createFieldLabel("Đầu sách / Mã:"));
+        txtTopBookSearch = new SearchField("Tên đầu sách hoặc mã sách...");
+        txtTopBookSearch.setPreferredSize(new Dimension(260, 32));
+        bindDebounce(txtTopBookSearch);
+        p.add(txtTopBookSearch);
+
+        p.add(createFieldLabel("Thể loại:"));
+        cmbTopCategory = new JComboBox<>();
+        cmbTopCategory.setFont(UITheme.FONT_REGULAR);
+        cmbTopCategory.setPreferredSize(new Dimension(180, 32));
+        cmbTopCategory.putClientProperty(FlatClientProperties.STYLE, "arc: 8;");
+        cmbTopCategory.addItem("Tất cả thể loại");
+
+        // Lấy danh mục thể loại từ BookCatalogService
+        try {
+            java.util.Map<Integer, String> cats = AppContainer.getInstance().getBookCatalogService().getCategories();
+            for (String catName : cats.values()) {
+                cmbTopCategory.addItem(catName);
+            }
+        } catch (Exception ignored) {}
+
+        cmbTopCategory.addActionListener(e -> loadReportDataAsync());
+        p.add(cmbTopCategory);
+
+        JButton btnReset = UITheme.createPillButton("Đặt lại", UITheme.TINT, UITheme.ON_TINT);
+        btnReset.setPreferredSize(new Dimension(75, 32));
+        btnReset.setFont(UITheme.FONT_REGULAR);
+        btnReset.addActionListener(e -> {
+            txtTopBookSearch.setText("");
+            cmbTopCategory.setSelectedIndex(0);
+            loadReportDataAsync();
+        });
+        p.add(btnReset);
+
+        return p;
+    }
+
+    private void bindDebounce(JTextField field) {
+        field.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { triggerSearch(); }
+            @Override public void removeUpdate(DocumentEvent e) { triggerSearch(); }
+            @Override public void changedUpdate(DocumentEvent e) { triggerSearch(); }
+
+            private void triggerSearch() {
+                if (searchDebounceTimer != null && searchDebounceTimer.isRunning()) {
+                    searchDebounceTimer.restart();
+                } else {
+                    searchDebounceTimer = new Timer(300, ev -> loadReportDataAsync());
+                    searchDebounceTimer.setRepeats(false);
+                    searchDebounceTimer.start();
+                }
+            }
+        });
+    }
+
+    private ReportFilterCriteria buildCriteriaForCurrentTab(int tabIndex) {
+        ReportFilterCriteria criteria = new ReportFilterCriteria();
+
+        switch (tabIndex) {
+            case 0 -> {
+                if (txtLoanReaderSearch != null) {
+                    criteria.setReaderName(txtLoanReaderSearch.getText().trim());
+                }
+                if (cmbLoanType != null) {
+                    int idx = cmbLoanType.getSelectedIndex();
+                    if (idx == 1) criteria.setLoanType("DOC_TAI_CHO");
+                    else if (idx == 2) criteria.setLoanType("VE_NHA");
+                }
+                if (cmbLoanStatus != null) {
+                    int idx = cmbLoanStatus.getSelectedIndex();
+                    if (idx > 0) {
+                        criteria.setStatus(idx - 1); // 1 tương ứng code 0, 2 tương ứng code 1...
+                    }
+                }
+                if (loanRangePicker != null && loanRangePicker.isDateSelected()) {
+                    LocalDate[] dates = loanRangePicker.getSelectedDateRange();
+                    if (dates != null && dates.length > 0) {
+                        criteria.setFromDate(dates[0]);
+                        if (dates.length > 1) {
+                            criteria.setToDate(dates[1]);
+                        } else {
+                            criteria.setToDate(dates[0]);
+                        }
+                    }
+                }
+            }
+            case 1 -> {
+                if (txtOverdueSearch != null) {
+                    criteria.setOverdueKeyword(txtOverdueSearch.getText().trim());
+                }
+                if (chkOnlyFine != null) {
+                    criteria.setOnlyHasFine(chkOnlyFine.isSelected());
+                }
+            }
+            case 2 -> {
+                if (txtDamagedSearch != null) {
+                    criteria.setDamagedKeyword(txtDamagedSearch.getText().trim());
+                }
+                if (cmbDamagedStatus != null) {
+                    int idx = cmbDamagedStatus.getSelectedIndex();
+                    if (idx == 1) criteria.setCopyStatus("HONG");
+                    else if (idx == 2) criteria.setCopyStatus("DA_MAT");
+                }
+                if (txtDamagedLocation != null) {
+                    criteria.setLocation(txtDamagedLocation.getText().trim());
+                }
+            }
+            case 3 -> {
+                if (txtTopBookSearch != null) {
+                    criteria.setBookKeyword(txtTopBookSearch.getText().trim());
+                }
+                if (cmbTopCategory != null && cmbTopCategory.getSelectedIndex() > 0) {
+                    criteria.setCategoryName((String) cmbTopCategory.getSelectedItem());
+                }
+            }
+        }
+        return criteria;
     }
 
     private JPanel createMiniKpiCard(String title, JLabel valueLabel, Color accentColor) {
@@ -253,16 +618,16 @@ public class ReportsDashboardView extends JPanel {
     }
 
     private void loadChartAsync() {
-        new SwingWorker<java.util.List<ReportPort.DailyMetric>, Void>() {
+        new SwingWorker<List<ReportPort.DailyMetric>, Void>() {
             @Override
-            protected java.util.List<ReportPort.DailyMetric> doInBackground() {
+            protected List<ReportPort.DailyMetric> doInBackground() {
                 return reportPort.getBorrowAndFineTrend(7);
             }
 
             @Override
             protected void done() {
                 try {
-                    java.util.List<ReportPort.DailyMetric> metrics = get();
+                    List<ReportPort.DailyMetric> metrics = get();
                     if (trendChartPanel != null) {
                         trendChartPanel.setMetrics(metrics);
                     }
@@ -276,6 +641,8 @@ public class ReportsDashboardView extends JPanel {
         int selectedIndex = cmbReportType.getSelectedIndex();
         btnUpdateStatus.setVisible(selectedIndex == 0);
 
+        ReportFilterCriteria criteria = buildCriteriaForCurrentTab(selectedIndex);
+
         new SwingWorker<DefaultTableModel, Void>() {
             @Override
             protected DefaultTableModel doInBackground() {
@@ -283,13 +650,13 @@ public class ReportsDashboardView extends JPanel {
                 switch (selectedIndex) {
                     case 0 -> {
                         model.setColumnIdentifiers(new String[]{"Mã Phiếu", "Bạn Đọc", "Hình Thức", "Ngày Mượn", "Hạn Trả", "Ngày Trả Thực", "Trạng Thái"});
-                        for (Object[] row : reportPort.getLoansReport()) {
+                        for (Object[] row : reportPort.getLoansReport(criteria)) {
                             model.addRow(row);
                         }
                     }
                     case 1 -> {
                         model.setColumnIdentifiers(new String[]{"Bạn Đọc", "Mã Thẻ", "Số ĐT", "Mã Phiếu", "Hạn Trả", "Nợ Phạt Tồn"});
-                        for (Object[] row : reportPort.getOverdueReport()) {
+                        for (Object[] row : reportPort.getOverdueReport(criteria)) {
                             BigDecimal fine = (row[5] instanceof BigDecimal bd) ? bd : BigDecimal.ZERO;
                             row[5] = currencyFormat.format(fine);
                             model.addRow(row);
@@ -297,13 +664,13 @@ public class ReportsDashboardView extends JPanel {
                     }
                     case 2 -> {
                         model.setColumnIdentifiers(new String[]{"Mã Cuốn", "Tựa Sách", "Trạng Thái", "Tình Trạng", "Khu Vực", "Kệ Sách"});
-                        for (Object[] row : reportPort.getDamagedBooksReport()) {
+                        for (Object[] row : reportPort.getDamagedBooksReport(criteria)) {
                             model.addRow(row);
                         }
                     }
                     case 3 -> {
                         model.setColumnIdentifiers(new String[]{"Mã Sách", "Tên Đầu Sách", "Thể Loại", "Số Lượt Mượn"});
-                        for (Object[] row : reportPort.getTopBooksReport()) {
+                        for (Object[] row : reportPort.getTopBooksReport(criteria)) {
                             model.addRow(row);
                         }
                     }
@@ -316,9 +683,6 @@ public class ReportsDashboardView extends JPanel {
                 try {
                     DefaultTableModel model = get();
                     reportTable.setModel(model);
-                    if (model.getRowCount() == 0) {
-                        UiModalHelper.showToastWarning(ReportsDashboardView.this, "Không có phát sinh giao dịch trong mốc thời gian đã chọn");
-                    }
                 } catch (Exception e) {
                     UiModalHelper.showToastError(ReportsDashboardView.this, "Lỗi tải dữ liệu báo cáo!");
                 }
@@ -328,7 +692,7 @@ public class ReportsDashboardView extends JPanel {
 
     private void exportToXlsx() {
         if (reportTable.getRowCount() == 0) {
-            UiModalHelper.showToastWarning(this, "Không có phát sinh giao dịch trong mốc thời gian đã chọn");
+            UiModalHelper.showToastWarning(this, "Không có dữ liệu trong báo cáo để xuất!");
             return;
         }
 
@@ -350,7 +714,7 @@ public class ReportsDashboardView extends JPanel {
             for (int c = 0; c < colCount; c++) {
                 headers[c] = reportTable.getColumnName(c);
             }
-            java.util.List<Object[]> rows = new java.util.ArrayList<>(rowCount);
+            List<Object[]> rows = new java.util.ArrayList<>(rowCount);
             for (int r = 0; r < rowCount; r++) {
                 Object[] row = new Object[colCount];
                 for (int c = 0; c < colCount; c++) {
@@ -502,125 +866,96 @@ public class ReportsDashboardView extends JPanel {
             }
         };
         cardInfo.setOpaque(false);
-        cardInfo.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
+        cardInfo.setBorder(new EmptyBorder(10, 14, 10, 14));
 
-        JPanel lineTop = new JPanel(new BorderLayout());
-        lineTop.setOpaque(false);
+        JPanel leftInfo = new JPanel(new GridLayout(2, 1, 0, 4));
+        leftInfo.setOpaque(false);
+        JLabel lblCode = new JLabel("Phiếu mượn: #" + ticketId);
+        lblCode.setFont(UITheme.FONT_BOLD);
+        lblCode.setForeground(UITheme.TEXT_MAIN);
+        JLabel lblPatron = new JLabel("Bạn đọc: " + readerName);
+        lblPatron.setFont(UITheme.FONT_REGULAR);
+        lblPatron.setForeground(UITheme.TEXT_MUTED);
+        leftInfo.add(lblCode);
+        leftInfo.add(lblPatron);
 
-        JLabel lblTicket = new JLabel("Mã phiếu: " + ticketId);
-        lblTicket.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblTicket.setForeground(UITheme.TEXT_MAIN);
-
-        JLabel lblBadge = new JLabel(currentStatus) {
+        JLabel lblBadge = new JLabel(currentStatus, SwingConstants.CENTER) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(finalCurBg);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), getHeight(), getHeight());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
-        lblBadge.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblBadge.setFont(UITheme.FONT_BADGE);
         lblBadge.setForeground(finalCurFg);
-        lblBadge.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 10));
+        lblBadge.setOpaque(false);
+        lblBadge.setBorder(new EmptyBorder(4, 10, 4, 10));
 
-        lineTop.add(lblTicket, BorderLayout.WEST);
-        lineTop.add(lblBadge, BorderLayout.EAST);
+        JPanel rightBadgeBox = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 6));
+        rightBadgeBox.setOpaque(false);
+        rightBadgeBox.add(lblBadge);
 
-        JLabel lblReader = new JLabel("Bạn đọc:  " + readerName);
-        lblReader.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblReader.setForeground(UITheme.TEXT_MUTED);
-
-        cardInfo.add(lineTop, BorderLayout.NORTH);
-        cardInfo.add(lblReader, BorderLayout.SOUTH);
+        cardInfo.add(leftInfo, BorderLayout.WEST);
+        cardInfo.add(rightBadgeBox, BorderLayout.EAST);
 
         JComboBox<StatusOption> cmbStatus = new JComboBox<>(options);
-        cmbStatus.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        cmbStatus.setPreferredSize(new Dimension(390, 38));
-        cmbStatus.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
+        cmbStatus.setFont(UITheme.FONT_REGULAR);
         cmbStatus.setSelectedIndex(defaultIndex);
+        cmbStatus.setPreferredSize(new Dimension(380, 38));
         cmbStatus.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                lbl.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
-                lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
                 if (value instanceof StatusOption opt) {
                     lbl.setText(opt.label);
-                    lbl.setIcon(createDotIcon(opt.dotColor, 9));
+                    lbl.setIcon(createDotIcon(opt.dotColor, 10));
+                    lbl.setBorder(new EmptyBorder(4, 8, 4, 8));
                 }
                 return lbl;
             }
         });
 
-        JPanel pnlNote = new JPanel(new BorderLayout(8, 0)) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
-                g2.setColor(new Color(0, 0, 0, 20));
-                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        pnlNote.setOpaque(false);
-        pnlNote.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
-        pnlNote.setBackground(new Color(241, 245, 249));
-
-        JLabel lblNote = new JLabel("• " + options[defaultIndex].note);
-        lblNote.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        lblNote.setForeground(new Color(51, 65, 85));
-        pnlNote.add(lblNote, BorderLayout.CENTER);
+        JLabel lblNote = new JLabel(options[defaultIndex].note);
+        lblNote.setFont(UITheme.FONT_SMALL);
+        lblNote.setForeground(UITheme.TEXT_MUTED);
+        lblNote.setBorder(new EmptyBorder(4, 2, 8, 2));
 
         cmbStatus.addActionListener(e -> {
-            StatusOption selected = (StatusOption) cmbStatus.getSelectedItem();
-            if (selected != null) {
-                if (selected.code == 4 || selected.code == 3) {
-                    pnlNote.setBackground(new Color(254, 243, 199));
-                    lblNote.setForeground(new Color(146, 64, 14));
-                    lblNote.setText("• Lưu ý: " + selected.note);
-                } else {
-                    pnlNote.setBackground(new Color(241, 245, 249));
-                    lblNote.setForeground(new Color(51, 65, 85));
-                    lblNote.setText("• " + selected.note);
-                }
-                pnlNote.repaint();
+            StatusOption sel = (StatusOption) cmbStatus.getSelectedItem();
+            if (sel != null) {
+                lblNote.setText(sel.note);
             }
         });
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setOpaque(false);
-        panel.setPreferredSize(new Dimension(400, 185));
+        panel.setBorder(new EmptyBorder(12, 16, 16, 16));
+        panel.setPreferredSize(new Dimension(420, 240));
+
+        JLabel lblChoose = new JLabel("Chọn trạng thái mới:");
+        lblChoose.setFont(UITheme.FONT_BOLD);
+        lblChoose.setForeground(UITheme.TEXT_MAIN);
+        lblChoose.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         cardInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cmbStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblNote.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         panel.add(cardInfo);
         panel.add(Box.createVerticalStrut(12));
-
-        JLabel lblPrompt = new JLabel("Chọn trạng thái mới cần cập nhật:");
-        lblPrompt.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblPrompt.setForeground(UITheme.TEXT_MAIN);
-        lblPrompt.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(lblPrompt);
+        panel.add(lblChoose);
         panel.add(Box.createVerticalStrut(6));
-
-        cmbStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(cmbStatus);
-        panel.add(Box.createVerticalStrut(10));
+        panel.add(Box.createVerticalStrut(4));
+        panel.add(lblNote);
 
-        pnlNote.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(pnlNote);
-
-        UiModalHelper.showCustomModal(
-            this,
-            "UPDATE_STATUS_MODAL",
-            "Cập Nhật Trạng Thái Phiếu Mượn",
+        raven.modal.component.SimpleModalBorder border = new raven.modal.component.SimpleModalBorder(
             panel,
+            "Cập Nhật Trạng Thái Phiếu Mượn",
             raven.modal.component.SimpleModalBorder.OK_CANCEL_OPTION,
             (controller, action) -> {
                 if (action == raven.modal.component.SimpleModalBorder.OK_OPTION) {
@@ -633,6 +968,9 @@ public class ReportsDashboardView extends JPanel {
                 }
             }
         );
+        raven.modal.option.Option option = raven.modal.ModalDialog.createOption();
+        option.setBackgroundClickType(raven.modal.option.Option.BackgroundClickType.BLOCK);
+        raven.modal.ModalDialog.showModal(this, border, option, "UPDATE_STATUS_MODAL");
     }
 
     private void updateLoanStatusAsync(String ticketId, int newStatusCode) {
@@ -661,7 +999,7 @@ public class ReportsDashboardView extends JPanel {
 
     private void printReport() {
         if (reportTable.getRowCount() == 0) {
-            UiModalHelper.showToastWarning(this, "Không có phát sinh giao dịch trong mốc thời gian đã chọn");
+            UiModalHelper.showToastWarning(this, "Không có dữ liệu trong báo cáo để in!");
             return;
         }
         try {
