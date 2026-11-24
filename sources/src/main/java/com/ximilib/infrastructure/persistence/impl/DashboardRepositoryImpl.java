@@ -179,6 +179,38 @@ public class DashboardRepositoryImpl extends BaseJdbcRepository implements Dashb
     }
 
     @Override
+    public List<UserNotificationItem> getUserNotifications(String userId, int limit) {
+        List<UserNotificationItem> list = new ArrayList<>();
+        String sql = "SELECT Mathongbao, Tieude, Noidung, Loaithongbao, Ngaytao, Dadoc "
+                   + "FROM thongbao WHERE ID = ? ORDER BY Ngaytao DESC LIMIT ?";
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        try (Connection conn = connectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, userId);
+            ps.setInt(2, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String id = rs.getString("Mathongbao");
+                    String title = rs.getString("Tieude");
+                    String msg = rs.getString("Noidung");
+                    String type = rs.getString("Loaithongbao");
+                    Timestamp ts = rs.getTimestamp("Ngaytao");
+                    String timeStr = (ts != null) ? ts.toLocalDateTime().format(dtf) : "";
+                    boolean isWarn = type != null && (type.toLowerCase().contains("quá hạn") || type.toLowerCase().contains("phạt"));
+                    boolean isRead = rs.getInt("Dadoc") == 1;
+                    list.add(new UserNotificationItem(id, title, msg, timeStr, isWarn, isRead));
+                }
+            }
+        } catch (SQLException ignored) {}
+        return list;
+    }
+
+    @Override
+    public void markNotificationsAsRead(String userId) {
+        executeUpdate("UPDATE thongbao SET Dadoc = 1 WHERE ID = ? AND Dadoc = 0", userId);
+    }
+
+    @Override
     public ReaderDashboardDto.ReaderSummary getReaderSummary(String userId) {
         String fullName = "";
         String cardNumber = "Chưa cấp thẻ";

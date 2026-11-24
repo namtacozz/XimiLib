@@ -79,15 +79,15 @@ public class CirculationServiceImpl implements CirculationService {
 
         if (loanType == LoanType.VE_NHA) {
             int activeHomeLoans = repo.countActiveHomeLoans(card.userId());
-            if (activeHomeLoans + copyBarcodes.size() > LibraryPolicy.MAX_BOOKS_BORROW) {
-                throw new IllegalStateException("Bạn đã đạt giới hạn mượn tối đa 3 cuốn sách mang về");
+            if (activeHomeLoans + copyBarcodes.size() > LibraryPolicy.getMaxBooksBorrow()) {
+                throw new IllegalStateException("Bạn đã đạt giới hạn mượn tối đa " + LibraryPolicy.getMaxBooksBorrow() + " cuốn sách mang về");
             }
         }
 
         LocalDateTime borrowDate = LocalDateTime.now();
         LocalDateTime dueDate;
         if (loanType == LoanType.VE_NHA) {
-            dueDate = borrowDate.plusDays(LibraryPolicy.LOAN_DAYS_HOME).with(LocalTime.of(23, 59, 59));
+            dueDate = borrowDate.plusDays(LibraryPolicy.getLoanDaysHome()).with(LocalTime.of(23, 59, 59));
         } else {
             dueDate = borrowDate.with(LocalTime.of(17, 0, 0));
         }
@@ -135,21 +135,28 @@ public class CirculationServiceImpl implements CirculationService {
         BigDecimal damageFine = breakdown.getTechFee();
         BigDecimal totalFine = breakdown.getTotalAmount();
 
-        if (totalFine.compareTo(BigDecimal.ZERO) > 0) {
-            String fineId = repo.generateNextFineId();
-            String reason = overdueDays > 0 ? ("Trễ hạn " + overdueDays + " ngày") : "";
-            if (damageFine.compareTo(BigDecimal.ZERO) > 0) {
-                reason += (reason.isEmpty() ? "" : ", ") + "Hư hại nhẹ (" + returnCondition + ")";
-            }
-            repo.createFine(fineId, detail.userId(), detail.detailId(), reason, totalFine, "Phạt tại quầy khi trả sách");
-        }
-
         if (transactionCoordinator != null) {
             transactionCoordinator.executeVoid(tx -> {
+                if (totalFine.compareTo(BigDecimal.ZERO) > 0) {
+                    String fineId = repo.generateNextFineId();
+                    String reason = overdueDays > 0 ? ("Trễ hạn " + overdueDays + " ngày") : "";
+                    if (damageFine.compareTo(BigDecimal.ZERO) > 0) {
+                        reason += (reason.isEmpty() ? "" : ", ") + "Hư hại nhẹ (" + returnCondition + ")";
+                    }
+                    repo.createFine(tx, fineId, detail.userId(), detail.detailId(), reason, totalFine, "Phạt tại quầy khi trả sách");
+                }
                 repo.returnCopy(tx, detail.detailId(), detail.ticketId(), detail.copyId(), now, returnCondition, totalFine);
                 repo.closeTicketIfAllReturned(tx, detail.ticketId());
             });
         } else {
+            if (totalFine.compareTo(BigDecimal.ZERO) > 0) {
+                String fineId = repo.generateNextFineId();
+                String reason = overdueDays > 0 ? ("Trễ hạn " + overdueDays + " ngày") : "";
+                if (damageFine.compareTo(BigDecimal.ZERO) > 0) {
+                    reason += (reason.isEmpty() ? "" : ", ") + "Hư hại nhẹ (" + returnCondition + ")";
+                }
+                repo.createFine(fineId, detail.userId(), detail.detailId(), reason, totalFine, "Phạt tại quầy khi trả sách");
+            }
             repo.returnCopy(detail.detailId(), detail.ticketId(), detail.copyId(), now, returnCondition, totalFine);
             repo.closeTicketIfAllReturned(detail.ticketId());
         }
@@ -179,8 +186,8 @@ public class CirculationServiceImpl implements CirculationService {
         if (existingFineId == null) {
             if (transactionCoordinator != null) {
                 transactionCoordinator.executeVoid(tx -> {
-                    repo.updateTicketStatus(detail.ticketId(), LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode());
-                    repo.markCopyLost(detail.copyId());
+                    repo.updateTicketStatus(tx, detail.ticketId(), LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode());
+                    repo.markCopyLost(tx, detail.copyId());
                     repo.createFine(tx, fineId, detail.userId(), detail.detailId(), "Bồi thường mất sách: " + detail.bookTitle(),
                         breakdown.getTotalAmount(), "200% giá bìa + 20.000đ phí + phạt quá hạn");
                 });
@@ -191,8 +198,15 @@ public class CirculationServiceImpl implements CirculationService {
                     breakdown.getTotalAmount(), "200% giá bìa + 20.000đ phí + phạt quá hạn");
             }
         } else {
-            repo.updateTicketStatus(detail.ticketId(), LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode());
-            repo.markCopyLost(detail.copyId());
+            if (transactionCoordinator != null) {
+                transactionCoordinator.executeVoid(tx -> {
+                    repo.updateTicketStatus(tx, detail.ticketId(), LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode());
+                    repo.markCopyLost(tx, detail.copyId());
+                });
+            } else {
+                repo.updateTicketStatus(detail.ticketId(), LoanTicketStatus.CHO_XU_LY_BOI_THUONG.getCode());
+                repo.markCopyLost(detail.copyId());
+            }
         }
 
         DomainEventPublisher.publish(new BookStockChangedEvent("LOSS", "BOOK_LOST"));
@@ -240,6 +254,12 @@ public class CirculationServiceImpl implements CirculationService {
     }
 
     @Override
+    public BigDecimal getUnpaidFineAmount(String fineTicketId) {
+        if (fineTicketId == null || fineTicketId.isBlank()) return null;
+        return getRepo().findUnpaidFineAmount(fineTicketId.trim()).orElse(null);
+    }
+
+    @Override
     public void payFine(String fineTicketId, String paymentMethod) {
         if (fineTicketId == null || fineTicketId.trim().isEmpty()) {
             throw new IllegalArgumentException("Mã phiếu phạt không hợp lệ.");
@@ -277,11 +297,23 @@ public class CirculationServiceImpl implements CirculationService {
             throw new IllegalStateException("Phiếu mượn không ở trạng thái đang mượn hợp lệ để gia hạn.");
         }
 
+        if (ticket.getLoanType() == LoanType.TAI_CHO) {
+            throw new IllegalStateException("Phiếu mượn đọc tại chỗ không được phép gia hạn.");
+        }
+
         if (ticket.getDueDate() != null && LocalDateTime.now().isAfter(ticket.getDueDate())) {
             throw new IllegalStateException("Phiếu mượn đã quá hạn, không thể gia hạn trực tuyến. Vui lòng mang sách đến quầy thủ thư.");
         }
 
-        LocalDateTime newDueDate = ticket.getDueDate().plusDays(LibraryPolicy.RENEW_DAYS);
+        if (repo.hasUnpaidFines(ticket.getUserId())) {
+            throw new IllegalStateException("Bạn đọc đang có khoản phạt chưa thanh toán, không thể gia hạn (Quy tắc BR-07).");
+        }
+
+        if (repo.hasActiveReservationForTicket(ticket.getTicketId())) {
+            throw new IllegalStateException("Đầu sách này hiện đang có bạn đọc khác đặt trước, không thể gia hạn (Quy tắc BR-03).");
+        }
+
+        LocalDateTime newDueDate = ticket.getDueDate().plusDays(LibraryPolicy.getRenewDays());
         if (transactionCoordinator != null) {
             transactionCoordinator.executeVoid(tx -> {
                 repo.extendDueDate(tx, borrowTicketId.trim(), newDueDate, reason);
@@ -315,7 +347,7 @@ public class CirculationServiceImpl implements CirculationService {
         LocalDateTime borrowDate = LocalDateTime.now();
         LocalDateTime dueDate;
         if (ticket.getLoanType() == LoanType.VE_NHA) {
-            dueDate = borrowDate.plusDays(LibraryPolicy.LOAN_DAYS_HOME).with(LocalTime.of(23, 59, 59));
+            dueDate = borrowDate.plusDays(LibraryPolicy.getLoanDaysHome()).with(LocalTime.of(23, 59, 59));
         } else {
             dueDate = borrowDate.with(LocalTime.of(17, 0, 0));
         }

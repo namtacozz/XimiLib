@@ -13,3 +13,9 @@ db.password=CHANGE_ME
 
 # Khóa đối xứng mã hóa thông tin nhạy cảm CCCD (AES-256)
 security.aes.key=CHANGE_ME
+
+# Cấu hình cổng thanh toán VietQR SePay (tùy chọn - hoặc dùng biến môi trường SEPAY_API_TOKEN)
+sepay.bank.code=MB
+sepay.account.no=99924052005
+sepay.account.name=LE VO THANH NAM
+sepay.api.token=

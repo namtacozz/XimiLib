@@ -99,17 +99,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         boolean passwordMatches = false;
         try {
             passwordMatches = getHasher().matches(password, user.getPassword());
-            if (!passwordMatches && "admin".equalsIgnoreCase(user.getUsername())) {
-                if ("admin123".equals(password) || "Admin@123".equals(password)) {
-                    passwordMatches = true;
-                }
-            }
         } catch (Exception ignored) {
-            if ("admin".equalsIgnoreCase(user.getUsername()) && ("admin123".equals(password) || "Admin@123".equals(password))) {
-                passwordMatches = true;
-            } else {
-                passwordMatches = false;
-            }
+            passwordMatches = false;
         }
 
         if (!passwordMatches) {
@@ -117,14 +108,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             int attempts = currentFailures + 1;
             FAILED_ATTEMPTS_CACHE.put(normKey, attempts);
 
-            if (attempts >= LibraryPolicy.MAX_LOGIN_ATTEMPTS) {
-                LocalDateTime lockTime = LocalDateTime.now().plusMinutes(LibraryPolicy.LOCKOUT_MINUTES);
+            if (attempts >= LibraryPolicy.getMaxLoginAttempts()) {
+                LocalDateTime lockTime = LocalDateTime.now().plusMinutes(LibraryPolicy.getLockoutMinutes());
                 LOCKED_CACHE.put(normKey, lockTime);
                 try {
                     repo.updateFailedAttempts(user.getId(), attempts, lockTime);
                 } catch (Exception ignored) {}
-                return LoginResult.locked(LibraryPolicy.LOCKOUT_MINUTES,
-                    "Tài khoản bị tạm khóa " + LibraryPolicy.LOCKOUT_MINUTES + " phút do nhập sai quá 5 lần quy định (Quy tắc BR-01).");
+                return LoginResult.locked(LibraryPolicy.getLockoutMinutes(),
+                    "Tài khoản bị tạm khóa " + LibraryPolicy.getLockoutMinutes() + " phút do nhập sai quá " + LibraryPolicy.getMaxLoginAttempts() + " lần quy định (Quy tắc BR-01).");
             } else {
                 try {
                     repo.updateFailedAttempts(user.getId(), attempts, null);
@@ -219,7 +210,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         newUser.setCardNumber(nextCardNumber);
 
         LocalDate issueDate = LocalDate.now();
-        LocalDate expiryDate = issueDate.plusDays(LibraryPolicy.CARD_VALIDITY_DAYS);
+        LocalDate expiryDate = issueDate.plusDays(LibraryPolicy.getCardValidityDays());
 
         repo.registerReader(newUser, nextCardNumber, issueDate, expiryDate);
     }
@@ -254,8 +245,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Tên đăng nhập không được để trống.");
         }
-        if (rawPassword == null || rawPassword.length() < 6) {
-            throw new IllegalArgumentException("Mật khẩu phải có ít nhất 6 ký tự.");
+        if (!validatePasswordStrength(rawPassword)) {
+            throw new IllegalArgumentException("Mật khẩu phải từ 8 ký tự, gồm chữ hoa, số và ký tự đặc biệt.");
         }
         if (fullName == null || fullName.trim().isEmpty()) {
             throw new IllegalArgumentException("Họ và tên không được để trống.");
@@ -307,8 +298,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (userId == null || userId.trim().isEmpty()) {
             throw new IllegalArgumentException("Mã người dùng không hợp lệ.");
         }
-        if (rawPassword == null || rawPassword.length() < 6) {
-            throw new IllegalArgumentException("Mật khẩu mới phải có ít nhất 6 ký tự.");
+        if (!validatePasswordStrength(rawPassword)) {
+            throw new IllegalArgumentException("Mật khẩu mới phải từ 8 ký tự, gồm chữ hoa, số và ký tự đặc biệt.");
         }
         String hashed = getHasher().hash(rawPassword);
         getRepo().resetPassword(userId.trim(), hashed);

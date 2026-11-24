@@ -343,28 +343,37 @@ public class ReaderMyLoansView extends JPanel {
     }
 
     private void handlePayFineForTicket(BorrowTicketDto ticket) {
-        String copyBarcode = ticket.getCopyBarcodes();
-        String barcode = (copyBarcode != null && !copyBarcode.trim().isEmpty()) ? copyBarcode.split(";")[0].trim() : "";
-        BigDecimal lossAmount = new BigDecimal("390000");
-        String fineTicketId = "F-" + ticket.getTicketId();
+        String fineTicketId = circulationService.findUnpaidFineByTicketId(ticket.getTicketId());
+        BigDecimal lossAmount = null;
 
-        try {
-            if (!barcode.isEmpty()) {
-                com.ximilib.application.dto.CompensationResultDto calc = circulationService.calculateCompensation(barcode, true, false);
-                if (calc != null && calc.getTotalAmount() != null) {
-                    lossAmount = calc.getTotalAmount();
-                    if (calc.getFineTicketId() != null) {
-                        fineTicketId = calc.getFineTicketId();
+        if (fineTicketId != null && !fineTicketId.isBlank()) {
+            lossAmount = circulationService.getUnpaidFineAmount(fineTicketId);
+        }
+
+        if (fineTicketId == null || fineTicketId.isBlank() || lossAmount == null) {
+            String copyBarcode = ticket.getCopyBarcodes();
+            String barcode = (copyBarcode != null && !copyBarcode.trim().isEmpty()) ? copyBarcode.split(";")[0].trim() : "";
+            try {
+                if (!barcode.isEmpty()) {
+                    CompensationResultDto calc = circulationService.calculateCompensation(barcode, true, false);
+                    if (calc != null) {
+                        if (fineTicketId == null && calc.getFineTicketId() != null) {
+                            fineTicketId = calc.getFineTicketId();
+                        }
+                        if (lossAmount == null && calc.getTotalAmount() != null) {
+                            lossAmount = calc.getTotalAmount();
+                        }
                     }
                 }
-            }
-            if (fineTicketId.startsWith("F-")) {
-                String foundFine = circulationService.findUnpaidFineByTicketId(ticket.getTicketId());
-                if (foundFine != null && !foundFine.isBlank()) {
-                    fineTicketId = foundFine;
-                }
-            }
-        } catch (Exception ignored) {}
+            } catch (Exception ignored) {}
+        }
+
+        if (fineTicketId == null || fineTicketId.isBlank()) {
+            fineTicketId = "F-" + ticket.getTicketId();
+        }
+        if (lossAmount == null) {
+            lossAmount = new BigDecimal("390000");
+        }
 
         final String finalFineId = fineTicketId;
         final BigDecimal finalAmount = lossAmount;

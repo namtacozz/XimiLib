@@ -238,12 +238,12 @@ public class MainDashboardFrame extends JFrame {
 
             centerContainer.add(new PatronManagementView(AppContainer.getInstance().getAuthenticationService()), "QUAN_LY_DOC_GIA");
 
-            centerContainer.add(new ReportsDashboardView(AppContainer.getInstance().getConnectionManager()), "BAO_CAO");
+            centerContainer.add(new ReportsDashboardView(), "BAO_CAO");
         }
 
         if (isAdmin) {
             UserRoleManagementView roleView = new UserRoleManagementView(AppContainer.getInstance().getAuthenticationService());
-            SystemSettingsView settingsView = new SystemSettingsView(AppContainer.getInstance().getConnectionManager());
+            SystemSettingsView settingsView = new SystemSettingsView();
             adminTabbedView = new TabbedViewPanel(
                 List.of("Tài khoản & Phân quyền (RBAC)", "Cài đặt quy định"),
                 List.of(roleView, settingsView)
@@ -266,7 +266,7 @@ public class MainDashboardFrame extends JFrame {
             centerContainer.add(readerTabbedView, "SACH_CUA_TOI");
         }
 
-        centerContainer.add(new FeedbackManagementView(AppContainer.getInstance().getConnectionManager(), isReader || isGuest), "GOP_Y");
+        centerContainer.add(new FeedbackManagementView(), "GOP_Y");
 
         rightPanel.add(centerContainer, BorderLayout.CENTER);
         add(sidebarPanel, BorderLayout.WEST);
@@ -425,7 +425,9 @@ public class MainDashboardFrame extends JFrame {
             JButton btnDigitalCard = UITheme.createPillButton("Thẻ Thư Viện", UITheme.TINT, UITheme.ON_TINT);
             btnDigitalCard.setFont(UITheme.FONT_REGULAR.deriveFont(Font.BOLD, 12f));
             btnDigitalCard.addActionListener(e -> {
-                DigitalCardPopupPanel.show(currentUser.getId(), currentUser.getFullName());
+                String cardId = (currentUser.getCardNumber() != null && !currentUser.getCardNumber().isBlank())
+                    ? currentUser.getCardNumber() : currentUser.getId();
+                DigitalCardPopupPanel.show(cardId, currentUser.getFullName());
             });
             actionsPanel.add(btnDigitalCard);
         }

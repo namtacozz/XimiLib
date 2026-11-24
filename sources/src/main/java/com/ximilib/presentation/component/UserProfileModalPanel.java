@@ -187,7 +187,7 @@ public class UserProfileModalPanel extends GlassPaneChild {
         gbc.gridx = 1; gbc.gridy = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
-        txtNewPass.setToolTipText("Mật khẩu mới có tối thiểu 6 ký tự");
+        txtNewPass.setToolTipText("Mật khẩu mới từ 8 ký tự, gồm chữ hoa, số và ký tự đặc biệt");
         passCard.add(txtNewPass, gbc);
 
         gbc.gridx = 0; gbc.gridy = 2;
@@ -336,8 +336,8 @@ public class UserProfileModalPanel extends GlassPaneChild {
             return;
         }
 
-        if (newPass.length() < 6) {
-            UiModalHelper.showToastWarning(this, "Mật khẩu mới phải có ít nhất 6 ký tự!");
+        if (!com.ximilib.infrastructure.security.SecurityUtil.validatePasswordStrength(newPass)) {
+            UiModalHelper.showToastWarning(this, "Mật khẩu mới phải từ 8 ký tự, gồm chữ hoa, số và ký tự đặc biệt!");
             return;
         }
 

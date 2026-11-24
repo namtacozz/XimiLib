@@ -54,6 +54,21 @@ public class BookCatalogServiceImpl implements BookCatalogService {
     }
 
     @Override
+    public void updateBook(String bookId, String title, String author, String categoryName, String publisherName, String isbn, double price) {
+        if (bookId == null || bookId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã sách không hợp lệ.");
+        }
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Thông tin không hợp lệ: Tên sách không được để trống.");
+        }
+        if (price < 0) {
+            throw new IllegalArgumentException("Thông tin không hợp lệ: Giá bìa sách không thể âm.");
+        }
+        bookRepository.updateBook(bookId.trim(), title.trim(), author, categoryName, publisherName, isbn, price);
+        DomainEventPublisher.publish(new BookStockChangedEvent(bookId.trim(), "UPDATED"));
+    }
+
+    @Override
     public void deleteBook(String bookId) throws BookInUseException {
         if (bookId == null || bookId.trim().isEmpty()) return;
         int activeLoans = bookRepository.countActiveLoans(bookId);

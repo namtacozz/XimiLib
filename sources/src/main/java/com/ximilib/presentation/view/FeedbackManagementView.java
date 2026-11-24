@@ -26,7 +26,7 @@ public class FeedbackManagementView extends JPanel {
 
     public FeedbackManagementView() {
         this(AppContainer.getInstance().getFeedbackPort(),
-            UserSession.getCurrentUser() != null && UserSession.getCurrentUser().getRole().contains("Độc Giả"));
+            UserSession.getCurrentUser() == null || UserSession.getCurrentUser().isReader() || UserSession.getCurrentUser().isGuest());
     }
 
     public FeedbackManagementView(FeedbackPort feedbackPort, boolean isReader) {

@@ -58,6 +58,9 @@ public class AppContainer {
         this.reportPort = new com.ximilib.infrastructure.persistence.impl.ReportRepositoryImpl(connectionManager);
         this.reportExporter = new com.ximilib.infrastructure.reporting.ExcelReportExporter();
         this.systemSettingsPort = new com.ximilib.infrastructure.persistence.impl.SystemSettingsRepositoryImpl(connectionManager);
+        try {
+            com.ximilib.domain.model.LibraryPolicy.reloadFromSettings(this.systemSettingsPort.getAllSettings());
+        } catch (Exception ignored) {}
     }
 
     public static synchronized AppContainer getInstance() {

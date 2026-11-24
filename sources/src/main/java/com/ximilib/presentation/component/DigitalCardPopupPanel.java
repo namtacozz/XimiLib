@@ -113,9 +113,7 @@ public class DigitalCardPopupPanel extends GlassPaneChild {
         btnRow.setOpaque(false);
 
         JButton btnDownload = UITheme.createPillButton("Tải Ảnh QR", UITheme.PRIMARY, Color.WHITE);
-        btnDownload.addActionListener(e -> {
-            UiModalHelper.showToastSuccess(this, "Đã lưu mã QR thẻ thư viện vào thiết bị!");
-        });
+        btnDownload.addActionListener(e -> saveQrToPng(qrMatrix));
 
         JButton btnClose = UITheme.createPillButton("Đóng", UITheme.TINT_LIGHT, UITheme.TEXT_MAIN);
         btnClose.addActionListener(e -> UiModalHelper.closePopup());
@@ -138,5 +136,42 @@ public class DigitalCardPopupPanel extends GlassPaneChild {
         cardContainer.add(btnRow);
 
         add(cardContainer, BorderLayout.CENTER);
+    }
+
+    private void saveQrToPng(boolean[][] qrMatrix) {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setSelectedFile(new java.io.File("TheThuVien_" + cardId + ".png"));
+        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        java.io.File target = chooser.getSelectedFile();
+        if (!target.getName().toLowerCase().endsWith(".png")) {
+            target = new java.io.File(target.getAbsolutePath() + ".png");
+        }
+        int size = 360;
+        int mSize = qrMatrix.length;
+        int moduleSize = Math.max(4, (size - 32) / mSize);
+        int qrWidth = mSize * moduleSize;
+        int start = (size - qrWidth) / 2;
+
+        java.awt.image.BufferedImage image = new java.awt.image.BufferedImage(size, size, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = image.createGraphics();
+        g2.setColor(Color.WHITE);
+        g2.fillRect(0, 0, size, size);
+        g2.setColor(Color.BLACK);
+        for (int r = 0; r < mSize; r++) {
+            for (int c = 0; c < mSize; c++) {
+                if (qrMatrix[r][c]) {
+                    g2.fillRect(start + c * moduleSize, start + r * moduleSize, moduleSize, moduleSize);
+                }
+            }
+        }
+        g2.dispose();
+        try {
+            javax.imageio.ImageIO.write(image, "png", target);
+            UiModalHelper.showToastSuccess(this, "Đã lưu mã QR thẻ thư viện: " + target.getName());
+        } catch (Exception ex) {
+            UiModalHelper.showToastError(this, "Không thể lưu ảnh QR: " + ex.getMessage());
+        }
     }
 }

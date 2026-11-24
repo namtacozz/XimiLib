@@ -500,7 +500,22 @@ public class CirculationRepositoryImpl extends BaseJdbcRepository implements Cir
 
     @Override
     public void updateTicketStatus(String ticketId, int status) {
+        updateTicketStatus(null, ticketId, status);
+    }
+
+    @Override
+    public void updateTicketStatus(com.ximilib.domain.repository.TransactionContext tx, String ticketId, int status) {
         String sql = "UPDATE phieumuon SET Trangthai = ? WHERE Maphieumuon = ?";
+        if (tx instanceof com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext jdbcTx) {
+            try (PreparedStatement ps = jdbcTx.getConnection().prepareStatement(sql)) {
+                ps.setInt(1, status);
+                ps.setString(2, ticketId);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException("Lỗi cập nhật trạng thái phiếu: " + e.getMessage(), e);
+            }
+            return;
+        }
         try (Connection conn = connectionManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, status);
@@ -527,7 +542,21 @@ public class CirculationRepositoryImpl extends BaseJdbcRepository implements Cir
 
     @Override
     public void markCopyLost(String copyId) {
+        markCopyLost(null, copyId);
+    }
+
+    @Override
+    public void markCopyLost(com.ximilib.domain.repository.TransactionContext tx, String copyId) {
         String sql = "UPDATE cuonsach SET Trangthaisach = '" + BookCopyStatus.HONG_MAT.name() + "' WHERE Macuonsach = ?";
+        if (tx instanceof com.ximilib.infrastructure.persistence.connection.JdbcTransactionContext jdbcTx) {
+            try (PreparedStatement ps = jdbcTx.getConnection().prepareStatement(sql)) {
+                ps.setString(1, copyId);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException("Lỗi cập nhật cuốn sách hỏng mất: " + e.getMessage(), e);
+            }
+            return;
+        }
         try (Connection conn = connectionManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, copyId);
@@ -565,6 +594,20 @@ public class CirculationRepositoryImpl extends BaseJdbcRepository implements Cir
             ps.setString(1, ticketId.trim());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return Optional.ofNullable(rs.getString(1));
+            }
+        } catch (SQLException ignored) {}
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<BigDecimal> findUnpaidFineAmount(String fineTicketId) {
+        if (fineTicketId == null || fineTicketId.isBlank()) return Optional.empty();
+        String sql = "SELECT Sotienphat FROM phieuphat WHERE Maphieuphat = ? AND Trangthai = 0 LIMIT 1";
+        try (Connection conn = connectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, fineTicketId.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return Optional.ofNullable(rs.getBigDecimal(1));
             }
         } catch (SQLException ignored) {}
         return Optional.empty();
@@ -691,6 +734,27 @@ public class CirculationRepositoryImpl extends BaseJdbcRepository implements Cir
             return 0;
         }
         return 0;
+    }
+
+    @Override
+    public boolean hasActiveReservationForTicket(String ticketId) {
+        if (ticketId == null || ticketId.isBlank()) return false;
+        String sql = """
+            SELECT 1 FROM chitietphieumuon ct
+            JOIN cuonsach c ON ct.Macuonsach = c.Macuonsach
+            JOIN datcho d ON c.Masach = d.Masach
+            WHERE ct.Maphieumuon = ? AND d.Trangthai = 1 AND d.Ngayhethan >= NOW()
+            LIMIT 1
+        """;
+        try (Connection conn = connectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, ticketId.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
     @Override

@@ -27,7 +27,7 @@ public class FineCalculationService {
         if (overdueDays <= 0 || bookCount <= 0) {
             return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
         }
-        return LibraryPolicy.FINE_PER_DAY
+        return LibraryPolicy.getFinePerDay()
                 .multiply(BigDecimal.valueOf((long) overdueDays * bookCount))
                 .setScale(2, RoundingMode.HALF_UP);
     }
@@ -35,7 +35,7 @@ public class FineCalculationService {
     public BigDecimal calculateBookLossAmount(BigDecimal coverPrice) {
         BigDecimal price = (coverPrice != null && coverPrice.compareTo(BigDecimal.ZERO) > 0)
                 ? coverPrice : DEFAULT_COVER_PRICE;
-        return price.multiply(LibraryPolicy.COMPENSATION_RATE).setScale(2, RoundingMode.HALF_UP);
+        return price.multiply(LibraryPolicy.getCompensationRate()).setScale(2, RoundingMode.HALF_UP);
     }
 
     public CompensationBreakdown calculateCompensation(
@@ -56,9 +56,9 @@ public class FineCalculationService {
 
         if (isLost) {
             bookLossAmount = calculateBookLossAmount(effectiveCoverPrice);
-            techFee = LibraryPolicy.TECHNICAL_FEE.setScale(2, RoundingMode.HALF_UP);
+            techFee = LibraryPolicy.getTechnicalFee().setScale(2, RoundingMode.HALF_UP);
         } else if (isDamaged) {
-            techFee = LibraryPolicy.TECHNICAL_FEE.setScale(2, RoundingMode.HALF_UP);
+            techFee = LibraryPolicy.getTechnicalFee().setScale(2, RoundingMode.HALF_UP);
         }
 
         BigDecimal totalAmount = bookLossAmount.add(techFee).add(overdueFine).setScale(2, RoundingMode.HALF_UP);

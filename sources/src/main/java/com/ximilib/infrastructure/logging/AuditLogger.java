@@ -54,13 +54,13 @@ public class AuditLogger {
         if (cm != null) {
             try (Connection conn = cm.getConnection();
                  PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO auditlog (user_id, hanhdong, chitiet, ip_address) VALUES (?, ?, ?, '127.0.0.1')")) {
+                     "INSERT INTO auditlog (user_id, hanhdong, chitiet, ip) VALUES (?, ?, ?, '127.0.0.1')")) {
                 ps.setString(1, safeUserId);
                 ps.setString(2, action != null ? action : "UNKNOWN");
                 ps.setString(3, details != null ? details : "");
                 ps.executeUpdate();
-            } catch (Throwable ignored) {
-
+            } catch (Throwable e) {
+                System.err.println("Không thể ghi log kiểm toán vào CSDL: " + e.getMessage());
             }
         }
     }

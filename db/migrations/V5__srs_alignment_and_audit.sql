@@ -82,7 +82,12 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
--- 6. Khởi tạo/cập nhật tham số cấu hình quy định thư viện chuẩn SRS (bảng cauhinh - YC-10, DEV-06)
+-- 6. Dọn khóa cấu hình trùng lặp từ V2 và khởi tạo tham số chuẩn SRS (bảng cauhinh - YC-10, DEV-06)
+DELETE FROM `cauhinh` WHERE `khoa` IN (
+    'MAX_BOOKS_BORROW', 'LOAN_DAYS_HOME', 'DUE_TIME_DESK', 'RENEW_DAYS',
+    'MAX_RENEW_COUNT', 'FINE_PER_DAY', 'TECHNICAL_FEE', 'COMPENSATION_RATE', 'HOLD_HOURS'
+);
+
 INSERT INTO `cauhinh` (`khoa`, `giatri`, `mota`) VALUES
 ('policy.max_borrow_books', '3', 'Số lượng sách tối đa độc giả được mượn mang về (BR-02)'),
 ('policy.borrow_duration_days', '14', 'Thời hạn mượn sách mang về nhà chuẩn (ngày) (BR-02)'),

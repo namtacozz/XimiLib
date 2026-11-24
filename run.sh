@@ -17,8 +17,11 @@ if [ ! -f "config/db.properties" ] || grep -q "CHANGE_ME" "config/db.properties"
     exit 1
 fi
 
-# 2. Kiểm tra dist/XimiLib.jar, nếu thiếu thì đóng gói Maven
-if [ ! -f "dist/XimiLib.jar" ]; then
+# 2. Hỗ trợ tham số rebuild và kiểm tra dist/XimiLib.jar
+if [ "$1" = "rebuild" ]; then
+    echo "[THÔNG TIN] Đang đóng gói lại dist/XimiLib.jar theo yêu cầu..."
+    mvn clean package -f sources/pom.xml -DskipTests
+elif [ ! -f "dist/XimiLib.jar" ]; then
     echo "[CẢNH BÁO] File dist/XimiLib.jar chưa tồn tại."
     echo "Đang thực hiện build tự động (mvn clean package -DskipTests)..."
     mvn clean package -f sources/pom.xml -DskipTests

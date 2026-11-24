@@ -190,9 +190,10 @@ public class ReportRepositoryImpl extends BaseJdbcRepository implements ReportPo
         StringBuilder sql = new StringBuilder("""
             SELECT s.Masach, s.Tensach, COALESCE(tl.Tentheloai, '-'), COUNT(ct.Machitiet) AS SoLuotMuon
             FROM sach s
-            LEFT JOIN chitietphieumuon ct ON s.Masach = ct.Masach
+            LEFT JOIN cuonsach cs ON s.Masach = cs.Masach
+            LEFT JOIN chitietphieumuon ct ON cs.Macuonsach = ct.Macuonsach
             LEFT JOIN theloai tl ON s.Matheloai = tl.Matheloai
-            WHERE 1=1
+            WHERE s.IsDeleted = FALSE
         """);
 
         List<Object> params = new ArrayList<>();

@@ -1,14 +1,18 @@
 package com.ximilib.presentation.component;
 
+import com.ximilib.infrastructure.config.DatabaseConfig;
 import com.ximilib.presentation.util.QrCodeGenerator;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UiModalHelper;
+import raven.modal.listener.ModalController;
 import raven.modal.component.SimpleModalBorder;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -17,6 +21,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class VietQrModalPanel extends JPanel {
 
@@ -24,25 +30,49 @@ public class VietQrModalPanel extends JPanel {
     private final BigDecimal amount;
     private final Runnable onSuccessCallback;
 
-    private static final String BANK_ID = "MB";
-    private static final String ACCOUNT_NO = "99924052005";
-    private static final String ACCOUNT_NAME = "LE VO THANH NAM";
-    private static final String SEPAY_API_KEY = "TPVNCPL47LCUO5GLMHD6YXWYVOWQTX81Z9BBGSKA2N0XGYQYVZRIRIEURDOI3AUE";
+    private final String bankId;
+    private final String accountNo;
+    private final String accountName;
+    private final String sepayApiToken;
 
     private JLabel qrImageLabel;
+    private JLabel lblPollStatus;
+    private Timer pollTimer;
+    private ModalController modalController;
+    private volatile boolean paymentVerified = false;
+    private volatile boolean isChecking = false;
+    private int pollCount = 0;
 
     public VietQrModalPanel(String fineTicketId, BigDecimal amount, Runnable onSuccessCallback) {
         this.fineTicketId = fineTicketId;
         this.amount = amount;
         this.onSuccessCallback = onSuccessCallback;
 
-        setPreferredSize(new Dimension(460, 510));
+        String cfgBank = "MB";
+        String cfgAcc = "99924052005";
+        String cfgName = "LE VO THANH NAM";
+        String cfgToken = "";
+        try {
+            DatabaseConfig cfg = DatabaseConfig.getInstance();
+            cfgBank = cfg.getSepayBankCode();
+            cfgAcc = cfg.getSepayAccountNo();
+            cfgName = cfg.getSepayAccountName();
+            cfgToken = cfg.getSepayApiToken();
+        } catch (Exception ignored) {}
+
+        this.bankId = cfgBank;
+        this.accountNo = cfgAcc;
+        this.accountName = cfgName;
+        this.sepayApiToken = cfgToken;
+
+        setPreferredSize(new Dimension(460, 535));
         setBackground(UITheme.CARD_BG);
-        setLayout(new BorderLayout(0, 14));
-        setBorder(BorderFactory.createEmptyBorder(14, 20, 18, 20));
+        setLayout(new BorderLayout(0, 12));
+        setBorder(BorderFactory.createEmptyBorder(14, 20, 16, 20));
 
         initUI();
         loadQrImageAsync();
+        startPaymentPolling();
     }
 
     private void initUI() {
@@ -79,7 +109,7 @@ public class VietQrModalPanel extends JPanel {
             BorderFactory.createEmptyBorder(8, 8, 8, 8)
         ));
 
-        String payload = "VIETQR:MB|" + ACCOUNT_NO + "|" + (amount != null ? amount.longValue() : 0) + "|XML" + fineTicketId;
+        String payload = "VIETQR:" + bankId + "|" + accountNo + "|" + (amount != null ? amount.longValue() : 0) + "|XML" + fineTicketId;
         BufferedImage initialQr = generateQrImage(payload, 240);
 
         qrImageLabel = new JLabel(new ImageIcon(initialQr), SwingConstants.CENTER);
@@ -90,14 +120,22 @@ public class VietQrModalPanel extends JPanel {
 
         add(qrContainer, BorderLayout.CENTER);
 
-        JPanel detailsPanel = new JPanel(new GridLayout(4, 1, 4, 4));
+        JPanel detailsPanel = new JPanel(new GridLayout(5, 1, 4, 4));
         detailsPanel.setOpaque(false);
-        detailsPanel.setBorder(BorderFactory.createEmptyBorder(6, 4, 6, 4));
+        detailsPanel.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
-        detailsPanel.add(createRow("Ngân hàng:", "MB Bank (MBVit)"));
-        detailsPanel.add(createRow("Số tài khoản:", ACCOUNT_NO + " (" + ACCOUNT_NAME + ")"));
+        detailsPanel.add(createRow("Ngân hàng:", bankId + " Bank"));
+        detailsPanel.add(createRow("Số tài khoản:", accountNo + " (" + accountName + ")"));
         detailsPanel.add(createRow("Nội dung CK:", "XML" + fineTicketId));
         detailsPanel.add(createRow("Cổng SePay:", "Napas247 Tự Động"));
+
+        String initPollText = sepayApiToken.isBlank()
+            ? "Chế độ quầy: Thủ thư đối soát và xác nhận thu tiền."
+            : "Đang chờ xác nhận giao dịch tự động từ SePay...";
+        lblPollStatus = new JLabel(initPollText, SwingConstants.CENTER);
+        lblPollStatus.setFont(UITheme.FONT_SMALL);
+        lblPollStatus.setForeground(UITheme.PRIMARY);
+        detailsPanel.add(lblPollStatus);
 
         add(detailsPanel, BorderLayout.SOUTH);
     }
@@ -172,12 +210,12 @@ public class VietQrModalPanel extends JPanel {
                 try {
                     String content = "XML" + fineTicketId;
                     String encodedContent = URLEncoder.encode(content, StandardCharsets.UTF_8);
-                    String encodedName = URLEncoder.encode(ACCOUNT_NAME, StandardCharsets.UTF_8);
+                    String encodedName = URLEncoder.encode(accountName, StandardCharsets.UTF_8);
                     long amountLong = amount != null ? amount.longValue() : 0;
 
                     String qrUrl = String.format(
                         "https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s",
-                        BANK_ID, ACCOUNT_NO, amountLong, encodedContent, encodedName
+                        bankId, accountNo, amountLong, encodedContent, encodedName
                     );
 
                     URL url = URI.create(qrUrl).toURL();
@@ -186,7 +224,6 @@ public class VietQrModalPanel extends JPanel {
                     conn.setConnectTimeout(4000);
                     conn.setReadTimeout(4000);
                     conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-                    conn.setRequestProperty("Authorization", "Apikey " + SEPAY_API_KEY);
 
                     int responseCode = conn.getResponseCode();
                     if (responseCode == HttpURLConnection.HTTP_MOVED_PERM || responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {
@@ -222,7 +259,118 @@ public class VietQrModalPanel extends JPanel {
         }.execute();
     }
 
+    @Override
+    public void removeNotify() {
+        stopPaymentPolling();
+        super.removeNotify();
+    }
+
+    private void startPaymentPolling() {
+        if (sepayApiToken == null || sepayApiToken.isBlank()) {
+            return;
+        }
+        pollTimer = new Timer(3000, e -> checkSepayTransactionAsync());
+        pollTimer.setInitialDelay(3000);
+        pollTimer.start();
+    }
+
+    private void stopPaymentPolling() {
+        if (pollTimer != null && pollTimer.isRunning()) {
+            pollTimer.stop();
+        }
+    }
+
+    private void checkSepayTransactionAsync() {
+        if (paymentVerified || isChecking) {
+            return;
+        }
+        pollCount++;
+        if (pollCount > 60) {
+            stopPaymentPolling();
+            if (lblPollStatus != null) {
+                lblPollStatus.setText("Hết thời gian chờ tự động (3 phút). Vui lòng thử lại.");
+                lblPollStatus.setForeground(UITheme.DANGER_TEXT);
+            }
+            return;
+        }
+        isChecking = true;
+        new SwingWorker<Boolean, Void>() {
+            @Override
+            protected Boolean doInBackground() {
+                return verifyTransactionWithSepay();
+            }
+
+            @Override
+            protected void done() {
+                isChecking = false;
+                try {
+                    if (Boolean.TRUE.equals(get()) && !paymentVerified) {
+                        paymentVerified = true;
+                        stopPaymentPolling();
+                        if (modalController != null) {
+                            modalController.close();
+                        }
+                        if (onSuccessCallback != null) {
+                            onSuccessCallback.run();
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+        }.execute();
+    }
+
+    private boolean verifyTransactionWithSepay() {
+        try {
+            URL url = URI.create("https://my.sepay.vn/userapi/transactions/list?limit=20").toURL();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(4000);
+            conn.setReadTimeout(4000);
+            conn.setRequestProperty("Authorization", "Bearer " + sepayApiToken);
+            conn.setRequestProperty("Content-Type", "application/json");
+            if (conn.getResponseCode() != 200) {
+                return false;
+            }
+            StringBuilder sb = new StringBuilder();
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+            }
+            return matchesPaymentCodeAndAmount(sb.toString(), "XML" + fineTicketId, amount);
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private static boolean matchesPaymentCodeAndAmount(String json, String paymentCode, BigDecimal expectedAmount) {
+        if (json == null || json.isBlank()) {
+            return false;
+        }
+        Pattern codePattern = Pattern.compile("(?<![A-Za-z0-9])" + Pattern.quote(paymentCode) + "(?![A-Za-z0-9])");
+        String[] blocks = json.split("\\{");
+        for (String block : blocks) {
+            if (!codePattern.matcher(block).find()) {
+                continue;
+            }
+            Matcher amtMatcher = Pattern.compile("\"amount_in\"\\s*:\\s*\"?([0-9]+(?:\\.[0-9]+)?)\"?").matcher(block);
+            if (amtMatcher.find()) {
+                BigDecimal txAmount = new BigDecimal(amtMatcher.group(1));
+                BigDecimal target = expectedAmount != null ? expectedAmount : BigDecimal.ZERO;
+                if (txAmount.compareTo(target) >= 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public static void show(Component parent, String fineTicketId, BigDecimal amount, Runnable onConfirmed) {
+        show(parent, fineTicketId, amount, false, onConfirmed);
+    }
+
+    public static void show(Component parent, String fineTicketId, BigDecimal amount, boolean allowManualConfirm, Runnable onConfirmed) {
         Component owner = parent != null ? SwingUtilities.getWindowAncestor(parent) : null;
         if (owner == null) owner = parent;
 
@@ -234,10 +382,28 @@ public class VietQrModalPanel extends JPanel {
             qrPanel,
             SimpleModalBorder.OK_CANCEL_OPTION,
             (controller, action) -> {
+                qrPanel.modalController = controller;
                 if (action == SimpleModalBorder.OK_OPTION) {
-                    if (onConfirmed != null) {
-                        onConfirmed.run();
+                    if (qrPanel.paymentVerified) {
+                        qrPanel.stopPaymentPolling();
+                        controller.close();
+                        return;
                     }
+                    if (allowManualConfirm) {
+                        qrPanel.paymentVerified = true;
+                        qrPanel.stopPaymentPolling();
+                        controller.close();
+                        if (onConfirmed != null) {
+                            onConfirmed.run();
+                        }
+                    } else if (qrPanel.sepayApiToken.isBlank()) {
+                        UiModalHelper.showToastWarning(qrPanel, "Chưa cấu hình SePay API Token. Vui lòng thanh toán trực tiếp tại quầy thủ thư.");
+                    } else {
+                        UiModalHelper.showToastWarning(qrPanel, "Chưa nhận được giao dịch chuyển khoản khớp mã XML" + fineTicketId + ".");
+                    }
+                } else if (action == SimpleModalBorder.CANCEL_OPTION || action == SimpleModalBorder.CLOSE_OPTION) {
+                    qrPanel.stopPaymentPolling();
+                    controller.close();
                 }
             }
         );

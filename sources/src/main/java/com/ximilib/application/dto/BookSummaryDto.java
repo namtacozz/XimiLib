@@ -18,6 +18,7 @@ public class BookSummaryDto {
     private int activeLoansCount;
     private String description;
     private String isbn;
+    private double price;
 
     public BookSummaryDto(String bookId, String title, String author, Integer categoryId,
                           String categoryName, String publisherName, int availableCopies,
@@ -101,6 +102,14 @@ public class BookSummaryDto {
 
     public void setIsbn(String isbn) {
         this.isbn = isbn;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
     }
 
     public boolean isAvailable() {

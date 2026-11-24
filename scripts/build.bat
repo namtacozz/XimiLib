@@ -28,6 +28,6 @@ if exist "dist\XimiLib.jar" (
 )
 
 echo.
-echo Hoan tat! Ban co the chay ung dung bang file run.bat hoac scripts\run.bat
+echo Hoan tat! Ban co the chay ung dung bang file run.bat hoac java -jar dist\XimiLib.jar
 echo ===================================================
 endlocal

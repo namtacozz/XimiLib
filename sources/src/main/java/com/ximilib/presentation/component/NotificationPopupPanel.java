@@ -1,25 +1,29 @@
 package com.ximilib.presentation.component;
 
+import com.ximilib.application.port.DashboardQueryPort.UserNotificationItem;
+import com.ximilib.domain.model.User;
+import com.ximilib.infrastructure.config.AppContainer;
 import com.ximilib.presentation.util.UITheme;
 import com.ximilib.presentation.util.UiModalHelper;
+import com.ximilib.presentation.util.UserSession;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import raven.popup.component.GlassPaneChild;
 
 public class NotificationPopupPanel extends GlassPaneChild {
 
-    public record NotificationItem(String title, String message, String time, boolean isWarning) {}
+    private JLabel lblBadge;
+    private JPanel bodyHost;
+    private ScrollableListPanel listPanel;
 
     public NotificationPopupPanel() {
         setLayout(new BorderLayout());
         setOpaque(false);
         initUI();
+        loadNotificationsAsync();
     }
 
     private void initUI() {
@@ -51,7 +55,7 @@ public class NotificationPopupPanel extends GlassPaneChild {
         JPanel rightHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         rightHeader.setOpaque(false);
 
-        JLabel lblBadge = new JLabel(" 2 Mới ");
+        lblBadge = new JLabel(" ... ");
         lblBadge.setFont(UITheme.FONT_BADGE);
         lblBadge.setOpaque(true);
         lblBadge.setBackground(UITheme.DANGER_BG);
@@ -66,35 +70,9 @@ public class NotificationPopupPanel extends GlassPaneChild {
         topPanel.add(lblTitle, BorderLayout.WEST);
         topPanel.add(rightHeader, BorderLayout.EAST);
 
-        List<NotificationItem> list = new ArrayList<>();
-        list.add(new NotificationItem(
-            "Cảnh báo quá hạn trả sách",
-            "Phiếu mượn PM001 có cuốn 'Clean Code' trễ 2 ngày. Phí phạt hiện tại: 4.000 VNĐ.",
-            "Hôm nay 00:00",
-            true
-        ));
-        list.add(new NotificationItem(
-            "Nhắc hạn trả sách sắp tới",
-            "Cuốn sách 'Thiết Kế Mẫu Phần Mềm' cần hoàn trả trước 17:00 ngày 29/10/2026.",
-            "Hôm qua 09:30",
-            false
-        ));
-        list.add(new NotificationItem(
-            "Chào mừng bạn đọc mới",
-            "Tài khoản của bạn đã được kích hoạt thành công trên hệ thống XimiLib.",
-            "25/10/2026",
-            false
-        ));
-
-        ScrollableListPanel listPanel = new ScrollableListPanel();
+        listPanel = new ScrollableListPanel();
         listPanel.setOpaque(false);
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
-
-        for (NotificationItem item : list) {
-            JPanel itemRow = createItemRow(item);
-            listPanel.add(itemRow);
-            listPanel.add(Box.createVerticalStrut(10));
-        }
 
         JScrollPane scroll = new JScrollPane(listPanel);
         scroll.setBorder(null);
@@ -103,13 +81,59 @@ public class NotificationPopupPanel extends GlassPaneChild {
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.getVerticalScrollBar().setUnitIncrement(14);
 
+        bodyHost = new JPanel(new BorderLayout());
+        bodyHost.setOpaque(false);
+        bodyHost.add(scroll, BorderLayout.CENTER);
+
         JButton btnClose = UITheme.createPillButton("Đóng Hộp Thư", UITheme.TINT_LIGHT, UITheme.TEXT_MAIN);
         btnClose.setFont(UITheme.FONT_SMALL);
         btnClose.setPreferredSize(new Dimension(Integer.MAX_VALUE, 34));
         btnClose.addActionListener(e -> UiModalHelper.closePopup());
 
         container.add(topPanel, BorderLayout.NORTH);
-        if (list.isEmpty()) {
+        container.add(bodyHost, BorderLayout.CENTER);
+        container.add(btnClose, BorderLayout.SOUTH);
+
+        add(container, BorderLayout.CENTER);
+    }
+
+    private void loadNotificationsAsync() {
+        User currentUser = UserSession.getCurrentUser();
+        String userId = (currentUser != null) ? currentUser.getId() : "";
+        new SwingWorker<List<UserNotificationItem>, Void>() {
+            @Override
+            protected List<UserNotificationItem> doInBackground() {
+                List<UserNotificationItem> items = AppContainer.getInstance().getDashboardService().getUserNotifications(userId, 20);
+                AppContainer.getInstance().getDashboardService().markNotificationsAsRead(userId);
+                return items;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    renderNotifications(get());
+                } catch (Exception ignored) {
+                    renderNotifications(java.util.Collections.emptyList());
+                }
+            }
+        }.execute();
+    }
+
+    private void renderNotifications(List<UserNotificationItem> items) {
+        listPanel.removeAll();
+        int unreadCount = 0;
+        if (items != null) {
+            for (UserNotificationItem item : items) {
+                if (!item.isRead()) {
+                    unreadCount++;
+                }
+                listPanel.add(createItemRow(item));
+                listPanel.add(Box.createVerticalStrut(10));
+            }
+        }
+        lblBadge.setText(" " + unreadCount + " Mới ");
+        if (items == null || items.isEmpty()) {
+            bodyHost.removeAll();
             EmptyStatePanel empty = new EmptyStatePanel(
                 com.ximilib.presentation.util.Illustrations.EMPTY_NOTIFICATION,
                 120,
@@ -118,16 +142,13 @@ public class NotificationPopupPanel extends GlassPaneChild {
                 null,
                 null
             );
-            container.add(empty, BorderLayout.CENTER);
-        } else {
-            container.add(scroll, BorderLayout.CENTER);
+            bodyHost.add(empty, BorderLayout.CENTER);
         }
-        container.add(btnClose, BorderLayout.SOUTH);
-
-        add(container, BorderLayout.CENTER);
+        bodyHost.revalidate();
+        bodyHost.repaint();
     }
 
-    private JPanel createItemRow(NotificationItem item) {
+    private JPanel createItemRow(UserNotificationItem item) {
         JPanel row = new JPanel(new BorderLayout(8, 6));
         row.setBackground(item.isWarning() ? new Color(254, 242, 242) : UITheme.BG_LIGHT);
         row.setBorder(BorderFactory.createCompoundBorder(
@@ -135,13 +156,13 @@ public class NotificationPopupPanel extends GlassPaneChild {
             BorderFactory.createEmptyBorder(12, 14, 12, 14)
         ));
 
-        JLabel lblItemTitle = new JLabel(item.title());
+        JLabel lblItemTitle = new JLabel(item.getTitle());
         lblItemTitle.setFont(UITheme.FONT_BOLD);
         lblItemTitle.setForeground(item.isWarning() ? UITheme.DANGER_TEXT : UITheme.TEXT_MAIN);
 
-        JLabel lblMsg = new JLabel("<html><body style='width: 430px; font-size: 11px; line-height: 1.4; color: " + UITheme.HEX_TEXT_MUTED + ";'>" + item.message() + "</body></html>");
+        JLabel lblMsg = new JLabel("<html><body style='width: 430px; font-size: 11px; line-height: 1.4; color: " + UITheme.HEX_TEXT_MUTED + ";'>" + item.getMessage() + "</body></html>");
 
-        JLabel lblTime = new JLabel(item.time());
+        JLabel lblTime = new JLabel(item.getCreatedAt());
         lblTime.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         lblTime.setForeground(UITheme.TEXT_MUTED);
 

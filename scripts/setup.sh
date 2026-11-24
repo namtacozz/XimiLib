@@ -35,21 +35,22 @@ fi
 echo "[OK] MySQL Client đã sẵn sàng."
 
 # Khai báo hằng số tập trung
-DEMO_CONFIG="config/db.properties.demo"
+EXAMPLE_CONFIG="config/db.properties.example"
 REAL_CONFIG="config/db.properties"
 DB_NAME="ximilib_db"
 DB_USER="ximilib_app"
+APP_PASS="ximilib_demo_123"
 
-if [ ! -f "$DEMO_CONFIG" ]; then
-    echo "[LỖI] Không tìm thấy file mẫu $DEMO_CONFIG!"
+if [ ! -f "$EXAMPLE_CONFIG" ]; then
+    echo "[LỖI] Không tìm thấy file mẫu $EXAMPLE_CONFIG!"
     exit 1
 fi
 
-# Đọc mật khẩu ximilib_app từ file demo (không hardcode trong script)
-APP_PASS=$(grep -E '^db\.password=' "$DEMO_CONFIG" | cut -d'=' -f2- | tr -d '\r\n ')
-if [ -z "$APP_PASS" ]; then
-    echo "[LỖI] Không thể đọc db.password từ $DEMO_CONFIG!"
-    exit 1
+if [ -f "$REAL_CONFIG" ]; then
+    EXISTING_PASS=$(grep -E '^db\.password=' "$REAL_CONFIG" | cut -d'=' -f2- | tr -d '\r\n ')
+    if [ -n "$EXISTING_PASS" ] && [ "$EXISTING_PASS" != "CHANGE_ME" ]; then
+        APP_PASS="$EXISTING_PASS"
+    fi
 fi
 
 # Dọn dẹp biến nhạy cảm khi script kết thúc hoặc bị hủy
@@ -92,12 +93,15 @@ TABLE_COUNT=$(mysql -u root -D "$DB_NAME" -N -s -e "SELECT COUNT(*) FROM informa
 if [ "$TABLE_COUNT" -gt 0 ]; then
     echo "[2/4] Cơ sở dữ liệu '$DB_NAME' đã có $TABLE_COUNT bảng. Bỏ qua bước nạp schema và seed (idempotent)."
 else
-    echo "[2/4] Nạp cấu trúc bảng qua migrations (V1 -> V2 -> V3 -> V4)..."
+    echo "[2/4] Nạp cấu trúc bảng qua migrations (V1 -> V2 -> V3 -> V4 -> V5)..."
     mysql -u root -D "$DB_NAME" < "db/migrations/V1__initial_schema.sql"
     mysql -u root -D "$DB_NAME" < "db/migrations/V2__srs_schema_updates.sql"
     mysql -u root -D "$DB_NAME" < "db/migrations/V3__enforce_bcrypt_passwords.sql"
     if [ -f "db/migrations/V4__report_and_search_indexes.sql" ]; then
         mysql -u root -D "$DB_NAME" < "db/migrations/V4__report_and_search_indexes.sql"
+    fi
+    if [ -f "db/migrations/V5__srs_alignment_and_audit.sql" ]; then
+        mysql -u root -D "$DB_NAME" < "db/migrations/V5__srs_alignment_and_audit.sql"
     fi
 
     echo "Đang nạp 221 đầu sách và bản sao mẫu..."
@@ -114,8 +118,12 @@ fi
 # 6. Thiết lập file cấu hình cục bộ config/db.properties
 echo "[3/4] Kiểm tra file cấu hình kết nối ứng dụng..."
 if [ ! -f "$REAL_CONFIG" ]; then
-    cp "$DEMO_CONFIG" "$REAL_CONFIG"
-    echo "[OK] Đã tạo $REAL_CONFIG từ $DEMO_CONFIG."
+    AES_KEY=$(head -c 24 /dev/urandom | base64 | tr -d '\r\n')
+    sed -e "s|db\.user=CHANGE_ME|db.user=$DB_USER|g" \
+        -e "s|db\.password=CHANGE_ME|db.password=$APP_PASS|g" \
+        -e "s|security\.aes\.key=CHANGE_ME|security.aes.key=$AES_KEY|g" \
+        "$EXAMPLE_CONFIG" > "$REAL_CONFIG"
+    echo "[OK] Đã tạo $REAL_CONFIG từ $EXAMPLE_CONFIG."
 else
     echo "[INFO] File $REAL_CONFIG đã tồn tại. Giữ nguyên cấu hình hiện tại, không ghi đè."
 fi
@@ -125,15 +133,15 @@ echo "[4/4] Kiểm tra tính toàn vẹn hệ thống..."
 FINAL_TABLES=$(mysql -u root -D "$DB_NAME" -N -s -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$DB_NAME';")
 FINAL_BOOKS=$(mysql -u root -D "$DB_NAME" -N -s -e "SELECT COUNT(*) FROM sach WHERE IsDeleted = FALSE;")
 
-echo "-> Số bảng hiện có : $FINAL_TABLES / 23"
+echo "-> Số bảng hiện có : $FINAL_TABLES / 24"
 echo "-> Số sách hiện có : $FINAL_BOOKS / 221"
 
-if [ "$FINAL_TABLES" -eq 23 ] && [ "$FINAL_BOOKS" -eq 221 ]; then
+if [ "$FINAL_TABLES" -ge 24 ] && [ "$FINAL_BOOKS" -eq 221 ]; then
     echo "==================================================="
     echo "[OK] THIẾT LẬP HOÀN TẤT THÀNH CÔNG!"
     echo "Khởi chạy ứng dụng bằng: ./run.sh hoặc java -jar dist/XimiLib.jar"
     echo "==================================================="
 else
-    echo "[CẢNH BÁO] Kiểm tra tính toàn vẹn chưa đạt (kỳ vọng 23 bảng và 221 sách)."
+    echo "[CẢNH BÁO] Kiểm tra tính toàn vẹn chưa đạt (kỳ vọng 24 bảng và 221 sách)."
     exit 1
 fi

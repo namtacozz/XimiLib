@@ -21,6 +21,8 @@ public interface CirculationService {
 
     String findUnpaidFineByTicketId(String ticketId);
 
+    java.math.BigDecimal getUnpaidFineAmount(String fineTicketId);
+
     void renewLoan(String borrowTicketId, String reason);
 
     void reserveBook(String userId, String bookId);

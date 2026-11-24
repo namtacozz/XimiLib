@@ -29,6 +29,8 @@ public interface BookRepository {
         saveNewBook(title, author, categoryName, "NXB Bách Khoa", "Kệ IT-01 (Khu A)", isbn, price, initialCopies);
     }
 
+    default void updateBook(String bookId, String title, String author, String categoryName, String publisherName, String isbn, double price) {}
+
     void restoreBook(String bookId);
 
     void addCategory(String name, String desc);

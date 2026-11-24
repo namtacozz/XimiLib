@@ -21,6 +21,8 @@ public class SystemSettingsRepositoryImpl extends BaseJdbcRepository implements 
         executeUpdate("UPDATE cauhinh SET giatri = ? WHERE khoa = ?",
                 value != null ? value.trim() : "", key);
 
+        com.ximilib.domain.model.LibraryPolicy.reloadFromSettings(getAllSettings());
+
         String user = (currentUserId != null && !currentUserId.isBlank()) ? currentUserId : "ADMIN";
         AuditLogger.log(user, "UPDATE_CONFIG", "Cập nhật tham số " + key + " = " + value);
     }

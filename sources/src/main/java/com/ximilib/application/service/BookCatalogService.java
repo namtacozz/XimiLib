@@ -17,6 +17,8 @@ public interface BookCatalogService {
 
     void saveNewBook(String title, String author, String categoryName, String isbn, double price, int initialCopies);
 
+    void updateBook(String bookId, String title, String author, String categoryName, String publisherName, String isbn, double price);
+
     void deleteBook(String bookId) throws BookInUseException;
 
     int deleteBooksBatch(List<String> bookIds);

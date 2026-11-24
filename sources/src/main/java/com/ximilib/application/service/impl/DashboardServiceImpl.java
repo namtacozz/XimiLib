@@ -49,6 +49,22 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    public List<DashboardQueryPort.UserNotificationItem> getUserNotifications(String userId, int limit) {
+        if (userId == null || userId.isBlank()) {
+            return Collections.emptyList();
+        }
+        int max = limit > 0 ? limit : 20;
+        return dashboardQueryPort.getUserNotifications(userId, max);
+    }
+
+    @Override
+    public void markNotificationsAsRead(String userId) {
+        if (userId != null && !userId.isBlank()) {
+            dashboardQueryPort.markNotificationsAsRead(userId);
+        }
+    }
+
+    @Override
     public ReaderDashboardDto.ReaderDashboardData getReaderDashboardData(String userId) {
         if (userId == null || userId.isBlank()) {
             return new ReaderDashboardDto.ReaderDashboardData(

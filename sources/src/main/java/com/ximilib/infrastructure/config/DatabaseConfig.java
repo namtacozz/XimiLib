@@ -16,6 +16,10 @@ public class DatabaseConfig {
     private final String user;
     private final String password;
     private final String aesKey;
+    private final String sepayApiToken;
+    private final String sepayBankCode;
+    private final String sepayAccountNo;
+    private final String sepayAccountName;
 
     private static volatile DatabaseConfig instance;
     private static final Object lock = new Object();
@@ -44,6 +48,10 @@ public class DatabaseConfig {
         this.user = builder.user;
         this.password = builder.password;
         this.aesKey = builder.aesKey;
+        this.sepayApiToken = builder.sepayApiToken;
+        this.sepayBankCode = builder.sepayBankCode;
+        this.sepayAccountNo = builder.sepayAccountNo;
+        this.sepayAccountName = builder.sepayAccountName;
     }
 
     public static DatabaseConfig load() {
@@ -70,13 +78,22 @@ public class DatabaseConfig {
             aes = fileProps.getProperty("security.aes.key");
         }
 
+        String sepayToken = getEnvOrProp("SEPAY_API_TOKEN", fileProps, "sepay.api.token", "");
+        String sepayBank = getEnvOrProp("SEPAY_BANK_CODE", fileProps, "sepay.bank.code", "MB");
+        String sepayAcc = getEnvOrProp("SEPAY_ACCOUNT_NO", fileProps, "sepay.account.no", "99924052005");
+        String sepayName = getEnvOrProp("SEPAY_ACCOUNT_NAME", fileProps, "sepay.account.name", "LE VO THANH NAM");
+
         Builder builder = new Builder()
                 .host(host)
                 .port(port)
                 .dbName(dbName)
                 .user(user)
                 .password(pass)
-                .aesKey(aes);
+                .aesKey(aes)
+                .sepayApiToken(sepayToken)
+                .sepayBankCode(sepayBank)
+                .sepayAccountNo(sepayAcc)
+                .sepayAccountName(sepayName);
 
         return new DatabaseConfig(builder);
     }
@@ -156,6 +173,11 @@ public class DatabaseConfig {
         return aesKey.trim();
     }
 
+    public String getSepayApiToken() { return sepayApiToken != null ? sepayApiToken : ""; }
+    public String getSepayBankCode() { return sepayBankCode != null ? sepayBankCode : "MB"; }
+    public String getSepayAccountNo() { return sepayAccountNo != null ? sepayAccountNo : "99924052005"; }
+    public String getSepayAccountName() { return sepayAccountName != null ? sepayAccountName : "LE VO THANH NAM"; }
+
     public String getJdbcUrl() {
         return "jdbc:mysql://" + host + ":" + port + "/" + dbName
                 + "?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Ho_Chi_Minh";
@@ -168,6 +190,10 @@ public class DatabaseConfig {
         private String user;
         private String password;
         private String aesKey;
+        private String sepayApiToken = "";
+        private String sepayBankCode = "MB";
+        private String sepayAccountNo = "99924052005";
+        private String sepayAccountName = "LE VO THANH NAM";
 
         public Builder host(String host) { this.host = host; return this; }
         public Builder port(String port) { this.port = port; return this; }
@@ -175,6 +201,10 @@ public class DatabaseConfig {
         public Builder user(String user) { this.user = user; return this; }
         public Builder password(String password) { this.password = password; return this; }
         public Builder aesKey(String aesKey) { this.aesKey = aesKey; return this; }
+        public Builder sepayApiToken(String sepayApiToken) { this.sepayApiToken = sepayApiToken; return this; }
+        public Builder sepayBankCode(String sepayBankCode) { this.sepayBankCode = sepayBankCode; return this; }
+        public Builder sepayAccountNo(String sepayAccountNo) { this.sepayAccountNo = sepayAccountNo; return this; }
+        public Builder sepayAccountName(String sepayAccountName) { this.sepayAccountName = sepayAccountName; return this; }
 
         public DatabaseConfig build() { return new DatabaseConfig(this); }
     }

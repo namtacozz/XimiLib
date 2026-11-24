@@ -2,7 +2,7 @@
 
 > **Thư viện làng Xì Mi:** Hệ thống Quản lý Thư viện Desktop đa nền tảng (Windows / macOS / Linux)  
 > **Đơn vị vận hành: Thư viện làng Xì Mi**  
-> **Phiên bản:** `1.1.0` | **Nền tảng:** `Java 25 LTS (Swing FlatLaf)` + `MySQL 8.0+` (JDBC thuần `DriverManager`)
+> **Phiên bản:** `1.1.0` | **Nền tảng:** `Java 21 LTS (Swing FlatLaf)` + `MySQL 8.0+` (JDBC thuần `DriverManager`)
 
 ---
 
@@ -22,7 +22,7 @@
 > Bản đóng gói `dist/XimiLib.jar` không nằm trong Git (được loại trừ bởi `.gitignore`). Khi clone dự án về máy tính mới, bạn chỉ cần thực hiện thiết lập tự động hoặc thủ công theo hướng dẫn dưới đây để sẵn sàng chạy.
 
 ### 1. Yêu cầu Tiên quyết
-- **Java Development Kit (JDK):** Phiên bản **Java 25 LTS** (hoặc Java 21+).
+- **Java Development Kit (JDK):** Phiên bản **Java 21 LTS** (hoặc mới hơn).
 - **Apache Maven:** Phiên bản **3.8+**.
 - **Hệ quản trị CSDL:** **MySQL 8.0+** đang hoạt động (cổng mặc định `3306`).
 
@@ -76,7 +76,7 @@ Nếu bạn muốn tự thiết lập từng bước thay vì dùng script:
    mysql -u ximilib_app -p ximilib_db < db/migrations/V2__srs_schema_updates.sql
    mysql -u ximilib_app -p ximilib_db < db/migrations/V3__enforce_bcrypt_passwords.sql
    mysql -u ximilib_app -p ximilib_db < db/migrations/V4__report_and_search_indexes.sql
-   mysql -u ximilib_app -p ximilib_db < db/migrations/V5__add_audit_log.sql
+   mysql -u ximilib_app -p ximilib_db < db/migrations/V5__srs_alignment_and_audit.sql
    mysql -u ximilib_app -p ximilib_db < db/seed/seed_books.sql
    ```
 3. **Cấu hình kết nối CSDL:**

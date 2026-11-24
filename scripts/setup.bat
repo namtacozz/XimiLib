@@ -37,24 +37,21 @@ if %errorlevel% neq 0 (
 echo [OK] MySQL Client da san sang.
 
 rem Khai bao hang so tap trung
-set "DEMO_CONFIG=config\db.properties.demo"
+set "EXAMPLE_CONFIG=config\db.properties.example"
 set "REAL_CONFIG=config\db.properties"
 set "DB_NAME=ximilib_db"
 set "DB_USER=ximilib_app"
+set "APP_PASS=ximilib_demo_123"
 
-if not exist "%DEMO_CONFIG%" (
-    echo [LOI] Khong tim thay file mau %DEMO_CONFIG%!
+if not exist "%EXAMPLE_CONFIG%" (
+    echo [LOI] Khong tim thay file mau %EXAMPLE_CONFIG%!
     exit /b 1
 )
 
-rem Doc mat khau tu file demo (khong hardcode trong script)
-set "APP_PASS="
-for /f "tokens=1,* delims==" %%A in ('type "%DEMO_CONFIG%" ^| findstr /r "^db\.password="') do (
-    set "APP_PASS=%%B"
-)
-if not defined APP_PASS (
-    echo [LOI] Khong the doc db.password tu %DEMO_CONFIG%!
-    exit /b 1
+if exist "%REAL_CONFIG%" (
+    for /f "tokens=1,* delims==" %%A in ('type "%REAL_CONFIG%" ^| findstr /r "^db\.password="') do (
+        if not "%%B"=="CHANGE_ME" set "APP_PASS=%%B"
+    )
 )
 set "APP_PASS=%APP_PASS: =%"
 
@@ -99,12 +96,15 @@ for /f %%A in ('mysql -u root -D "%DB_NAME%" -N -s -e "SELECT COUNT(*) FROM info
 if %TABLE_COUNT% gtr 0 (
     echo [2/4] Co so du lieu '%DB_NAME%' da co %TABLE_COUNT% bang. Bo qua buoc nap schema va seed [idempotent].
 ) else (
-    echo [2/4] Nap cau truc bang qua migrations (V1 -^> V2 -^> V3 -^> V4)...
+    echo [2/4] Nap cau truc bang qua migrations (V1 -^> V2 -^> V3 -^> V4 -^> V5)...
     mysql -u root -D "%DB_NAME%" < "db\migrations\V1__initial_schema.sql"
     mysql -u root -D "%DB_NAME%" < "db\migrations\V2__srs_schema_updates.sql"
     mysql -u root -D "%DB_NAME%" < "db\migrations\V3__enforce_bcrypt_passwords.sql"
     if exist "db\migrations\V4__report_and_search_indexes.sql" (
         mysql -u root -D "%DB_NAME%" < "db\migrations\V4__report_and_search_indexes.sql"
+    )
+    if exist "db\migrations\V5__srs_alignment_and_audit.sql" (
+        mysql -u root -D "%DB_NAME%" < "db\migrations\V5__srs_alignment_and_audit.sql"
     )
 
     echo Dang nap 221 dau sach va ban sao mau...
@@ -121,8 +121,8 @@ if %TABLE_COUNT% gtr 0 (
 rem 6. Thiet lap file cau hinh cuc bo config\db.properties
 echo [3/4] Kiem tra file cau hinh ket noi ung dung...
 if not exist "%REAL_CONFIG%" (
-    copy "%DEMO_CONFIG%" "%REAL_CONFIG%" >nul
-    echo [OK] Da tao %REAL_CONFIG% tu %DEMO_CONFIG%.
+    powershell -NoProfile -Command "$aes = [Convert]::ToBase64String((1..24 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 })); $c = Get-Content '%EXAMPLE_CONFIG%' -Raw; $c = $c -replace 'db\.user=CHANGE_ME', 'db.user=%DB_USER%' -replace 'db\.password=CHANGE_ME', 'db.password=%APP_PASS%' -replace 'security\.aes\.key=CHANGE_ME', ('security.aes.key=' + $aes); Set-Content '%REAL_CONFIG%' $c -Encoding UTF8"
+    echo [OK] Da tao %REAL_CONFIG% tu %EXAMPLE_CONFIG%.
 ) else (
     echo [INFO] File %REAL_CONFIG% da ton tai. Giu nguyen cau hinh hien tai, khong ghi de.
 )
@@ -138,13 +138,13 @@ for /f %%A in ('mysql -u root -D "%DB_NAME%" -N -s -e "SELECT COUNT(*) FROM sach
     set "FINAL_BOOKS=%%A"
 )
 
-echo -^> So bang hien co : %FINAL_TABLES% / 23
+echo -^> So bang hien co : %FINAL_TABLES% / 24
 echo -^> So sach hien co : %FINAL_BOOKS% / 221
 
 set "MYSQL_PWD="
 set "ROOT_PWD="
 
-if "%FINAL_TABLES%"=="23" (
+if %FINAL_TABLES% geq 24 (
     if "%FINAL_BOOKS%"=="221" (
         echo ===================================================
         echo [OK] THIET LAP HOAN TAT THANH CONG!
@@ -154,5 +154,5 @@ if "%FINAL_TABLES%"=="23" (
     )
 )
 
-echo [CANH BAO] Kiem tra tinh toan ven chua dat (ky vong 23 bang va 221 sach).
+echo [CANH BAO] Kiem tra tinh toan ven chua dat (ky vong 24 bang va 221 sach).
 exit /b 1

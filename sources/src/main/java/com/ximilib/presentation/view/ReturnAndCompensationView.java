@@ -565,7 +565,7 @@ public class ReturnAndCompensationView extends JPanel {
         if (radLost.isSelected()) {
             CompensationResultDto loss = circulationService.reportLoss(barcode);
             if (loss.getTotalAmount() != null && loss.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
-                VietQrModalPanel.show(this, loss.getFineTicketId(), loss.getTotalAmount(), () -> {
+                VietQrModalPanel.show(this, loss.getFineTicketId(), loss.getTotalAmount(), true, () -> {
                     circulationService.payFine(loss.getFineTicketId(), UiText.METHOD_VIETQR);
                     UiModalHelper.showToastSuccess(this, UiText.MSG_COMPENSATION_PAID + currencyFormat.format(loss.getTotalAmount()));
                     resetForm();
@@ -578,7 +578,7 @@ public class ReturnAndCompensationView extends JPanel {
             String cond = radDamaged.isSelected() ? UiText.COND_LABEL_DAMAGED : UiText.COND_LABEL_NORMAL;
             ReturnResultDto ret = circulationService.returnBook(barcode, cond);
             if (ret.getTotalFine() != null && ret.getTotalFine().compareTo(BigDecimal.ZERO) > 0) {
-                VietQrModalPanel.show(this, "P-" + barcode, ret.getTotalFine(), () -> {
+                VietQrModalPanel.show(this, "P-" + barcode, ret.getTotalFine(), true, () -> {
                     UiModalHelper.showToastSuccess(this, UiText.MSG_RETURN_FINE_PAID + currencyFormat.format(ret.getTotalFine()));
                     resetForm();
                 });

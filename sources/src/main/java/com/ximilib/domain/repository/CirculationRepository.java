@@ -57,11 +57,27 @@ public interface CirculationRepository {
 
     void updateTicketStatus(String ticketId, int status);
 
+    default void updateTicketStatus(TransactionContext tx, String ticketId, int status) {
+        updateTicketStatus(ticketId, status);
+    }
+
     default void activatePendingLoan(String ticketId, LocalDateTime borrowDate, LocalDateTime dueDate) {
         updateTicketStatus(ticketId, 1);
     }
 
     void markCopyLost(String copyId);
+
+    default void markCopyLost(TransactionContext tx, String copyId) {
+        markCopyLost(copyId);
+    }
+
+    default boolean hasActiveReservationForTicket(String ticketId) {
+        return false;
+    }
+
+    default Optional<BigDecimal> findUnpaidFineAmount(String fineTicketId) {
+        return Optional.empty();
+    }
 
     void payFineAndCloseLoss(String fineId, String paymentMethod);
 

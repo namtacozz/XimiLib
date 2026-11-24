@@ -145,6 +145,7 @@ public class BookRepositoryImpl extends BaseJdbcRepository implements BookReposi
                     dto.setCoverImage(hinhanh);
                     dto.setDescription(rs.getString("Motasach"));
                     dto.setIsbn(rs.getString("Isbn"));
+                    dto.setPrice(rs.getDouble("Giabia"));
                     items.add(dto);
                 }
             }
@@ -343,6 +344,127 @@ public class BookRepositoryImpl extends BaseJdbcRepository implements BookReposi
     }
 
     @Override
+    public void updateBook(String bookId, String title, String author, String categoryName, String publisherName, String isbn, double price) {
+        if (bookId == null || bookId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã sách không được để trống!");
+        }
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên sách không được để trống!");
+        }
+        String cleanTitle = title.trim();
+        String cleanAuthor = (author != null && !author.trim().isEmpty()) ? author.trim() : "Nhiều tác giả";
+        String cleanPub = (publisherName != null && !publisherName.trim().isEmpty()) ? publisherName.trim() : "NXB Bách Khoa";
+        String cleanIsbn = (isbn != null && !isbn.trim().isEmpty()) ? isbn.trim() : "978-604-00-0000-0";
+
+        try (Connection conn = connectionManager.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                int catId = resolveCategoryId(conn, categoryName);
+                String authorId = resolveOrCreateAuthorId(conn, cleanAuthor);
+                String pubId = resolveOrCreatePublisherId(conn, cleanPub);
+
+                String updateBookSql = "UPDATE sach SET Matheloai = ?, Manxb = ?, Tensach = ?, Isbn = ?, Giabia = ? WHERE Masach = ?";
+                try (PreparedStatement psBook = conn.prepareStatement(updateBookSql)) {
+                    psBook.setInt(1, catId);
+                    psBook.setString(2, pubId);
+                    psBook.setString(3, cleanTitle);
+                    psBook.setString(4, cleanIsbn);
+                    psBook.setBigDecimal(5, java.math.BigDecimal.valueOf(price > 0 ? price : 150000.0));
+                    psBook.setString(6, bookId.trim());
+                    psBook.executeUpdate();
+                }
+
+                try (PreparedStatement psDelSt = conn.prepareStatement("DELETE FROM sach_tacgia WHERE Masach = ?")) {
+                    psDelSt.setString(1, bookId.trim());
+                    psDelSt.executeUpdate();
+                }
+
+                String insStSql = "INSERT INTO sach_tacgia (Masach, Matacgia, Vaitrotacgia) VALUES (?, ?, 'Tác giả chính')";
+                try (PreparedStatement psSt = conn.prepareStatement(insStSql)) {
+                    psSt.setString(1, bookId.trim());
+                    psSt.setString(2, authorId);
+                    psSt.executeUpdate();
+                }
+
+                conn.commit();
+            } catch (Exception ex) {
+                conn.rollback();
+                throw new RuntimeException("Lỗi cập nhật đầu sách vào CSDL: " + ex.getMessage(), ex);
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi kết nối cơ sở dữ liệu: " + e.getMessage(), e);
+        }
+    }
+
+    private int resolveCategoryId(Connection conn, String categoryName) throws SQLException {
+        int catId = 1;
+        try (PreparedStatement psCat = conn.prepareStatement("SELECT Matheloai FROM theloai WHERE LOWER(Tentheloai) = ? LIMIT 1")) {
+            psCat.setString(1, (categoryName != null ? categoryName.trim().toLowerCase() : ""));
+            try (ResultSet rs = psCat.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        try (PreparedStatement psFirst = conn.prepareStatement("SELECT Matheloai FROM theloai ORDER BY Matheloai ASC LIMIT 1");
+             ResultSet rsFirst = psFirst.executeQuery()) {
+            if (rsFirst.next()) {
+                catId = rsFirst.getInt(1);
+            }
+        }
+        return catId;
+    }
+
+    private String resolveOrCreateAuthorId(Connection conn, String cleanAuthor) throws SQLException {
+        try (PreparedStatement psTg = conn.prepareStatement("SELECT Matacgia FROM tacgia WHERE LOWER(Tentacgia) = ? LIMIT 1")) {
+            psTg.setString(1, cleanAuthor.toLowerCase());
+            try (ResultSet rs = psTg.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString(1);
+                }
+            }
+        }
+        int nextTgNum = 1;
+        try (PreparedStatement psMaxTg = conn.prepareStatement("SELECT MAX(CAST(SUBSTRING(Matacgia, 3) AS UNSIGNED)) FROM tacgia WHERE Matacgia LIKE 'TG%'");
+             ResultSet rs = psMaxTg.executeQuery()) {
+            if (rs.next()) nextTgNum = rs.getInt(1) + 1;
+        }
+        String authorId = String.format("TG%03d", nextTgNum);
+        try (PreparedStatement psInsTg = conn.prepareStatement("INSERT INTO tacgia (Matacgia, Tentacgia) VALUES (?, ?)")) {
+            psInsTg.setString(1, authorId);
+            psInsTg.setString(2, cleanAuthor);
+            psInsTg.executeUpdate();
+        }
+        return authorId;
+    }
+
+    private String resolveOrCreatePublisherId(Connection conn, String cleanPub) throws SQLException {
+        try (PreparedStatement psPub = conn.prepareStatement("SELECT manxb FROM nhaxuatban WHERE LOWER(tennxb) = ? OR LOWER(tennxb) LIKE ? LIMIT 1")) {
+            psPub.setString(1, cleanPub.toLowerCase());
+            psPub.setString(2, "%" + cleanPub.toLowerCase() + "%");
+            try (ResultSet rs = psPub.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString(1);
+                }
+            }
+        }
+        int nextNxb = 1;
+        try (PreparedStatement psMaxNxb = conn.prepareStatement("SELECT MAX(CAST(SUBSTRING(manxb, 4) AS UNSIGNED)) FROM nhaxuatban WHERE manxb LIKE 'NXB%'");
+             ResultSet rsMax = psMaxNxb.executeQuery()) {
+            if (rsMax.next()) nextNxb = rsMax.getInt(1) + 1;
+        }
+        String pubId = String.format("NXB%02d", nextNxb);
+        try (PreparedStatement psInsPub = conn.prepareStatement("INSERT INTO nhaxuatban (manxb, tennxb) VALUES (?, ?)")) {
+            psInsPub.setString(1, pubId);
+            psInsPub.setString(2, cleanPub);
+            psInsPub.executeUpdate();
+        }
+        return pubId;
+    }
+
+    @Override
     public void saveNewBook(String title, String author, String categoryName, String publisherName, String shelfLocation, String isbn, double price, int initialCopies) {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("Tên sách không được để trống!");
@@ -357,70 +479,9 @@ public class BookRepositoryImpl extends BaseJdbcRepository implements BookReposi
         try (Connection conn = connectionManager.getConnection()) {
             conn.setAutoCommit(false);
             try {
-
-                int catId = 1;
-                try (PreparedStatement psCat = conn.prepareStatement("SELECT Matheloai FROM theloai WHERE LOWER(Tentheloai) = ? LIMIT 1")) {
-                    psCat.setString(1, (categoryName != null ? categoryName.trim().toLowerCase() : ""));
-                    try (ResultSet rs = psCat.executeQuery()) {
-                        if (rs.next()) {
-                            catId = rs.getInt(1);
-                        } else {
-                            try (PreparedStatement psFirst = conn.prepareStatement("SELECT Matheloai FROM theloai ORDER BY Matheloai ASC LIMIT 1")) {
-                                try (ResultSet rsFirst = psFirst.executeQuery()) {
-                                    if (rsFirst.next()) catId = rsFirst.getInt(1);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                String authorId = null;
-                try (PreparedStatement psTg = conn.prepareStatement("SELECT Matacgia FROM tacgia WHERE LOWER(Tentacgia) = ? LIMIT 1")) {
-                    psTg.setString(1, cleanAuthor.toLowerCase());
-                    try (ResultSet rs = psTg.executeQuery()) {
-                        if (rs.next()) {
-                            authorId = rs.getString(1);
-                        }
-                    }
-                }
-                if (authorId == null) {
-                    int nextTgNum = 1;
-                    try (PreparedStatement psMaxTg = conn.prepareStatement("SELECT MAX(CAST(SUBSTRING(Matacgia, 3) AS UNSIGNED)) FROM tacgia WHERE Matacgia LIKE 'TG%'")) {
-                        try (ResultSet rs = psMaxTg.executeQuery()) {
-                            if (rs.next()) nextTgNum = rs.getInt(1) + 1;
-                        }
-                    }
-                    authorId = String.format("TG%03d", nextTgNum);
-                    try (PreparedStatement psInsTg = conn.prepareStatement("INSERT INTO tacgia (Matacgia, Tentacgia) VALUES (?, ?)")) {
-                        psInsTg.setString(1, authorId);
-                        psInsTg.setString(2, cleanAuthor);
-                        psInsTg.executeUpdate();
-                    }
-                }
-
-                String pubId = "NXB01";
-                try (PreparedStatement psPub = conn.prepareStatement("SELECT manxb FROM nhaxuatban WHERE LOWER(tennxb) = ? OR LOWER(tennxb) LIKE ? LIMIT 1")) {
-                    psPub.setString(1, cleanPub.toLowerCase());
-                    psPub.setString(2, "%" + cleanPub.toLowerCase() + "%");
-                    try (ResultSet rs = psPub.executeQuery()) {
-                        if (rs.next()) {
-                            pubId = rs.getString(1);
-                        } else {
-                            int nextNxb = 1;
-                            try (PreparedStatement psMaxNxb = conn.prepareStatement("SELECT MAX(CAST(SUBSTRING(manxb, 4) AS UNSIGNED)) FROM nhaxuatban WHERE manxb LIKE 'NXB%'")) {
-                                try (ResultSet rsMax = psMaxNxb.executeQuery()) {
-                                    if (rsMax.next()) nextNxb = rsMax.getInt(1) + 1;
-                                }
-                            }
-                            pubId = String.format("NXB%02d", nextNxb);
-                            try (PreparedStatement psInsPub = conn.prepareStatement("INSERT INTO nhaxuatban (manxb, tennxb) VALUES (?, ?)")) {
-                                psInsPub.setString(1, pubId);
-                                psInsPub.setString(2, cleanPub);
-                                psInsPub.executeUpdate();
-                            }
-                        }
-                    }
-                }
+                int catId = resolveCategoryId(conn, categoryName);
+                String authorId = resolveOrCreateAuthorId(conn, cleanAuthor);
+                String pubId = resolveOrCreatePublisherId(conn, cleanPub);
 
                 String shelfId = "KE-A1";
                 try (PreparedStatement psKe = conn.prepareStatement("SELECT Makesach FROM kesach WHERE LOWER(Tenkesach) = ? OR LOWER(Tenkesach) LIKE ? OR LOWER(Makesach) = ? LIMIT 1")) {

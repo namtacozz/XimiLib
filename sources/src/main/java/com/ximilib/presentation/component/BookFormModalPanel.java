@@ -58,9 +58,15 @@ public class BookFormModalPanel extends JPanel {
                                 price = Double.parseDouble(cleanPrice);
                             } catch (Exception ignored) {}
 
-                            AppContainer.getInstance().getBookCatalogService().saveNewBook(t, a, cat, pub, shelf, isbn, price, copies);
-                            controller.close();
-                            UiModalHelper.showToastSuccess(parent, "Thêm sách thành công!");
+                            if (book == null) {
+                                AppContainer.getInstance().getBookCatalogService().saveNewBook(t, a, cat, pub, shelf, isbn, price, copies);
+                                controller.close();
+                                UiModalHelper.showToastSuccess(parent, "Thêm sách thành công!");
+                            } else {
+                                AppContainer.getInstance().getBookCatalogService().updateBook(book.getBookId(), t, a, cat, pub, isbn, price);
+                                controller.close();
+                                UiModalHelper.showToastSuccess(parent, "Cập nhật thông tin sách thành công!");
+                            }
                             if (onSaveSuccess != null) onSaveSuccess.run();
                         } catch (Exception ex) {
                             UiModalHelper.showToastError(parent, "Lỗi lưu sách: " + ex.getMessage());
@@ -84,11 +90,28 @@ public class BookFormModalPanel extends JPanel {
         form.setPreferredSize(new Dimension(460, 360));
 
         txtTitle = new JTextField(existingBook != null ? existingBook.getTitle() : "");
-        txtIsbn = new JTextField(existingBook != null ? ("ISBN-" + existingBook.getBookId()) : "978-604-");
+        String initIsbn = (existingBook != null && existingBook.getIsbn() != null && !existingBook.getIsbn().isBlank())
+            ? existingBook.getIsbn() : "978-604-";
+        txtIsbn = new JTextField(initIsbn);
         txtAuthor = new JTextField(existingBook != null ? existingBook.getAuthor() : "");
 
-        String[] categories = {"Công nghệ thông tin", "Khoa học tự nhiên", "Kinh tế - Quản trị", "Văn học & Nghệ thuật", "Ngoại ngữ", "Kỹ năng sống", "Tâm lý học"};
-        cmbCategory = new JComboBox<>(categories);
+        java.util.List<String> catList = new java.util.ArrayList<>();
+        try {
+            java.util.Map<Integer, String> catMap = AppContainer.getInstance().getBookCatalogService().getCategories();
+            if (catMap != null && !catMap.isEmpty()) {
+                catList.addAll(catMap.values());
+            }
+        } catch (Exception ignored) {}
+        if (catList.isEmpty()) {
+            catList.add("Công nghệ thông tin");
+            catList.add("Khoa học tự nhiên");
+            catList.add("Kinh tế - Quản trị");
+            catList.add("Văn học & Nghệ thuật");
+            catList.add("Ngoại ngữ");
+            catList.add("Kỹ năng sống");
+            catList.add("Tâm lý học");
+        }
+        cmbCategory = new JComboBox<>(catList.toArray(new String[0]));
         if (existingBook != null && existingBook.getCategoryName() != null) {
             cmbCategory.setSelectedItem(existingBook.getCategoryName());
         }
@@ -104,13 +127,25 @@ public class BookFormModalPanel extends JPanel {
         cmbShelf = new JComboBox<>(shelves);
         cmbShelf.setEditable(true);
 
-        txtPrice = new JTextField(existingBook != null ? "150.000" : "150.000");
+        String initPrice = "150000";
+        if (existingBook != null && existingBook.getPrice() > 0) {
+            initPrice = String.valueOf((long) existingBook.getPrice());
+        }
+        txtPrice = new JTextField(initPrice);
 
-        spnCopies = new JSpinner(new SpinnerNumberModel(3, 1, 100, 1));
+        int initCopies = (existingBook != null && existingBook.getTotalCopies() > 0) ? existingBook.getTotalCopies() : 3;
+        spnCopies = new JSpinner(new SpinnerNumberModel(initCopies, 1, 100, 1));
+        if (existingBook != null) {
+            spnCopies.setEnabled(false);
+            cmbShelf.setEnabled(false);
+        }
 
         txtImportDate = new JFormattedTextField();
         importDatePicker = UiModalHelper.createDatePicker(txtImportDate, false);
         importDatePicker.setSelectedDate(LocalDate.now());
+        if (existingBook != null) {
+            txtImportDate.setEnabled(false);
+        }
 
         form.add(new JLabel("Tên đầu sách (*):"));
         form.add(txtTitle);
